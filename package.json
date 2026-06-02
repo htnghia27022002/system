@@ -1,0 +1,11 @@
+{
+  "name": "system",
+  "private": true,
+  "packageManager": "pnpm@10.12.1",
+  "scripts": {
+    "dev": "pnpm --filter fe dev",
+    "build": "pnpm --filter fe build",
+    "test": "pnpm --filter fe test:run",
+    "lint": "pnpm --filter fe lint"
+  }
+}

@@ -1,0 +1,40 @@
+{
+  "shell": {
+    "badge": "Back office",
+    "title": "Admin",
+    "openMenu": "Open navigation menu",
+    "collapseMenu": "Collapse sidebar",
+    "expandMenu": "Expand sidebar"
+  },
+  "userMenu": {
+    "settings": "Account settings",
+    "signOut": "Sign out",
+    "themeLight": "Light",
+    "themeDark": "Dark",
+    "themeSystem": "System",
+    "switchToVi": "Switch to Vietnamese",
+    "switchToEn": "Switch to English"
+  },
+  "nav": {
+    "overview": "Overview"
+  },
+  "overview": {
+    "title": "Dashboard overview",
+    "description": "Key metrics and weekly activity for your store.",
+    "error": "Could not load dashboard data.",
+    "retry": "Try again",
+    "vsLastWeek": "vs last week",
+    "lastUpdated": "Last updated {{time}}",
+    "refreshing": "Refreshing",
+    "chart": {
+      "title": "Weekly activity",
+      "description": "Orders and sessions over the last 7 days."
+    },
+    "kpis": {
+      "totalUsers": "Total users",
+      "activeSessions": "Active sessions",
+      "revenue": "Revenue",
+      "ordersToday": "Orders today"
+    }
+  }
+}

@@ -1,0 +1,40 @@
+{
+  "shell": {
+    "badge": "Back office",
+    "title": "Quan tri",
+    "openMenu": "Mo menu dieu huong",
+    "collapseMenu": "Thu gon menu",
+    "expandMenu": "Mo rong menu"
+  },
+  "userMenu": {
+    "settings": "Cai dat tai khoan",
+    "signOut": "Dang xuat",
+    "themeLight": "Sang",
+    "themeDark": "Toi",
+    "themeSystem": "He thong",
+    "switchToVi": "Chuyen sang tieng Viet",
+    "switchToEn": "Chuyen sang tieng Anh"
+  },
+  "nav": {
+    "overview": "Tong quan"
+  },
+  "overview": {
+    "title": "Tong quan dashboard",
+    "description": "Chi so chinh va hoat dong trong tuan.",
+    "error": "Khong tai duoc du lieu dashboard.",
+    "retry": "Thu lai",
+    "vsLastWeek": "so voi tuan truoc",
+    "lastUpdated": "Cap nhat luc {{time}}",
+    "refreshing": "Dang lam moi",
+    "chart": {
+      "title": "Hoat dong trong tuan",
+      "description": "Don hang va phien trong 7 ngay qua."
+    },
+    "kpis": {
+      "totalUsers": "Tong nguoi dung",
+      "activeSessions": "Phien dang hoat dong",
+      "revenue": "Doanh thu",
+      "ordersToday": "Don hom nay"
+    }
+  }
+}

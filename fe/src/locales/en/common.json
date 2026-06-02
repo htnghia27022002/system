@@ -1,0 +1,49 @@
+{
+  "appName": "System App",
+  "home": {
+    "title": "Frontend initialized",
+    "description": "React, Tailwind v4, shadcn/ui, TanStack Query, i18n, and auth services are ready.",
+    "toast": "Toast notification works"
+  },
+  "nav": {
+    "home": "Home"
+  },
+  "theme": {
+    "toggle": "Toggle theme",
+    "light": "Light",
+    "dark": "Dark",
+    "system": "System"
+  },
+  "auth": {
+    "fields": {
+      "name": "Full name",
+      "email": "Email",
+      "password": "Password",
+      "confirmPassword": "Confirm password"
+    },
+    "actions": {
+      "signIn": "Sign in",
+      "signingIn": "Signing in...",
+      "register": "Register",
+      "createAccount": "Create account",
+      "creatingAccount": "Creating account...",
+      "signOut": "Sign out"
+    },
+    "nav": {
+      "label": "Account"
+    },
+    "layout": {
+      "subtitle": "Account access"
+    },
+    "login": {
+      "title": "Sign in",
+      "description": "Use your email and password to continue.",
+      "noAccount": "New here?"
+    },
+    "register": {
+      "title": "Create account",
+      "description": "A few details to get you started.",
+      "hasAccount": "Already have an account?"
+    }
+  }
+}

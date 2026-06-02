@@ -1,0 +1,11 @@
+---
+description: Require English for all file edits and creations
+alwaysApply: true
+---
+
+# English-only file content
+
+- Write all created or modified file content in English.
+- Apply this to code comments, README files, documentation, commit-related text inside files, and UI copy written into source files.
+- Do not write Vietnamese or mixed-language content in files unless the user explicitly asks for a translation or multilingual output.
+- If existing content is non-English and must be updated, convert the edited portion to clear English where possible.

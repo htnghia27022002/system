@@ -1,0 +1,49 @@
+{
+  "appName": "System App",
+  "home": {
+    "title": "Frontend da khoi tao",
+    "description": "React, Tailwind v4, shadcn/ui, TanStack Query, i18n va auth services da san sang.",
+    "toast": "Thong bao toast hoat dong"
+  },
+  "nav": {
+    "home": "Trang chu"
+  },
+  "theme": {
+    "toggle": "Doi giao dien",
+    "light": "Sang",
+    "dark": "Toi",
+    "system": "He thong"
+  },
+  "auth": {
+    "fields": {
+      "name": "Ho va ten",
+      "email": "Email",
+      "password": "Mat khau",
+      "confirmPassword": "Xac nhan mat khau"
+    },
+    "actions": {
+      "signIn": "Dang nhap",
+      "signingIn": "Dang dang nhap...",
+      "register": "Dang ky",
+      "createAccount": "Tao tai khoan",
+      "creatingAccount": "Dang tao tai khoan...",
+      "signOut": "Dang xuat"
+    },
+    "nav": {
+      "label": "Tai khoan"
+    },
+    "layout": {
+      "subtitle": "Truy cap tai khoan"
+    },
+    "login": {
+      "title": "Dang nhap",
+      "description": "Nhap email va mat khau de tiep tuc.",
+      "noAccount": "Ban moi?"
+    },
+    "register": {
+      "title": "Tao tai khoan",
+      "description": "Dien thong tin de dang ky tai khoan moi.",
+      "hasAccount": "Da co tai khoan?"
+    }
+  }
+}
