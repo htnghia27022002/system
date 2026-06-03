@@ -1,19 +1,14 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Loader2Icon } from 'lucide-react'
 import { useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
-import { Link } from 'react-router-dom'
 
+import { InputError } from '@/components/common/input-error'
+import { TextLink } from '@/components/common/text-link'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Spinner } from '@/components/ui/spinner'
 
-import {
-  AuthFormField,
-  AuthFormFooterText,
-  AuthFormShell,
-  authFieldDescribedBy,
-  authFieldInputClassName,
-} from './auth-form-shell'
 import { useRegister } from '../hooks/use-register'
 import {
   registerSchema,
@@ -39,109 +34,84 @@ export function RegisterForm() {
   })
 
   return (
-    <AuthFormShell
-      title={t('auth.register.title')}
-      description={t('auth.register.description')}
-      footer={
-        <AuthFormFooterText>
-          {t('auth.register.hasAccount')}{' '}
-          <Button variant="link" className="h-auto p-0 text-[17px]" asChild>
-            <Link to="/login">{t('auth.actions.signIn')}</Link>
-          </Button>
-        </AuthFormFooterText>
-      }
+    <form
+      className="flex flex-col gap-6"
+      onSubmit={handleSubmit((values) => registerMutation.mutate(values))}
+      noValidate
     >
-      <form
-        className="space-y-5"
-        onSubmit={handleSubmit((values) => registerMutation.mutate(values))}
-        noValidate
-      >
-        <AuthFormField
-          id="name"
-          label={t('auth.fields.name')}
-          error={errors.name?.message}
-        >
+      <div className="grid gap-6">
+        <div className="grid gap-2">
+          <Label htmlFor="name">{t('auth.fields.name')}</Label>
           <Input
             id="name"
             type="text"
             autoComplete="name"
-            className={authFieldInputClassName}
+            autoFocus
+            placeholder="Full name"
             aria-invalid={Boolean(errors.name)}
-            aria-describedby={authFieldDescribedBy('name', Boolean(errors.name))}
             {...register('name')}
           />
-        </AuthFormField>
+          <InputError message={errors.name?.message} />
+        </div>
 
-        <AuthFormField
-          id="email"
-          label={t('auth.fields.email')}
-          error={errors.email?.message}
-        >
+        <div className="grid gap-2">
+          <Label htmlFor="email">{t('auth.fields.email')}</Label>
           <Input
             id="email"
             type="email"
             autoComplete="email"
-            className={authFieldInputClassName}
+            placeholder="email@example.com"
             aria-invalid={Boolean(errors.email)}
-            aria-describedby={authFieldDescribedBy('email', Boolean(errors.email))}
             {...register('email')}
           />
-        </AuthFormField>
+          <InputError message={errors.email?.message} />
+        </div>
 
-        <AuthFormField
-          id="password"
-          label={t('auth.fields.password')}
-          error={errors.password?.message}
-        >
+        <div className="grid gap-2">
+          <Label htmlFor="password">{t('auth.fields.password')}</Label>
           <Input
             id="password"
             type="password"
             autoComplete="new-password"
-            className={authFieldInputClassName}
+            placeholder="Password"
             aria-invalid={Boolean(errors.password)}
-            aria-describedby={authFieldDescribedBy(
-              'password',
-              Boolean(errors.password),
-            )}
             {...register('password')}
           />
-        </AuthFormField>
+          <InputError message={errors.password?.message} />
+        </div>
 
-        <AuthFormField
-          id="confirmPassword"
-          label={t('auth.fields.confirmPassword')}
-          error={errors.confirmPassword?.message}
-        >
+        <div className="grid gap-2">
+          <Label htmlFor="confirmPassword">
+            {t('auth.fields.confirmPassword')}
+          </Label>
           <Input
             id="confirmPassword"
             type="password"
             autoComplete="new-password"
-            className={authFieldInputClassName}
+            placeholder="Confirm password"
             aria-invalid={Boolean(errors.confirmPassword)}
-            aria-describedby={authFieldDescribedBy(
-              'confirmPassword',
-              Boolean(errors.confirmPassword),
-            )}
             {...register('confirmPassword')}
           />
-        </AuthFormField>
+          <InputError message={errors.confirmPassword?.message} />
+        </div>
 
         <Button
           type="submit"
-          variant="pill"
-          size="cta"
           className="mt-2 w-full"
           disabled={registerMutation.isPending}
           aria-busy={registerMutation.isPending}
         >
-          {registerMutation.isPending ? (
-            <Loader2Icon className="size-4 animate-spin" aria-hidden />
-          ) : null}
+          {registerMutation.isPending ? <Spinner /> : null}
           {registerMutation.isPending
             ? t('auth.actions.creatingAccount')
             : t('auth.actions.createAccount')}
         </Button>
-      </form>
-    </AuthFormShell>
+      </div>
+
+      <div className="text-center text-sm text-muted-foreground">
+        {t('auth.register.hasAccount')}{' '}
+        <TextLink to="/login">{t('auth.actions.signIn')}</TextLink>
+      </div>
+    </form>
   )
 }

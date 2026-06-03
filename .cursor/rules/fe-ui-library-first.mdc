@@ -1,10 +1,10 @@
 ---
-description: FE UI must use shadcn/ui and project libraries; DESIGN.md styles existing components only.
+description: FE UI must use shadcn/ui and project libraries; theme via index.css CSS variables.
 globs: fe/**/*
 alwaysApply: false
 ---
 
-# FE UI: library-first, DESIGN as reference
+# FE UI: library-first, theme via CSS variables
 
 ## Before any custom UI markup
 
@@ -24,9 +24,9 @@ alwaysApply: false
 ## Do not
 
 - Build parallel components when shadcn/registry has a match (e.g. custom div loading bar instead of `Progress`).
-- Add `.ds-*` CSS component layers; use tokens + shadcn `className` / variants.
+- Add parallel CSS token layers; customize via `:root` / `.dark` in `src/styles/index.css`.
 - Skip the registry check because a wrapper lives in `components/common/`.
 
-## DESIGN.md
+## Theming
 
-Visual reference only — apply tokens and patterns **on** shadcn components, not instead of them.
+Customize the whole app in `src/styles/index.css` — edit `--primary`, `--background`, `--radius`, etc. in `:root` and `.dark`. See [shadcn theming](https://ui.shadcn.com/docs/theming).

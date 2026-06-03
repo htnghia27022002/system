@@ -1,19 +1,14 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Loader2Icon } from 'lucide-react'
 import { useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
-import { Link } from 'react-router-dom'
 
+import { InputError } from '@/components/common/input-error'
+import { TextLink } from '@/components/common/text-link'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Spinner } from '@/components/ui/spinner'
 
-import {
-  AuthFormField,
-  AuthFormFooterText,
-  AuthFormShell,
-  authFieldDescribedBy,
-  authFieldInputClassName,
-} from './auth-form-shell'
 import { useLogin } from '../hooks/use-login'
 import { loginSchema, type LoginFormValues } from '../schemas/auth-schemas'
 
@@ -34,74 +29,56 @@ export function LoginForm() {
   })
 
   return (
-    <AuthFormShell
-      title={t('auth.login.title')}
-      description={t('auth.login.description')}
-      footer={
-        <AuthFormFooterText>
-          {t('auth.login.noAccount')}{' '}
-          <Button variant="link" className="h-auto p-0 text-[17px]" asChild>
-            <Link to="/register">{t('auth.actions.register')}</Link>
-          </Button>
-        </AuthFormFooterText>
-      }
+    <form
+      className="flex flex-col gap-6"
+      onSubmit={handleSubmit((values) => loginMutation.mutate(values))}
+      noValidate
     >
-      <form
-        className="space-y-5"
-        onSubmit={handleSubmit((values) => loginMutation.mutate(values))}
-        noValidate
-      >
-        <AuthFormField
-          id="email"
-          label={t('auth.fields.email')}
-          error={errors.email?.message}
-        >
+      <div className="grid gap-6">
+        <div className="grid gap-2">
+          <Label htmlFor="email">{t('auth.fields.email')}</Label>
           <Input
             id="email"
             type="email"
             autoComplete="email"
-            className={authFieldInputClassName}
+            autoFocus
+            placeholder="email@example.com"
             aria-invalid={Boolean(errors.email)}
-            aria-describedby={authFieldDescribedBy('email', Boolean(errors.email))}
             {...register('email')}
           />
-        </AuthFormField>
+          <InputError message={errors.email?.message} />
+        </div>
 
-        <AuthFormField
-          id="password"
-          label={t('auth.fields.password')}
-          error={errors.password?.message}
-        >
+        <div className="grid gap-2">
+          <Label htmlFor="password">{t('auth.fields.password')}</Label>
           <Input
             id="password"
             type="password"
             autoComplete="current-password"
-            className={authFieldInputClassName}
+            placeholder="Password"
             aria-invalid={Boolean(errors.password)}
-            aria-describedby={authFieldDescribedBy(
-              'password',
-              Boolean(errors.password),
-            )}
             {...register('password')}
           />
-        </AuthFormField>
+          <InputError message={errors.password?.message} />
+        </div>
 
         <Button
           type="submit"
-          variant="pill"
-          size="cta"
-          className="mt-2 w-full"
+          className="mt-4 w-full"
           disabled={loginMutation.isPending}
           aria-busy={loginMutation.isPending}
         >
-          {loginMutation.isPending ? (
-            <Loader2Icon className="size-4 animate-spin" aria-hidden />
-          ) : null}
+          {loginMutation.isPending ? <Spinner /> : null}
           {loginMutation.isPending
             ? t('auth.actions.signingIn')
             : t('auth.actions.signIn')}
         </Button>
-      </form>
-    </AuthFormShell>
+      </div>
+
+      <div className="text-center text-sm text-muted-foreground">
+        {t('auth.login.noAccount')}{' '}
+        <TextLink to="/register">{t('auth.actions.register')}</TextLink>
+      </div>
+    </form>
   )
 }

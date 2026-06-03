@@ -16,7 +16,78 @@
     "switchToEn": "Switch to English"
   },
   "nav": {
-    "overview": "Overview"
+    "platform": "Platform",
+    "dashboard": "Dashboard",
+    "overview": "Overview",
+    "users": "Users",
+    "roles": "Roles",
+    "permissions": "Permissions"
+  },
+  "access": {
+    "insufficientPermissions": "Insufficient permissions",
+    "actions": {
+      "cancel": "Cancel",
+      "create": "Create",
+      "save": "Save",
+      "delete": "Delete",
+      "edit": "Edit",
+      "retry": "Try again",
+      "openMenu": "Open row actions"
+    },
+    "users": {
+      "title": "Users",
+      "description": "Manage user accounts, roles, and status.",
+      "createTitle": "Create user",
+      "editTitle": "Edit user",
+      "createAction": "Create user",
+      "deleteTitle": "Delete user",
+      "deleteDescription": "Remove {{name}}? This cannot be undone.",
+      "empty": "No users yet.",
+      "error": "Could not load users.",
+      "fields": {
+        "name": "Name",
+        "email": "Email",
+        "password": "Password",
+        "passwordOptional": "leave blank to keep current",
+        "role": "Role",
+        "status": "Status"
+      },
+      "status": {
+        "active": "Active",
+        "inactive": "Inactive"
+      }
+    },
+    "roles": {
+      "title": "Roles",
+      "description": "Define roles and assign permissions for your team.",
+      "backToUsers": "Back to users",
+      "permissionsSheetHint": "Select permissions by group. Use group headers to toggle a whole section.",
+      "selectedCount": "{{count}} of {{total}} selected",
+      "createTitle": "Create role",
+      "editTitle": "Edit role",
+      "createAction": "Create role",
+      "deleteTitle": "Delete role",
+      "deleteDescription": "Remove role {{name}}? Users must be reassigned first.",
+      "empty": "No roles yet.",
+      "error": "Could not load roles.",
+      "fields": {
+        "name": "Name",
+        "slug": "Slug",
+        "permissions": "Permissions"
+      }
+    },
+    "permissions": {
+      "title": "Permissions",
+      "description": "Read-only catalog of permission keys used by the system.",
+      "empty": "No permissions in catalog.",
+      "error": "Could not load permissions.",
+      "fields": {
+        "key": "Key",
+        "name": "Name",
+        "group": "Group",
+        "description": "Description"
+      }
+    }
   },
   "overview": {
     "title": "Dashboard overview",

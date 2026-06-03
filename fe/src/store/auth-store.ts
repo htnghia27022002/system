@@ -20,6 +20,8 @@ function userFromAccessToken(token: string | null): AuthUser | null {
       email: payload.email,
       name: payload.name ?? payload.email,
       role: payload.role,
+      roleId: payload.roleId ?? '',
+      permissions: payload.permissions ?? [],
     }
   } catch {
     return null
@@ -65,4 +67,8 @@ export const useAuthStore = create<AuthState>((set) => ({
 
 export function getPostLoginPath(role: UserRole): string {
   return role === 'admin' ? '/admin' : '/'
+}
+
+export function selectPermissions(state: AuthState): string[] {
+  return state.user?.permissions ?? []
 }

@@ -16,7 +16,78 @@
     "switchToEn": "Chuyen sang tieng Anh"
   },
   "nav": {
-    "overview": "Tong quan"
+    "platform": "Nen tang",
+    "dashboard": "Dashboard",
+    "overview": "Tong quan",
+    "users": "Nguoi dung",
+    "roles": "Vai tro",
+    "permissions": "Quyen"
+  },
+  "access": {
+    "insufficientPermissions": "Khong du quyen truy cap",
+    "actions": {
+      "cancel": "Huy",
+      "create": "Tao",
+      "save": "Luu",
+      "delete": "Xoa",
+      "edit": "Sua",
+      "retry": "Thu lai",
+      "openMenu": "Mo thao tac hang"
+    },
+    "users": {
+      "title": "Nguoi dung",
+      "description": "Quan ly tai khoan, vai tro va trang thai.",
+      "createTitle": "Tao nguoi dung",
+      "editTitle": "Sua nguoi dung",
+      "createAction": "Tao nguoi dung",
+      "deleteTitle": "Xoa nguoi dung",
+      "deleteDescription": "Xoa {{name}}? Hanh dong nay khong the hoan tac.",
+      "empty": "Chua co nguoi dung.",
+      "error": "Khong tai duoc danh sach nguoi dung.",
+      "fields": {
+        "name": "Ten",
+        "email": "Email",
+        "password": "Mat khau",
+        "passwordOptional": "de trong neu giu mat khau cu",
+        "role": "Vai tro",
+        "status": "Trang thai"
+      },
+      "status": {
+        "active": "Hoat dong",
+        "inactive": "Ngung hoat dong"
+      }
+    },
+    "roles": {
+      "title": "Vai tro",
+      "description": "Dinh nghia vai tro va gan quyen cho nhom nguoi dung.",
+      "backToUsers": "Quay lai nguoi dung",
+      "permissionsSheetHint": "Chon quyen theo nhom. Bam tieu de nhom de bat/tat ca nhom do.",
+      "selectedCount": "Da chon {{count}}/{{total}}",
+      "createTitle": "Tao vai tro",
+      "editTitle": "Sua vai tro",
+      "createAction": "Tao vai tro",
+      "deleteTitle": "Xoa vai tro",
+      "deleteDescription": "Xoa vai tro {{name}}? Can gan lai nguoi dung truoc.",
+      "empty": "Chua co vai tro.",
+      "error": "Khong tai duoc danh sach vai tro.",
+      "fields": {
+        "name": "Ten",
+        "slug": "Slug",
+        "permissions": "Quyen"
+      }
+    },
+    "permissions": {
+      "title": "Quyen",
+      "description": "Danh muc quyen chi doc dung trong he thong.",
+      "empty": "Chua co quyen trong danh muc.",
+      "error": "Khong tai duoc danh muc quyen.",
+      "fields": {
+        "key": "Key",
+        "name": "Ten",
+        "group": "Nhom",
+        "description": "Mo ta"
+      }
+    }
   },
   "overview": {
     "title": "Tong quan dashboard",

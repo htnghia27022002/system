@@ -10,6 +10,8 @@ export type AuthUser = {
   email: string
   name: string
   role: UserRole
+  roleId: string
+  permissions: string[]
 }
 
 export type JwtPayload = {
@@ -19,4 +21,6 @@ export type JwtPayload = {
   email?: string
   name?: string
   role?: UserRole
+  roleId?: string
+  permissions?: string[]
 }

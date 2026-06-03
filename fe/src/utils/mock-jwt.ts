@@ -5,6 +5,8 @@ type MockJwtPayload = {
   email: string
   name: string
   role: UserRole
+  roleId: string
+  permissions: string[]
   exp: number
   iat: number
 }
@@ -24,9 +26,11 @@ export function createMockAuthTokens(
   email: string,
   name: string,
   role: UserRole,
+  roleId: string,
+  permissions: string[],
 ) {
   const now = Math.floor(Date.now() / 1000)
-  const base = { sub: userId, email, name, role }
+  const base = { sub: userId, email, name, role, roleId, permissions }
   const accessPayload: MockJwtPayload = {
     ...base,
     iat: now,

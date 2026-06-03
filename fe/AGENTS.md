@@ -6,7 +6,8 @@ Follow these rules before creating, editing, moving, or deleting files.
 ## 1) Source of Truth
 
 - Use `README.md` in this folder as the architecture baseline.
-- Use `DESIGN.md` in this folder as the visual design baseline for all UI work (colors, typography, spacing, components, layout rhythm).
+- Use `src/styles/index.css` (`:root` / `.dark` CSS variables) as the visual theme baseline for all UI work.
+- `DESIGN.md` is deprecated legacy reference only — do not apply its Apple tokens to new work.
 - Do not introduce a different folder strategy unless explicitly requested by the user.
 - Prefer consistency with existing patterns over personal preference.
 
@@ -85,10 +86,10 @@ Do not create random top-level folders in `src` without user approval.
 
 ## 9) UI Library and Design Reference
 
-- **Library-first:** Use installed stack components (`src/components/ui` from shadcn/ui, Radix primitives, TanStack Query, next-themes, etc.) and follow each library’s official docs/API. Do not replace them with parallel hand-rolled UI (raw `<button>`, bespoke input classes, duplicate card shells).
+- **Library-first:** Use installed stack components (`src/components/ui` from shadcn/ui, Radix primitives, TanStack Query, next-themes, etc.) and follow each library’s official docs/API. Do not replace them with parallel hand-rolled UI 1 (raw `<button>`, bespoke input classes, duplicate card shells).
 - **Registry before markup:** For any UI primitive (progress bar, dialog, tabs, etc.), check `src/components/ui/` and [shadcn components](https://ui.shadcn.com/docs/components). If missing, run `pnpm dlx shadcn@latest add <name> -y` in `fe/` before writing custom elements. Files under `src/components/common/` must **compose** shadcn/ui, not duplicate it.
-- **`fe/DESIGN.md` is a visual reference:** Map its patterns (`button-primary`, `store-utility-card`, `global-nav`, tokens) onto existing components via theme tokens, variants, and `className` — not by inventing separate `ds-*` component layers.
-- **Tokens live in `src/styles/design-tokens.css`:** Bridge DESIGN colors/typography/radius to CSS variables and shadcn theme aliases. Extend shadcn variants (e.g. `Button` `variant="pill"`, `Progress` `indeterminate`) when a DESIGN pattern repeats.
+- **Theme via CSS variables:** Customize colors, radius, and surfaces in `src/styles/index.css` (`:root` and `.dark`). Components consume semantic tokens (`bg-primary`, `text-muted-foreground`) — avoid per-page hex overrides or parallel token layers.
+- **Extend shadcn variants** (e.g. `Button` variants, `Progress` `indeterminate`) only when a pattern repeats across features.
 
 ## 10) Language Rule
 

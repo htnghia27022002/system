@@ -4,97 +4,16 @@ import type {
   LoginRequest,
   RegisterRequest,
 } from '@/features/auth/types'
-import type { UserRole } from '@/types/auth'
+import {
+  ensureRbacSeed,
+  getRoleById,
+  mockAccessControlApi,
+  MockAccessControlError,
+  resolveAuthUserByCredentials,
+  resolveAuthUserByEmail,
+} from '@/services/mock/access-control.mock'
 import { mockDelay } from '@/utils/mock-delay'
 import { createMockAuthTokens } from '@/utils/mock-jwt'
-
-const MOCK_USERS_KEY = 'mock_auth_users'
-
-type MockUser = {
-  id: string
-  email: string
-  name: string
-  password: string
-  role: UserRole
-}
-
-function readUsers(): MockUser[] {
-  try {
-    const raw = localStorage.getItem(MOCK_USERS_KEY)
-    if (!raw) return []
-    const parsed = JSON.parse(raw) as Array<MockUser & { role?: UserRole }>
-    return parsed.map((entry) => ({
-      ...entry,
-      role:
-        entry.role ??
-        (entry.email.toLowerCase() === 'admin@example.com' ? 'admin' : 'user'),
-    }))
-  } catch {
-    return []
-  }
-}
-
-function writeUsers(users: MockUser[]) {
-  localStorage.setItem(MOCK_USERS_KEY, JSON.stringify(users))
-}
-
-const SEED_USERS: MockUser[] = [
-  {
-    id: 'admin-user',
-    email: 'admin@example.com',
-    name: 'Admin User',
-    password: 'admin1234',
-    role: 'admin',
-  },
-  {
-    id: 'demo-user',
-    email: 'demo@example.com',
-    name: 'Demo User',
-    password: 'password123',
-    role: 'user',
-  },
-]
-
-function ensureSeedUsers() {
-  const existing = readUsers()
-  const byEmail = new Map(
-    existing.map((user) => [user.email.toLowerCase(), user]),
-  )
-
-  for (const seed of SEED_USERS) {
-    const key = seed.email.toLowerCase()
-    const current = byEmail.get(key)
-    if (!current) {
-      byEmail.set(key, seed)
-      continue
-    }
-
-    // Upgrade legacy seeds (e.g. missing role or old short admin password).
-    byEmail.set(key, {
-      ...current,
-      role: current.role ?? seed.role,
-      password:
-        key === 'admin@example.com' && current.password === 'admin123'
-          ? seed.password
-          : current.password,
-    })
-  }
-
-  writeUsers([...byEmail.values()])
-}
-
-function buildAuthResponse(user: MockUser): AuthResponse {
-  const tokens = createMockAuthTokens(user.id, user.email, user.name, user.role)
-  return {
-    ...tokens,
-    user: {
-      id: user.id,
-      email: user.email,
-      name: user.name,
-      role: user.role,
-    },
-  }
-}
 
 export class MockAuthError extends Error {
   status: number
@@ -111,44 +30,76 @@ async function withDelay<T>(run: () => T | Promise<T>): Promise<T> {
   return run()
 }
 
+function buildAuthResponse(
+  resolved: NonNullable<ReturnType<typeof resolveAuthUserByEmail>>,
+): AuthResponse {
+  const tokens = createMockAuthTokens(
+    resolved.id,
+    resolved.email,
+    resolved.name,
+    resolved.role,
+    resolved.roleId,
+    resolved.permissions,
+  )
+  return {
+    ...tokens,
+    user: {
+      id: resolved.id,
+      email: resolved.email,
+      name: resolved.name,
+      role: resolved.role,
+      roleId: resolved.roleId,
+      permissions: resolved.permissions,
+    },
+  }
+}
+
 export const mockAuthApi = {
   async login(payload: LoginRequest): Promise<AuthResponse> {
     return withDelay(() => {
-      ensureSeedUsers()
-      const user = readUsers().find(
-        (entry) => entry.email.toLowerCase() === payload.email.toLowerCase(),
+      ensureRbacSeed()
+      const resolved = resolveAuthUserByCredentials(
+        payload.email,
+        payload.password,
       )
 
-      if (!user || user.password !== payload.password) {
+      if (!resolved) {
         throw new MockAuthError('Invalid email or password', 401)
       }
 
-      return buildAuthResponse(user)
+      return buildAuthResponse(resolved)
     })
   },
 
   async register(payload: RegisterRequest): Promise<AuthResponse> {
-    return withDelay(() => {
-      ensureSeedUsers()
-      const users = readUsers()
-      const exists = users.some(
-        (entry) => entry.email.toLowerCase() === payload.email.toLowerCase(),
-      )
-
-      if (exists) {
-        throw new MockAuthError('Email is already registered', 409)
+    return withDelay(async () => {
+      ensureRbacSeed()
+      const memberRole = getRoleById('role-user')
+      if (!memberRole) {
+        throw new MockAuthError('Default role is not configured', 500)
       }
 
-      const user: MockUser = {
-        id: crypto.randomUUID(),
-        email: payload.email,
-        name: payload.name,
-        password: payload.password,
-        role: 'user',
+      try {
+        await mockAccessControlApi.createUser({
+          email: payload.email,
+          name: payload.name,
+          password: payload.password,
+          roleId: memberRole.id,
+          status: 'active',
+        })
+      } catch (error) {
+        if (error instanceof MockAccessControlError) {
+          throw new MockAuthError(error.message, error.status)
+        }
+        throw error
       }
 
-      writeUsers([...users, user])
-      return buildAuthResponse(user)
+      const resolved = resolveAuthUserByEmail(payload.email)
+      if (!resolved) {
+        throw new MockAuthError('Registration failed', 500)
+      }
+
+      return buildAuthResponse(resolved)
     })
   },
 }

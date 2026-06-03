@@ -1,51 +1,22 @@
-import { useTranslation } from 'react-i18next'
-
-import { Button } from '@/components/ui/button'
-
-import { useDashboardOverview } from '../hooks/use-dashboard-overview'
-import { DashboardCharts } from './dashboard-charts'
-import { DashboardPageHeader } from './dashboard-page-header'
-import { DashboardStatGrid } from './dashboard-stat-grid'
+import { PlaceholderPattern } from '@/components/ui/placeholder-pattern'
 
 export function AdminDashboardOverview() {
-  const { t } = useTranslation('admin')
-  const { data, isLoading, isError, refetch, isFetching } = useDashboardOverview()
-
   return (
-    <div className="mx-auto max-w-7xl">
-      <DashboardPageHeader
-        title={t('overview.title')}
-        description={t('overview.description')}
-      />
-
-      {isError ? (
-        <div className="mb-6 rounded-[var(--ds-radius-lg)] border border-border bg-card p-6">
-          <p className="text-[17px] text-destructive">{t('overview.error')}</p>
-          <Button
-            variant="outline"
-            size="sm"
-            className="mt-4"
-            onClick={() => void refetch()}
-          >
-            {t('overview.retry')}
-          </Button>
+    <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
+      <div className="grid auto-rows-min gap-4 md:grid-cols-3">
+        <div className="relative aspect-video overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border">
+          <PlaceholderPattern className="absolute inset-0 size-full stroke-neutral-900/20 dark:stroke-neutral-100/20" />
         </div>
-      ) : null}
-
-      <DashboardStatGrid kpis={data?.kpis} isLoading={isLoading} />
-      <DashboardCharts
-        weeklyActivity={data?.weeklyActivity}
-        isLoading={isLoading}
-      />
-
-      {data?.updatedAt && !isLoading ? (
-        <p className="mt-4 text-[12px] leading-none tracking-[-0.12px] text-muted-foreground">
-          {t('overview.lastUpdated', {
-            time: new Date(data.updatedAt).toLocaleString(),
-          })}
-          {isFetching ? ` · ${t('overview.refreshing')}` : ''}
-        </p>
-      ) : null}
+        <div className="relative aspect-video overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border">
+          <PlaceholderPattern className="absolute inset-0 size-full stroke-neutral-900/20 dark:stroke-neutral-100/20" />
+        </div>
+        <div className="relative aspect-video overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border">
+          <PlaceholderPattern className="absolute inset-0 size-full stroke-neutral-900/20 dark:stroke-neutral-100/20" />
+        </div>
+      </div>
+      <div className="relative min-h-[100vh] flex-1 overflow-hidden rounded-xl border border-sidebar-border/70 md:min-h-min dark:border-sidebar-border">
+        <PlaceholderPattern className="absolute inset-0 size-full stroke-neutral-900/20 dark:stroke-neutral-100/20" />
+      </div>
     </div>
   )
 }
