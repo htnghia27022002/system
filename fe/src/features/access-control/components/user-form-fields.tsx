@@ -1,3 +1,5 @@
+'use client'
+
 import type { FieldErrors, UseFormRegister, UseFormSetValue } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 

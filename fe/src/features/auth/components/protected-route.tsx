@@ -1,14 +1,31 @@
-import { Navigate, Outlet, useLocation } from 'react-router-dom'
+'use client'
+
+import { useEffect, type ReactNode } from 'react'
+import { usePathname, useRouter } from 'next/navigation'
 
 import { useAuthStore } from '@/store/auth-store'
 
-export function ProtectedRoute() {
+type ProtectedGuardProps = {
+  children: ReactNode
+}
+
+export function ProtectedGuard({ children }: ProtectedGuardProps) {
   const accessToken = useAuthStore((state) => state.accessToken)
-  const location = useLocation()
+  const router = useRouter()
+  const pathname = usePathname()
 
-  if (!accessToken) {
-    return <Navigate to="/login" replace state={{ from: location }} />
-  }
+  useEffect(() => {
+    if (!accessToken) {
+      router.replace(`/login?from=${encodeURIComponent(pathname)}`)
+    }
+  }, [accessToken, router, pathname])
 
-  return <Outlet />
+  if (!accessToken) return null
+
+  return <>{children}</>
+}
+
+/** @deprecated Use ProtectedGuard in layouts. Kept for auth/index.ts export compatibility. */
+export function ProtectedRoute() {
+  return null
 }

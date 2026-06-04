@@ -1,3 +1,5 @@
+'use client'
+
 import type { ReactNode } from 'react'
 
 import { AppLogo } from '@/components/common/app-logo'

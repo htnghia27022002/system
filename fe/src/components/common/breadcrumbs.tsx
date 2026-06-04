@@ -1,5 +1,7 @@
+'use client'
+
 import { Fragment } from 'react'
-import { Link } from 'react-router-dom'
+import Link from 'next/link'
 
 import {
   Breadcrumb,
@@ -33,7 +35,7 @@ export function Breadcrumbs({ breadcrumbs }: BreadcrumbsProps) {
                   <BreadcrumbPage>{item.title}</BreadcrumbPage>
                 ) : (
                   <BreadcrumbLink asChild>
-                    <Link to={item.href}>{item.title}</Link>
+                    <Link href={item.href}>{item.title}</Link>
                   </BreadcrumbLink>
                 )}
               </BreadcrumbItem>

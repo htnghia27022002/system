@@ -1,13 +1,30 @@
-import { Navigate, Outlet } from 'react-router-dom'
+'use client'
+
+import { useEffect, type ReactNode } from 'react'
+import { useRouter } from 'next/navigation'
 
 import { useAuthStore } from '@/store/auth-store'
 
-export function AdminRoute() {
+type AdminGuardProps = {
+  children: ReactNode
+}
+
+export function AdminGuard({ children }: AdminGuardProps) {
   const isAdmin = useAuthStore((state) => state.isAdmin)
+  const router = useRouter()
 
-  if (!isAdmin) {
-    return <Navigate to="/" replace />
-  }
+  useEffect(() => {
+    if (!isAdmin) {
+      router.replace('/')
+    }
+  }, [isAdmin, router])
 
-  return <Outlet />
+  if (!isAdmin) return null
+
+  return <>{children}</>
+}
+
+/** @deprecated Use AdminGuard in layouts. Kept for auth/index.ts export compatibility. */
+export function AdminRoute() {
+  return null
 }

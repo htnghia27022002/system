@@ -1,4 +1,7 @@
-import { Outlet, useMatches } from 'react-router-dom'
+'use client'
+
+import type { ReactNode } from 'react'
+import { usePathname } from 'next/navigation'
 import { useTranslation } from 'react-i18next'
 import { useMemo } from 'react'
 
@@ -8,44 +11,31 @@ import { AppSidebar } from '@/components/common/app-sidebar'
 import { AppSidebarHeader } from '@/components/common/app-sidebar-header'
 import { NavLoadingBar } from '@/components/common/nav-loading-bar'
 import { TooltipProvider } from '@/components/ui/tooltip'
-import type { BreadcrumbItem, RouteBreadcrumbHandle } from '@/types/navigation'
+import type { BreadcrumbItem } from '@/types/navigation'
 
-export function AdminLayout() {
+const BREADCRUMB_MAP: Record<string, string> = {
+  '/admin': 'nav.dashboard',
+  '/admin/users': 'nav.users',
+  '/admin/roles': 'nav.roles',
+}
+
+type AdminLayoutProps = {
+  children: ReactNode
+}
+
+export function AdminLayout({ children }: AdminLayoutProps) {
   const { t } = useTranslation('admin')
-  const matches = useMatches()
+  const pathname = usePathname()
 
   const breadcrumbs = useMemo((): BreadcrumbItem[] => {
-    const items: BreadcrumbItem[] = []
-
-    for (const match of matches) {
-      const handle = match.handle as RouteBreadcrumbHandle | undefined
-      const key = handle?.breadcrumbKey
-      if (!key) continue
-
-      if (handle?.parentBreadcrumbKey && handle.parentHref) {
-        const parentExists = items.some(
-          (item) => item.href === handle.parentHref,
-        )
-        if (!parentExists) {
-          items.push({
-            title: t(handle.parentBreadcrumbKey),
-            href: handle.parentHref,
-          })
-        }
-      }
-
-      items.push({
-        title: t(key),
-        href: match.pathname,
-      })
-    }
-
-    if (items.length === 0) {
-      return [{ title: t('nav.dashboard'), href: '/admin' }]
-    }
-
-    return items
-  }, [matches, t])
+    const key = BREADCRUMB_MAP[pathname]
+    if (!key) return [{ title: t('nav.dashboard'), href: '/admin' }]
+    if (pathname === '/admin') return [{ title: t(key) }]
+    return [
+      { title: t('nav.dashboard'), href: '/admin' },
+      { title: t(key) },
+    ]
+  }, [pathname, t])
 
   return (
     <TooltipProvider delayDuration={0}>
@@ -56,7 +46,7 @@ export function AdminLayout() {
             <NavLoadingBar />
             <AppSidebarHeader breadcrumbs={breadcrumbs} />
           </div>
-          <Outlet />
+          {children}
         </AppContent>
       </AppShell>
     </TooltipProvider>

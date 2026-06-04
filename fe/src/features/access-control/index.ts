@@ -1,5 +1,5 @@
 export { PermissionGate } from './components/permission-gate'
-export { PermissionRoute } from './components/permission-route'
+export { PermissionGuard, PermissionRoute } from './components/permission-route'
 export { PermissionsTable } from './components/permissions-table'
 export { RolesTable } from './components/roles-table'
 export { UsersTable } from './components/users-table'

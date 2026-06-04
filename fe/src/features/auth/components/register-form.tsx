@@ -1,3 +1,5 @@
+'use client'
+
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
@@ -110,7 +112,7 @@ export function RegisterForm() {
 
       <div className="text-center text-sm text-muted-foreground">
         {t('auth.register.hasAccount')}{' '}
-        <TextLink to="/login">{t('auth.actions.signIn')}</TextLink>
+        <TextLink href="/login">{t('auth.actions.signIn')}</TextLink>
       </div>
     </form>
   )

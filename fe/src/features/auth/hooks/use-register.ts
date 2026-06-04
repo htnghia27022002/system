@@ -1,5 +1,7 @@
+'use client'
+
 import { useMutation } from '@tanstack/react-query'
-import { useNavigate } from 'react-router-dom'
+import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 
 import { getPostLoginPath, useAuthStore } from '@/store/auth-store'
@@ -8,7 +10,7 @@ import { authApi, MockAuthError } from '../services/auth-api'
 import type { RegisterFormValues } from '../schemas/auth-schemas'
 
 export function useRegister() {
-  const navigate = useNavigate()
+  const router = useRouter()
   const signIn = useAuthStore((state) => state.signIn)
 
   return useMutation({
@@ -19,7 +21,7 @@ export function useRegister() {
     onSuccess: (data) => {
       signIn(data)
       toast.success('Account created successfully')
-      void navigate(getPostLoginPath(data.user.role), { replace: true })
+      router.replace(getPostLoginPath(data.user.role))
     },
     onError: (error) => {
       toast.error(

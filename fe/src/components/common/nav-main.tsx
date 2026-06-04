@@ -1,4 +1,6 @@
-import { Link } from 'react-router-dom'
+'use client'
+
+import Link from 'next/link'
 import { ChevronRightIcon } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
@@ -65,7 +67,7 @@ export function NavMain({ items = [] }: NavMainProps) {
                             asChild
                             isActive={isCurrentPath(subItem.href)}
                           >
-                            <Link to={subItem.href}>
+                            <Link href={subItem.href}>
                               <span>{subItem.title}</span>
                             </Link>
                           </SidebarMenuSubButton>
@@ -85,7 +87,7 @@ export function NavMain({ items = [] }: NavMainProps) {
                 isActive={isCurrentPath(item.href)}
                 tooltip={{ children: item.title }}
               >
-                <Link to={item.href}>
+                <Link href={item.href}>
                   {item.icon ? <item.icon /> : null}
                   <span>{item.title}</span>
                 </Link>

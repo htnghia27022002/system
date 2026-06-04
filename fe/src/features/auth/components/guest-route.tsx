@@ -1,13 +1,30 @@
-import { Navigate, Outlet } from 'react-router-dom'
+'use client'
+
+import { useEffect, type ReactNode } from 'react'
+import { useRouter } from 'next/navigation'
 
 import { getPostLoginPath, useAuthStore } from '@/store/auth-store'
 
-export function GuestRoute() {
+type GuestGuardProps = {
+  children: ReactNode
+}
+
+export function GuestGuard({ children }: GuestGuardProps) {
   const user = useAuthStore((state) => state.user)
+  const router = useRouter()
 
-  if (user) {
-    return <Navigate to={getPostLoginPath(user.role)} replace />
-  }
+  useEffect(() => {
+    if (user) {
+      router.replace(getPostLoginPath(user.role))
+    }
+  }, [user, router])
 
-  return <Outlet />
+  if (user) return null
+
+  return <>{children}</>
+}
+
+/** @deprecated Use GuestGuard in layouts. Kept for auth/index.ts export compatibility. */
+export function GuestRoute() {
+  return null
 }

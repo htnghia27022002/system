@@ -41,3 +41,15 @@ This project is indexed by GitNexus as **system** (504 symbols, 1070 relationshi
 | Index, status, clean, wiki CLI commands | `.claude/skills/gitnexus/gitnexus-cli/SKILL.md` |
 
 <!-- gitnexus:end -->
+
+## Frontend Project (fe/)
+
+The `fe/` workspace has been migrated from **Vite SPA → Next.js 15 App Router**.
+
+Key facts for agents working in `fe/`:
+- Routing: `src/app/` App Router. No `react-router-dom`.
+- Navigation: `Link` from `next/link`; `useRouter`, `usePathname` from `next/navigation`.
+- Page components: `src/screens/` (NOT `src/pages/` — Next.js treats that as Pages Router).
+- Env vars: `NEXT_PUBLIC_*` accessed via `src/config/env.ts`.
+- Client components must have `'use client'` at the top.
+- Full rules: see `fe/AGENTS.md` and `fe/README.md`.

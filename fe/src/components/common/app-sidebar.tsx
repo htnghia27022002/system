@@ -1,4 +1,6 @@
-import { Link } from 'react-router-dom'
+'use client'
+
+import Link from 'next/link'
 import { LayoutGridIcon, ShieldIcon, UsersIcon } from 'lucide-react'
 import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -55,7 +57,7 @@ export function AppSidebar() {
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton size="lg" asChild>
-              <Link to="/admin">
+              <Link href="/admin">
                 <AdminAppLogo />
               </Link>
             </SidebarMenuButton>

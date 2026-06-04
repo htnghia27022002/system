@@ -12,8 +12,8 @@ const envSchema = z.object({
 
 export const env = envSchema.parse({
   VITE_API_BASE_URL:
-    import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:3000/api',
-  VITE_APP_NAME: import.meta.env.VITE_APP_NAME ?? 'System App',
-  VITE_USE_MOCK_API: import.meta.env.VITE_USE_MOCK_API ?? 'true',
-  VITE_MOCK_API_DELAY_MS: import.meta.env.VITE_MOCK_API_DELAY_MS ?? '1200',
+    process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:3000/api',
+  VITE_APP_NAME: process.env.NEXT_PUBLIC_APP_NAME ?? 'System App',
+  VITE_USE_MOCK_API: process.env.NEXT_PUBLIC_USE_MOCK_API ?? 'true',
+  VITE_MOCK_API_DELAY_MS: process.env.NEXT_PUBLIC_MOCK_API_DELAY_MS ?? '1200',
 })

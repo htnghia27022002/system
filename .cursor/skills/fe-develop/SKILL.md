@@ -68,7 +68,8 @@ Before editing code:
 
 Use this matrix for every import decision:
 
-- `src/pages/*` can import from: `features`, `components`, `layouts`, `hooks`, `services`, `store`, `utils`, `types`, `config`.
+- `src/app/**/*` can import from: `screens`, `features`, `components`, `layouts`, `hooks`, `services`, `store`, `utils`, `types`, `config`.
+- `src/screens/*` can import from: `features`, `components`, `layouts`, `hooks`, `services`, `store`, `utils`, `types`, `config`.
 - `src/layouts/*` can import from: `components`, `hooks`, `services`, `utils`, `types`, `config`.
 - `src/features/<feature>/*` can import from: same feature, `components`, `hooks`, `services`, `utils`, `types`, `config`.
 - `src/components/*` can import from: `hooks`, `utils`, `types`, `config`, `services` (only if truly generic).

@@ -1,3 +1,5 @@
+'use client'
+
 import { create } from 'zustand'
 
 import { authTokenService } from '@/services/auth-token-service'
