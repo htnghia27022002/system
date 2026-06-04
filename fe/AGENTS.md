@@ -8,174 +8,151 @@ Follow these rules before creating, editing, moving, or deleting files.
 - Use `README.md` in this folder as the architecture baseline.
 - Use `src/styles/index.css` (`:root` / `.dark` CSS variables) as the visual theme baseline for all UI work.
 - `DESIGN.md` is deprecated legacy reference only — do not apply its Apple tokens to new work.
-- Do not introduce a different folder strategy unless explicitly requested by the user.
-- Prefer consistency with existing patterns over personal preference.
 
 ## 2) Stack
 
-This project uses **Next.js 15 App Router** with React 19 and TypeScript.
+**Next.js 15 App Router** + React 19 + TypeScript.
 
 - **Routing**: `src/app/` (App Router, file-based). No `react-router-dom`.
 - **Links / navigation**: `Link` from `next/link`; `useRouter`, `usePathname`, `useParams` from `next/navigation`.
-- **Build**: `pnpm dev` → `next dev --turbopack` | `pnpm build` → `next build`
-- **Env vars**: `NEXT_PUBLIC_*` (reads from `process.env.*`). Centralized in `src/config/env.ts`.
-- **CSS**: Tailwind CSS v4 via PostCSS (`postcss.config.mjs`), no Vite plugin.
-- **Tests**: Vitest + Testing Library, config in `vitest.config.ts` (separate from Next.js build).
+- **Build**: `pnpm dev` (`next dev --turbopack`) | `pnpm build` (`next build`)
+- **Env vars**: `NEXT_PUBLIC_*` → `process.env.*`. Centralized in `src/config/env.ts`.
+- **CSS**: Tailwind CSS v4 via PostCSS (`postcss.config.mjs`).
+- **Tests**: Vitest + Testing Library, config in `vitest.config.ts`.
 
-## 3) Required `src` Structure
+## 3) `src` Structure
 
-Agents must keep code organized under this structure:
+```
+src/
+  app/            ← Next.js App Router (routing, metadata, layout wiring only)
+  components/
+    common/       ← shared presentational components (AuthLayout lives here)
+    providers/    ← React context providers ('use client')
+    ui/           ← shadcn/ui components
+  config/         ← env.ts (Zod-validated NEXT_PUBLIC_* vars), i18n.ts
+  features/       ← all domain logic + page-level components
+    auth/         ← LoginPage, RegisterPage, guards, forms, hooks
+    home/         ← HomePage
+    admin-dashboard/
+    access-control/
+  hooks/          ← shared custom hooks ('use client')
+  layouts/        ← MainLayout, AdminLayout (true route layout shells only)
+  lib/            ← utils.ts (cn helper)
+  locales/        ← en/, vi/ i18n JSON
+  services/       ← api-client, auth-token-service, mock/
+  store/          ← Zustand stores ('use client')
+  styles/         ← index.css (Tailwind + CSS variables)
+  types/          ← cross-feature TypeScript types
+  utils/          ← helper functions
+```
 
-- `src/app` — Next.js App Router pages and layouts (file-based routing)
-- `src/assets`
-- `src/components`
-- `src/features`
-- `src/hooks`
-- `src/layouts` — reusable layout shells (used inside `src/app/` layouts)
-- `src/screens` — page-level React components (imported by `src/app/` pages)
-- `src/services`
-- `src/store`
-- `src/styles`
-- `src/types`
-- `src/utils`
-- `src/config`
+**Key rules:**
+- `src/app/` files are thin: route wiring, `metadata` exports, layout guards. No business logic.
+- `src/features/` owns all domain logic **and** page-level components.
+- `src/layouts/` only contains `MainLayout` and `AdminLayout` — shells used inside `src/app/**/layout.tsx`.
+- `src/components/common/` contains truly shared UI including `AuthLayout`.
+- **Do NOT create `src/pages/` or `src/screens/`** — `src/pages/` conflicts with Next.js Pages Router; `src/screens/` was removed as redundant.
 
-> **Important**: Do NOT use `src/pages/`. Next.js treats `src/pages/` as the Pages Router
-> directory. Page components live in `src/screens/` instead.
-
-Do not create random top-level folders in `src` without user approval.
-
-## 4) App Router File Structure
+## 4) App Router Structure
 
 ```
 src/app/
-  layout.tsx             ← root layout (Server Component), imports AppProviders
-  not-found.tsx          ← 404 page
-  sitemap.ts             ← SEO sitemap
-  robots.ts              ← SEO robots
+  layout.tsx                ← root Server Component + AppProviders
+  not-found.tsx             ← 404
+  sitemap.ts / robots.ts    ← SEO
   (public)/
-    layout.tsx           ← wraps with MainLayout
-    page.tsx             ← home page
+    layout.tsx              ← wraps with MainLayout
+    page.tsx                ← imports HomePage from @/features/home
   (auth)/
-    layout.tsx           ← GuestGuard (redirects logged-in users)
-    login/page.tsx
-    register/page.tsx
+    layout.tsx              ← GuestGuard
+    login/page.tsx          ← imports LoginPage from @/features/auth
+    register/page.tsx       ← imports RegisterPage from @/features/auth
   admin/
-    layout.tsx           ← ProtectedGuard + AdminGuard + AdminLayout
-    page.tsx             ← admin overview
-    users/page.tsx
-    roles/page.tsx
+    layout.tsx              ← ProtectedGuard + AdminGuard + AdminLayout
+    page.tsx                ← imports AdminDashboardOverview + PermissionGuard
+    users/page.tsx          ← imports UsersTable + PermissionGuard
+    roles/page.tsx          ← imports RolesTable + PermissionGuard
 ```
 
 ## 5) Client vs. Server Components
 
-- **Root layout** (`src/app/layout.tsx`) is a Server Component. It imports client providers via `AppProviders`.
-- **All page files** in `src/app/**/page.tsx` are Server Components by default. They can export `metadata` (SEO) and import Client Components.
-- **Client Components** must have `'use client'` at the top of the file.
-- **Any file using React hooks** (`useState`, `useEffect`, `useQuery`, `useRouter`, etc.) must be a Client Component.
-- **Stores, hooks, providers, feature components** — add `'use client'` if they use any hooks.
-- **shadcn/ui components** that use hooks already have `'use client'` added.
+- `src/app/**/layout.tsx` and `src/app/**/page.tsx` are **Server Components** by default.
+  - They export `metadata` for SEO and import Client Components.
+  - They do NOT use React hooks.
+- Any file using hooks (`useState`, `useEffect`, `useQuery`, `useRouter`, Zustand, etc.) must start with `'use client'`.
+- All feature components, stores, providers, hooks, and layout shells are Client Components.
 
 ## 6) Feature-First Rule
 
-- Business/domain logic belongs in `src/features/<feature-name>/`.
-- Each feature should own its local `components`, `hooks`, `services`, and `types`.
-- Shared UI only goes to `src/components` when it is truly cross-feature.
-- Do not place feature-specific logic in shared folders.
+- All domain logic and page-level components belong in `src/features/<feature-name>/`.
+- Each feature owns: `components/`, `hooks/`, `services/`, `schemas/`, `types.ts`, `index.ts`.
+- `src/app/` pages directly import from `src/features/` — no intermediate layer needed.
+- Shared UI only goes to `src/components/` when it is truly cross-feature.
 
 ## 7) Auth Guards
 
-Route protection is done via Client Component wrappers in layout files:
+All guards are Client Components in `src/features/auth/` (or `access-control/`):
 
-| Guard | File | Behavior |
+| Guard | Where used | Behavior |
 |---|---|---|
-| `GuestGuard` | `src/features/auth` | Redirects logged-in users away from auth routes |
-| `ProtectedGuard` | `src/features/auth` | Redirects unauthenticated users to `/login` |
-| `AdminGuard` | `src/features/auth` | Redirects non-admin users to `/` |
-| `PermissionGuard` | `src/features/access-control` | Redirects users without a specific permission to `/admin` |
-
-All guards use Zustand auth store + `useRouter` from `next/navigation`.
+| `GuestGuard` | `app/(auth)/layout.tsx` | Redirects logged-in users |
+| `ProtectedGuard` | `app/admin/layout.tsx` | Redirects unauthenticated to `/login` |
+| `AdminGuard` | `app/admin/layout.tsx` | Redirects non-admin to `/` |
+| `PermissionGuard` | Inside each admin `page.tsx` | Redirects without permission to `/admin` |
 
 ## 8) File Placement Rules
 
-- Route entry points go in `src/app/` (Next.js convention).
-- Page-level React components go in `src/screens/`.
-- Layout shells go in `src/layouts/` (reused inside `src/app/**/layout.tsx`).
-- Global API plumbing (base client/interceptors/adapters) goes in `src/services/`.
-- Global reusable hooks go in `src/hooks/`.
-- Global types go in `src/types/`; feature types stay inside feature folders.
-- Runtime/environment configuration goes in `src/config/`.
-- Generic helpers go in `src/utils/`.
-- App-wide styles/themes go in `src/styles/`.
-- Tests are colocated next to the file under test (`*.test.ts` / `*.test.tsx`).
+| What | Where |
+|---|---|
+| Route entry (metadata + render) | `src/app/**/page.tsx` |
+| Route layout shell | `src/app/**/layout.tsx` |
+| Domain page component | `src/features/<feature>/components/` |
+| Layout shell (MainLayout, AdminLayout) | `src/layouts/` |
+| Auth card wrapper | `src/components/common/auth-layout.tsx` |
+| Shared UI primitives | `src/components/ui/` (shadcn) |
+| Shared presentational components | `src/components/common/` |
+| Global hooks | `src/hooks/` |
+| Zustand stores | `src/store/` |
+| API client / interceptors | `src/services/` |
+| Env config | `src/config/env.ts` |
+| i18n JSON | `src/locales/` |
+| Global styles | `src/styles/index.css` |
+| Tests | Colocated `*.test.ts` / `*.test.tsx` |
 
 ## 9) SEO Rules
 
-- Every public page file in `src/app/**/page.tsx` must export a `metadata` object or `generateMetadata` function.
-- Admin and auth pages should set `robots: { index: false, follow: false }`.
-- `src/app/sitemap.ts` lists all public URLs.
-- `src/app/robots.ts` disallows `/admin/` for crawlers.
+- Every public page in `src/app/**/page.tsx` must export `metadata`.
+- Admin and auth pages: `robots: { index: false, follow: false }`.
+- `src/app/sitemap.ts` lists public URLs.
+- `src/app/robots.ts` disallows `/admin/`.
 
-## 10) Import and Boundary Rules
+## 10) Import Rules
 
-- Avoid deep imports into another feature's internals.
-- Prefer exporting a feature's public surface via `src/features/<feature>/index.ts`.
-- `src/app/` pages should compose from `src/screens/`, `src/features/` and shared modules.
-- Use the `@/*` path alias (mapped to `src/*`) instead of long relative chains (`../../../`).
-- Import features through their public entry (`@/features/<feature>`), not deep internal files.
-- **Do NOT import from `react-router-dom`** — it is removed. Use `next/link` and `next/navigation`.
+- Use `@/*` alias for all imports (mapped to `src/*`).
+- Import features through `@/features/<feature>` (public `index.ts`), not deep internal files.
+- `src/app/` imports from `features/`, `components/`, `layouts/`.
+- `src/features/` imports from `components/`, `hooks/`, `services/`, `utils/`, `types/`, `config/`.
+- `src/layouts/` imports from `components/`, `hooks/`, `utils/`, `types/`, `config/`.
+- Features must NOT import from other features' internals.
+- **Do NOT import from `react-router-dom`** — removed. Use `next/link` and `next/navigation`.
 
 ## 11) Env Variables
 
-- All env vars must be `NEXT_PUBLIC_*` for client-side access.
+- All client-side env vars must be `NEXT_PUBLIC_*`.
 - Access via `src/config/env.ts` — do NOT use `process.env.*` directly in feature code.
-- Internal property names in `env` object are kept for backward compatibility (e.g., `env.VITE_API_BASE_URL`).
 
 ## 12) Naming Conventions
 
-- Folder names: `kebab-case`
+- Folders: `kebab-case`
 - React component files: `PascalCase.tsx`
 - Hook files: `useXxx.ts`
 - Utility files: `camelCase.ts`
-- Keep names explicit and domain-oriented.
 
-## 13) Editing Behavior for Agents
-
-- Make minimal, targeted changes.
-- Do not refactor unrelated modules in the same task.
-- Do not move files across layers without a clear architectural reason.
-- Do not add new dependencies unless the task requires them.
-- Preserve backward compatibility unless breaking changes are requested.
-
-## 14) Quality Guardrails
-
-- Keep components focused (UI rendering first; move heavy logic into hooks/services).
-- Avoid API calls directly inside deeply presentational components.
-- Co-locate files that change together.
-- Avoid excessive folder nesting unless complexity justifies it.
-
-## 15) UI Library and Design Reference
-
-- **Library-first:** Use installed stack components (`src/components/ui` from shadcn/ui, Radix primitives, TanStack Query, next-themes, etc.).
-- **Registry before markup:** For any UI primitive, check `src/components/ui/` first. If missing, run `pnpm dlx shadcn@latest add <name> -y` in `fe/`.
-- **Theme via CSS variables:** Customize colors, radius, surfaces in `src/styles/index.css`.
-
-## 16) Language Rule
-
-- Any newly created or modified file content must be written in English.
-- Do not mix Vietnamese and English in source text unless explicitly requested.
-
-## 17) Before Finishing Any Task
-
-Agents should self-check:
+## 13) Before Finishing Any Task
 
 1. Is the file placed in the correct folder?
-2. Does it respect feature boundaries?
-3. Are naming conventions followed?
-4. Did we avoid unrelated refactors?
-5. Is the content in English?
-6. For UI work: was a matching shadcn component used or added before custom markup?
-7. Does any new component using hooks have `'use client'`?
-8. Does any new public page export `metadata`?
-
-If any answer is "no", fix it before finalizing.
+2. Is it a Client Component if it uses hooks? (has `'use client'`)
+3. Does a new public `app/page.tsx` export `metadata`?
+4. Are feature boundaries respected?
+5. Is content written in English?
+6. Was a shadcn component used before writing custom markup?

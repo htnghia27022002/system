@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 
-import { RegisterPage } from '@/screens/register-page'
+import { RegisterPage } from '@/features/auth'
 
 export const metadata: Metadata = {
   title: 'Create Account',
