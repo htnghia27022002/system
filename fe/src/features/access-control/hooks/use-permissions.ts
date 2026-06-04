@@ -1,3 +1,5 @@
+'use client'
+
 import { useCallback, useMemo } from 'react'
 
 import { selectPermissions, useAuthStore } from '@/store/auth-store'

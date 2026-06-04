@@ -1,3 +1,5 @@
+'use client'
+
 import { MoreHorizontalIcon } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'

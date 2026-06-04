@@ -5,23 +5,32 @@ import type { AuthTokens, JwtPayload } from '@/types/auth'
 const ACCESS_TOKEN_KEY = 'access_token'
 const REFRESH_TOKEN_KEY = 'refresh_token'
 
+function safeLocalStorage(): Storage | null {
+  if (typeof window === 'undefined') return null
+  return window.localStorage
+}
+
 export const authTokenService = {
   getAccessToken(): string | null {
-    return localStorage.getItem(ACCESS_TOKEN_KEY)
+    return safeLocalStorage()?.getItem(ACCESS_TOKEN_KEY) ?? null
   },
 
   getRefreshToken(): string | null {
-    return localStorage.getItem(REFRESH_TOKEN_KEY)
+    return safeLocalStorage()?.getItem(REFRESH_TOKEN_KEY) ?? null
   },
 
   setTokens(tokens: AuthTokens): void {
-    localStorage.setItem(ACCESS_TOKEN_KEY, tokens.accessToken)
-    localStorage.setItem(REFRESH_TOKEN_KEY, tokens.refreshToken)
+    const storage = safeLocalStorage()
+    if (!storage) return
+    storage.setItem(ACCESS_TOKEN_KEY, tokens.accessToken)
+    storage.setItem(REFRESH_TOKEN_KEY, tokens.refreshToken)
   },
 
   clearTokens(): void {
-    localStorage.removeItem(ACCESS_TOKEN_KEY)
-    localStorage.removeItem(REFRESH_TOKEN_KEY)
+    const storage = safeLocalStorage()
+    if (!storage) return
+    storage.removeItem(ACCESS_TOKEN_KEY)
+    storage.removeItem(REFRESH_TOKEN_KEY)
   },
 
   decodeAccessToken(token: string): JwtPayload {

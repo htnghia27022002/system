@@ -1,8 +1,10 @@
+'use client'
+
 import { useCallback } from 'react'
-import { useLocation } from 'react-router-dom'
+import { usePathname } from 'next/navigation'
 
 export function useCurrentPath() {
-  const { pathname } = useLocation()
+  const pathname = usePathname()
 
   const isCurrentPath = useCallback(
     (path: string) => pathname === path,

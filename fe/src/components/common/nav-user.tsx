@@ -1,3 +1,5 @@
+'use client'
+
 import { ChevronsUpDownIcon } from 'lucide-react'
 
 import { UserInfo } from '@/components/common/user-info'

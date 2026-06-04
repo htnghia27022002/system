@@ -1,4 +1,7 @@
-import { Link, Outlet } from 'react-router-dom'
+'use client'
+
+import type { ReactNode } from 'react'
+import Link from 'next/link'
 import { useTranslation } from 'react-i18next'
 
 import { NavLoadingBar } from '@/components/common/nav-loading-bar'
@@ -6,7 +9,11 @@ import { ThemeToggle } from '@/components/common/theme-toggle'
 import { Button } from '@/components/ui/button'
 import { useAuthStore } from '@/store/auth-store'
 
-export function MainLayout() {
+type MainLayoutProps = {
+  children: ReactNode
+}
+
+export function MainLayout({ children }: MainLayoutProps) {
   const { t, i18n } = useTranslation('common')
   const accessToken = useAuthStore((state) => state.accessToken)
   const signOut = useAuthStore((state) => state.signOut)
@@ -16,7 +23,7 @@ export function MainLayout() {
       <header className="relative border-b">
         <NavLoadingBar />
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4">
-          <Link to="/" className="text-sm font-semibold">
+          <Link href="/" className="text-sm font-semibold">
             {t('appName')}
           </Link>
           <nav className="flex items-center gap-2">
@@ -27,10 +34,10 @@ export function MainLayout() {
             ) : (
               <>
                 <Button variant="ghost" size="sm" asChild>
-                  <Link to="/login">{t('auth.actions.signIn')}</Link>
+                  <Link href="/login">{t('auth.actions.signIn')}</Link>
                 </Button>
                 <Button size="sm" asChild>
-                  <Link to="/register">{t('auth.actions.register')}</Link>
+                  <Link href="/register">{t('auth.actions.register')}</Link>
                 </Button>
               </>
             )}
@@ -47,9 +54,7 @@ export function MainLayout() {
           </nav>
         </div>
       </header>
-      <main className="mx-auto max-w-7xl px-4 py-8">
-        <Outlet />
-      </main>
+      <main className="mx-auto max-w-7xl px-4 py-8">{children}</main>
     </div>
   )
 }

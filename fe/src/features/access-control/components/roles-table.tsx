@@ -1,3 +1,5 @@
+'use client'
+
 import { useState, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { PencilIcon } from 'lucide-react'

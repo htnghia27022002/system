@@ -72,7 +72,7 @@ export function PermissionPicker({
   const toggleKeys = (keys: string[], force: boolean) => {
     const next = new Set(selected)
     for (const k of keys) {
-      force ? next.add(k) : next.delete(k)
+      if (force) { next.add(k) } else { next.delete(k) }
     }
     onChange([...next])
   }
@@ -296,7 +296,7 @@ export function PermissionPicker({
                             checked={checked}
                             onCheckedChange={(v) => {
                               const next = new Set(selected)
-                              v === true ? next.add(perm.key) : next.delete(perm.key)
+                              if (v === true) { next.add(perm.key) } else { next.delete(perm.key) }
                               onChange([...next])
                             }}
                             aria-label={perm.name}
