@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 
-import { LoginPage } from '@/screens/login-page'
+import { LoginPage } from '@/features/auth'
 
 export const metadata: Metadata = {
   title: 'Sign In',

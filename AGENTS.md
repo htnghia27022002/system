@@ -49,7 +49,8 @@ The `fe/` workspace has been migrated from **Vite SPA → Next.js 15 App Router*
 Key facts for agents working in `fe/`:
 - Routing: `src/app/` App Router. No `react-router-dom`.
 - Navigation: `Link` from `next/link`; `useRouter`, `usePathname` from `next/navigation`.
-- Page components: `src/screens/` (NOT `src/pages/` — Next.js treats that as Pages Router).
+- All domain logic and page components live in `src/features/`. `src/app/` pages are thin wrappers.
+- No `src/screens/` or `src/pages/` — both removed (redundant / Pages Router conflict).
 - Env vars: `NEXT_PUBLIC_*` accessed via `src/config/env.ts`.
 - Client components must have `'use client'` at the top.
 - Full rules: see `fe/AGENTS.md` and `fe/README.md`.

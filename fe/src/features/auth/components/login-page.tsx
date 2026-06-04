@@ -2,8 +2,9 @@
 
 import { useTranslation } from 'react-i18next'
 
-import { LoginForm } from '@/features/auth'
-import { AuthLayout } from '@/layouts/auth-layout'
+import { AuthLayout } from '@/components/common/auth-layout'
+
+import { LoginForm } from './login-form'
 
 export function LoginPage() {
   const { t } = useTranslation('common')

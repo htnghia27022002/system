@@ -2,8 +2,9 @@
 
 import { useTranslation } from 'react-i18next'
 
-import { RegisterForm } from '@/features/auth'
-import { AuthLayout } from '@/layouts/auth-layout'
+import { AuthLayout } from '@/components/common/auth-layout'
+
+import { RegisterForm } from './register-form'
 
 export function RegisterPage() {
   const { t } = useTranslation('common')
