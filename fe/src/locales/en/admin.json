@@ -19,6 +19,7 @@
     "platform": "Platform",
     "dashboard": "Dashboard",
     "overview": "Overview",
+    "accessControl": "Access control",
     "users": "Users",
     "roles": "Roles",
     "permissions": "Permissions"
@@ -44,11 +45,16 @@
       "deleteDescription": "Remove {{name}}? This cannot be undone.",
       "empty": "No users yet.",
       "error": "Could not load users.",
+      "sections": {
+        "account": "Account details",
+        "access": "Access"
+      },
       "fields": {
         "name": "Name",
         "email": "Email",
         "password": "Password",
         "passwordOptional": "leave blank to keep current",
+        "passwordOptionalHint": "Leave blank to keep the current password.",
         "role": "Role",
         "status": "Status"
       },

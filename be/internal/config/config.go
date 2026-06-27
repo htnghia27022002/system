@@ -31,6 +31,15 @@ type Config struct {
 	OAuthAllowedProviders   []string
 
 	RedisURL string
+	Cache    CacheConfig
+}
+
+type CacheConfig struct {
+	Enabled    bool
+	Driver     string
+	DefaultTTL time.Duration
+	FileDir    string
+	RedisURL   string
 }
 
 type fileConfig struct {
@@ -54,6 +63,17 @@ type fileConfig struct {
 	Redis struct {
 		URL string `yaml:"url"`
 	} `yaml:"redis"`
+	Cache struct {
+		Enabled    bool   `yaml:"enabled"`
+		Driver     string `yaml:"driver"`
+		DefaultTTL string `yaml:"defaultTtl"`
+		File       struct {
+			Dir string `yaml:"dir"`
+		} `yaml:"file"`
+		Redis struct {
+			URL string `yaml:"url"`
+		} `yaml:"redis"`
+	} `yaml:"cache"`
 	OAuth struct {
 		RedirectURL      string   `yaml:"redirectUrl"`
 		AllowedProviders []string `yaml:"allowedProviders"`
@@ -95,6 +115,29 @@ func Load() Config {
 		),
 
 		RedisURL: firstNonEmpty(os.Getenv("REDIS_URL"), fc.Redis.URL, ""),
+	}
+
+	cfg.Cache = CacheConfig{
+		Enabled: parseBoolEnv(os.Getenv("CACHE_ENABLED"), fc.Cache.Enabled),
+		Driver: firstNonEmpty(
+			os.Getenv("CACHE_DRIVER"),
+			fc.Cache.Driver,
+			"file",
+		),
+		DefaultTTL: parseDuration(
+			firstNonEmpty(os.Getenv("CACHE_DEFAULT_TTL"), fc.Cache.DefaultTTL, "5m"),
+			5*time.Minute,
+		),
+		FileDir: firstNonEmpty(
+			os.Getenv("CACHE_FILE_DIR"),
+			fc.Cache.File.Dir,
+			"storage/cache",
+		),
+		RedisURL: firstNonEmpty(
+			os.Getenv("CACHE_REDIS_URL"),
+			fc.Cache.Redis.URL,
+			cfg.RedisURL,
+		),
 	}
 
 	cfg.JWTAccessTTL = parseDuration(
@@ -184,4 +227,16 @@ func parseDuration(raw string, fallback time.Duration) time.Duration {
 		return d
 	}
 	return fallback
+}
+
+func parseBoolEnv(raw string, yamlDefault bool) bool {
+	raw = strings.TrimSpace(strings.ToLower(raw))
+	switch raw {
+	case "1", "true", "yes", "on":
+		return true
+	case "0", "false", "no", "off":
+		return false
+	default:
+		return yamlDefault
+	}
 }

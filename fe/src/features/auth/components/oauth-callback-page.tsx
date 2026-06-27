@@ -48,7 +48,7 @@ export function OAuthCallbackPage() {
         )
         signIn(data)
         toast.success(t('auth.oauth.success'))
-        router.replace(getPostLoginPath(data.user.role))
+        router.replace(getPostLoginPath())
       } catch {
         setError(t('auth.oauth.failed'))
       }

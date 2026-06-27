@@ -4,6 +4,7 @@ import (
 	jwtmanager "be/internal/common/jwt"
 	"be/internal/config"
 	"be/internal/repository"
+	"be/internal/repository/interfaces"
 	authsvc "be/internal/services/auth"
 	permissionsvc "be/internal/services/permission"
 	rolesvc "be/internal/services/role"
@@ -22,6 +23,7 @@ type Container struct {
 	UserService       *usersvc.Service
 	RoleService       *rolesvc.Service
 	PermissionService *permissionsvc.Service
+	RoleRepo          interfaces.RoleRepository
 	AuthHandler       *handlers.AuthHandler
 	UserHandler       *handlers.UserHandler
 	RoleHandler       *handlers.RoleHandler
@@ -50,6 +52,7 @@ func NewContainer(cfg config.Config, db *gorm.DB) *Container {
 		UserService:       userService,
 		RoleService:       roleService,
 		PermissionService: permissionService,
+		RoleRepo:          roleRepo,
 		AuthHandler:       handlers.NewAuthHandler(authService, oauthService),
 		UserHandler:       handlers.NewUserHandler(userService),
 		RoleHandler:       handlers.NewRoleHandler(roleService),

@@ -4,6 +4,7 @@ import { authTokenService } from '@/services/auth-token-service'
 import { mockAuthApi, MockAuthError } from '@/services/mock/auth.mock'
 
 import type { AuthResponse, LoginRequest, RegisterRequest } from '../types'
+import type { AuthUser } from '@/types/auth'
 
 export { MockAuthError }
 
@@ -30,6 +31,15 @@ export const authApi = {
       '/auth/register',
       payload,
     )
+    return data
+  },
+
+  async me(): Promise<AuthUser> {
+    if (env.VITE_USE_MOCK_API) {
+      return mockAuthApi.me()
+    }
+
+    const { data } = await apiClient.get<AuthUser>('/auth/me')
     return data
   },
 

@@ -124,6 +124,7 @@ Apply styling **through** shadcn/ui components and Tailwind classes that referen
 
 ## UI and Layout Discipline
 
+- For admin CRUD forms in dialogs/sheets, follow `.cursor/rules/fe-form-layout.mdc` (2-column pairing, sections, full-width sensitive fields).
 - Avoid generic templated output (for example: repetitive three-equal-card sections by default).
 - Prefer clear visual hierarchy over decorative noise.
 - Use consistent spacing, typography, radius, and color from CSS variables in `index.css`.

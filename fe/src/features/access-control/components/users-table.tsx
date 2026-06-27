@@ -29,6 +29,7 @@ import { ListRowActionsMenu } from './list-row-actions-menu'
 import { MobileRecordCard } from './mobile-record-card'
 import { PermissionGate } from './permission-gate'
 import { UserFormDialog } from './user-form-dialog'
+import { PermissionKeys } from '../permission-keys'
 import { usePermissions } from '../hooks/use-permissions'
 import { useRolesList } from '../hooks/use-roles'
 import { useUserMutations, useUsersList } from '../hooks/use-users'
@@ -42,9 +43,9 @@ export function UsersTable() {
   const { t } = useTranslation('admin')
   const usersQuery = useUsersList({ page: 1, pageSize: 50 })
   const rolesQuery = useRolesList()
-  const { hasAny } = usePermissions()
+  const { canModify } = usePermissions()
   const { createUser, updateUser, deleteUser } = useUserMutations()
-  const canManageUsers = hasAny('users:update', 'users:delete')
+  const canManageUsers = canModify('users')
 
   const [dialogOpen, setDialogOpen] = useState(false)
   const [dialogMode, setDialogMode] = useState<'create' | 'edit'>('create')
@@ -93,12 +94,12 @@ export function UsersTable() {
   const renderActions = (user: ManagedUser) =>
     canManageUsers ? (
       <ListRowActionsMenu>
-        <PermissionGate permission="users:update">
+        <PermissionGate permission={PermissionKeys.users.modify}>
           <DropdownMenuItem onSelect={() => openEdit(user)}>
             {t('access.actions.edit')}
           </DropdownMenuItem>
         </PermissionGate>
-        <PermissionGate permission="users:delete">
+        <PermissionGate permission={PermissionKeys.users.modify}>
           <DropdownMenuItem
             variant="destructive"
             onSelect={() => setDeleteTarget(user)}
@@ -232,7 +233,7 @@ export function UsersTable() {
         title={t('access.users.title')}
         description={t('access.users.description')}
         actions={
-          <PermissionGate permission="users:create">
+          <PermissionGate permission={PermissionKeys.users.modify}>
             <Button className="w-full md:w-auto" onClick={openCreate}>
               {t('access.users.createAction')}
             </Button>

@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 
-import { PermissionGuard } from '@/features/access-control'
+import { PermissionGuard, PermissionKeys } from '@/features/access-control'
 import { AdminDashboardOverview } from '@/features/admin-dashboard'
 
 export const metadata: Metadata = {
@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 
 export default function Page() {
   return (
-    <PermissionGuard permission="dashboard:read">
+    <PermissionGuard permission={PermissionKeys.dashboard.view}>
       <AdminDashboardOverview />
     </PermissionGuard>
   )

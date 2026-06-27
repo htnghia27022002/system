@@ -33,14 +33,14 @@ describe('mockAccessControlApi', () => {
       'admin1234',
     )
     expect(admin?.role).toBe('admin')
-    expect(admin?.permissions).toContain('users:read')
+    expect(admin?.permissions).toContain('users:view')
 
     const demo = resolveAuthUserByCredentials(
       'demo@example.com',
       'password123',
     )
     expect(demo?.role).toBe('user')
-    expect(demo?.permissions).toEqual(['dashboard:read'])
+    expect(demo?.permissions).toEqual(['dashboard:view'])
   })
 
   it('creates and lists users', async () => {

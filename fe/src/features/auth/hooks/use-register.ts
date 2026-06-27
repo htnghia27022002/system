@@ -21,7 +21,7 @@ export function useRegister() {
     onSuccess: (data) => {
       signIn(data)
       toast.success('Account created successfully')
-      router.replace(getPostLoginPath(data.user.role))
+      router.replace(getPostLoginPath())
     },
     onError: (error) => {
       toast.error(

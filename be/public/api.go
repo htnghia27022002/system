@@ -6,25 +6,28 @@ import (
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	goredis "github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
 
 	"be/internal/app"
+	"be/internal/common/cache"
 	"be/internal/config"
 	"be/internal/database"
-	authmodel "be/internal/models/auth"
-	permissionmodel "be/internal/models/permission"
-	rolemodel "be/internal/models/role"
-	usermodel "be/internal/models/user"
 	"be/public/routes"
 )
 
-func Run(cfg config.Config, db *gorm.DB) error {
-	if err := migrate(db); err != nil {
+func Run(cfg config.Config, db *gorm.DB, redis *goredis.Client) error {
+	if err := database.RunMigrations(cfg); err != nil {
 		return err
 	}
-	if err := database.SeedRBAC(context.Background(), db); err != nil {
+	if err := database.Seed(context.Background(), db); err != nil {
 		return err
 	}
+
+	if err := cache.Init(cfg.Cache, redis); err != nil {
+		return err
+	}
+	defer func() { _ = cache.Close() }()
 
 	container := app.NewContainer(cfg, db)
 	r := gin.Default()
@@ -42,15 +45,4 @@ func Run(cfg config.Config, db *gorm.DB) error {
 	routes.RegisterAdminRoutes(api, container)
 
 	return r.Run(":" + cfg.Port)
-}
-
-func migrate(db *gorm.DB) error {
-	return db.AutoMigrate(
-		&usermodel.User{},
-		&rolemodel.Role{},
-		&rolemodel.RolePermission{},
-		&permissionmodel.Permission{},
-		&authmodel.RefreshToken{},
-		&authmodel.OAuthAccount{},
-	)
 }

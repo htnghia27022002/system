@@ -39,7 +39,7 @@ func TestLoginIssuesTokensWithRoleClaims(t *testing.T) {
 			roleID: {ID: roleID, Slug: "admin", Name: "Administrator"},
 		},
 		Permissions: map[string][]string{
-			roleID: {"users:read", "roles:read"},
+			roleID: {"users:view", "roles:view"},
 		},
 	}
 

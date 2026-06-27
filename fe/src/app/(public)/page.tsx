@@ -1,17 +1,17 @@
 import type { Metadata } from 'next'
 
-import { HomePage } from '@/features/home'
+import { LandingPage } from '@/features/landing'
 
 export const metadata: Metadata = {
-  title: 'Home',
-  description: 'Welcome to System App — your dashboard and tools hub.',
+  title: 'htnghia — Web3 Scrollytelling',
+  description: 'GSAP scroll-driven Web3 landing prototype with pinned sections and scrubbed animations.',
   openGraph: {
-    title: 'Home | System App',
-    description: 'Welcome to System App — your dashboard and tools hub.',
+    title: 'htnghia — Web3 Scrollytelling',
+    description: 'GSAP scroll-driven Web3 landing prototype with pinned sections and scrubbed animations.',
     type: 'website',
   },
 }
 
 export default function Page() {
-  return <HomePage />
+  return <LandingPage />
 }

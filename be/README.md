@@ -62,7 +62,7 @@ Full route table and permissions: see existing handlers in `public/routes/`.
 | `admin@example.com` | `admin1234` | Administrator |
 | `demo@example.com` | `password123` | Member |
 
-Seeded on first startup via `internal/database/seed.go` (GORM AutoMigrate).
+Seeded on first startup via `internal/database/seeders/` (Laravel-style) after [golang-migrate](https://github.com/golang-migrate/migrate) SQL migrations.
 
 ## Environment
 
@@ -72,9 +72,9 @@ Seeded on first startup via `internal/database/seed.go` (GORM AutoMigrate).
 
 | Source | Examples |
 |--------|----------|
-| `config.yaml` | `server.port`, `jwt.accessTtl`, `cors.origins`, `oauth.allowedProviders` |
+| `config.yaml` | `server.port`, `jwt.accessTtl`, `cors.origins`, `cache.*`, `oauth.allowedProviders` |
 | Env (secrets) | `DB_PASSWORD`, `JWT_SECRET`, `OAUTH_GOOGLE_CLIENT_ID`, `OAUTH_GOOGLE_CLIENT_SECRET` |
-| Env (deploy override) | `DB_HOST=postgres`, `REDIS_URL`, `CORS_ORIGINS`, `CONFIG_FILE` |
+| Env (deploy override) | `DB_HOST=postgres`, `REDIS_URL`, `CACHE_ENABLED`, `CACHE_DRIVER`, `CORS_ORIGINS`, `CONFIG_FILE` |
 
 **Docker:** configured in root `docker-compose.yml` — see [`docker/README.md`](../docker/README.md).
 
@@ -87,8 +87,26 @@ make test-integration # integration tests (needs Postgres)
 make test-e2e         # HTTP e2e tests (needs Postgres)
 make test-all         # all test tiers
 make lint             # golangci-lint
-make migrate-up       # SQL migration instructions
+make migrate-up       # apply SQL migrations (golang-migrate)
+make migrate-down     # roll back one migration
+make migrate-version  # print current migration version
+make migrate-create name=add_users_index  # scaffold up/down files
+make seed             # run DatabaseSeeder
+make seed-class class=PermissionSeeder  # run one seeder class
 ```
+
+## Cache
+
+Redis connection: `database.ConnectRedis(cfg)` in `internal/database/redis.go` (shared client, ping on startup).
+
+Optional layer in `internal/common/cache`. Disabled by default (`cache.enabled: false`).
+
+| Driver | Config | Notes |
+|--------|--------|-------|
+| `file` | `cache.file.dir` (default `storage/cache`) | Local JSON files under `be/storage/cache` |
+| `redis` | `cache.redis.url` or top-level `redis.url` | Uses Redis DB from URL |
+
+Package API: `cache.Init(cfg.Cache, redisClient)` at startup, then `cache.Get`, `cache.Set`, `cache.Delete`, `cache.Purge`, `cache.Close`. Redis client comes from `database.ConnectRedis(cfg)` in `main.go`.
 
 From monorepo root: `make test-be`, `make test-be-integration`, `make test-be-e2e`, `make test-be-all`.
 

@@ -19,7 +19,7 @@ func RegisterAuthRoutes(r *gin.RouterGroup, c *app.Container) {
 		auth.POST("/oauth/:provider/callback", c.AuthHandler.OAuthCallback)
 
 		protected := auth.Group("")
-		protected.Use(middleware.Auth(c.JWT))
+		protected.Use(middleware.Auth(c.JWT, c.RoleRepo))
 		protected.GET("/me", c.AuthHandler.Me)
 	}
 }

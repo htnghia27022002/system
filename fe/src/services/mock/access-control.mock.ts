@@ -21,61 +21,37 @@ const USERS_KEY = 'mock_rbac_users'
 
 const SEED_PERMISSIONS: Permission[] = [
   {
-    key: 'dashboard:read',
+    key: 'dashboard:view',
     name: 'View dashboard',
     group: 'dashboard',
     description: 'Access the admin dashboard overview',
   },
   {
-    key: 'users:read',
+    key: 'users:view',
     name: 'View users',
     group: 'users',
     description: 'List and view user accounts',
   },
   {
-    key: 'users:create',
-    name: 'Create users',
+    key: 'users:modify',
+    name: 'Modify users',
     group: 'users',
-    description: 'Create new user accounts',
+    description: 'Create, update, and delete user accounts',
   },
   {
-    key: 'users:update',
-    name: 'Update users',
-    group: 'users',
-    description: 'Edit existing user accounts',
-  },
-  {
-    key: 'users:delete',
-    name: 'Delete users',
-    group: 'users',
-    description: 'Remove user accounts',
-  },
-  {
-    key: 'roles:read',
+    key: 'roles:view',
     name: 'View roles',
     group: 'roles',
     description: 'List and view roles',
   },
   {
-    key: 'roles:create',
-    name: 'Create roles',
+    key: 'roles:modify',
+    name: 'Modify roles',
     group: 'roles',
-    description: 'Create new roles',
+    description: 'Create, update, and delete roles',
   },
   {
-    key: 'roles:update',
-    name: 'Update roles',
-    group: 'roles',
-    description: 'Edit existing roles',
-  },
-  {
-    key: 'roles:delete',
-    name: 'Delete roles',
-    group: 'roles',
-    description: 'Remove roles',
-  },
-  {
-    key: 'permissions:read',
+    key: 'permissions:view',
     name: 'View permissions',
     group: 'permissions',
     description: 'View the permissions catalog',
@@ -95,7 +71,7 @@ const SEED_ROLES: Role[] = [
     id: 'role-user',
     name: 'Member',
     slug: 'user',
-    permissionKeys: ['dashboard:read'],
+    permissionKeys: ['dashboard:view'],
   },
 ]
 

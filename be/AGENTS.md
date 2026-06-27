@@ -21,7 +21,15 @@ When relocating the backend, move the entire `be/` directory (including `go.mod`
 
 ## 3) Stack
 
-Go 1.22 · Gin · GORM · PostgreSQL · JWT · OAuth2 · golangci-lint
+Go 1.22 · Gin · GORM · PostgreSQL · JWT · OAuth2 · golangci-lint · golang-migrate
+
+## 3.1) Migrations
+
+- SQL files: `migrations/{version}_{name}.up.sql` and `.down.sql` via [golang-migrate](https://github.com/golang-migrate/migrate)
+- Startup: `database.RunMigrations(cfg)` in `public/api.go`
+- CLI: `go run ./cmd/migrate up|down|version|force|steps|drop`
+- Dev seed data: `internal/database/seeders/` — `DatabaseSeeder`, `PermissionSeeder`, `RoleSeeder`, … (idempotent, runs after migrations)
+- CLI: `go run ./cmd/seed` or `go run ./cmd/seed --class=PermissionSeeder`
 
 ## 4) Source layout
 

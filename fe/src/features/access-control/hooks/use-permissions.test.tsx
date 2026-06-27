@@ -1,38 +1,33 @@
 import { renderHook } from '@testing-library/react'
-import { beforeEach, describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 
-import { useAuthStore } from '@/store/auth-store'
-
+import { PermissionKeys } from '../permission-keys'
 import { usePermissions } from './use-permissions'
 
-beforeEach(() => {
-  useAuthStore.setState({
-    accessToken: null,
-    user: null,
-    isAdmin: false,
-    hasHydrated: true,
-  })
-})
-
-describe('usePermissions', () => {
-  it('checks permission keys from the auth store', () => {
-    useAuthStore.setState({
-      accessToken: 'token',
+vi.mock('@/store/auth-store', () => ({
+  useAuthStore: (selector: (state: unknown) => unknown) =>
+    selector({
       user: {
-        id: '1',
-        email: 'a@example.com',
-        name: 'Admin',
         role: 'admin',
         roleId: 'role-admin',
-        permissions: ['users:read', 'users:create'],
+        permissions: [
+          PermissionKeys.users.view,
+          PermissionKeys.users.modify,
+        ],
       },
-      isAdmin: true,
-    })
+      sessionSynced: true,
+    }),
+  selectPermissions: (state: { user?: { permissions?: string[] } }) =>
+    state.user?.permissions ?? [],
+}))
 
+describe('usePermissions', () => {
+  it('checks view and modify permissions', () => {
     const { result } = renderHook(() => usePermissions())
 
-    expect(result.current.hasPermission('users:read')).toBe(true)
-    expect(result.current.hasPermission('roles:delete')).toBe(false)
-    expect(result.current.hasAny('users:create', 'roles:read')).toBe(true)
+    expect(result.current.hasPermission(PermissionKeys.users.view)).toBe(true)
+    expect(result.current.hasPermission(PermissionKeys.roles.modify)).toBe(false)
+    expect(result.current.canModify('users')).toBe(true)
+    expect(result.current.canView('roles')).toBe(false)
   })
 })

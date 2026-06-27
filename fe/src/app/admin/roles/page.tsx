@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 
-import { PermissionGuard, RolesTable } from '@/features/access-control'
+import { PermissionGuard, PermissionKeys, RolesTable } from '@/features/access-control'
 
 export const metadata: Metadata = {
   title: 'Roles',
@@ -9,7 +9,7 @@ export const metadata: Metadata = {
 
 export default function Page() {
   return (
-    <PermissionGuard permission="roles:read">
+    <PermissionGuard permission={PermissionKeys.roles.view}>
       <RolesTable />
     </PermissionGuard>
   )

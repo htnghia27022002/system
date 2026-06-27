@@ -12,7 +12,7 @@ import type { Permission } from '../types'
  * Preferred action order for column display.
  * Actions not in this list are appended at the end.
  */
-const ACTION_ORDER = ['read', 'create', 'update', 'delete']
+const ACTION_ORDER = ['view', 'modify', 'read', 'create', 'update', 'delete']
 
 type CheckState = boolean | 'indeterminate'
 

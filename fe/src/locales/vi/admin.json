@@ -19,6 +19,7 @@
     "platform": "Nen tang",
     "dashboard": "Dashboard",
     "overview": "Tong quan",
+    "accessControl": "Quan ly truy cap",
     "users": "Nguoi dung",
     "roles": "Vai tro",
     "permissions": "Quyen"
@@ -44,11 +45,16 @@
       "deleteDescription": "Xoa {{name}}? Hanh dong nay khong the hoan tac.",
       "empty": "Chua co nguoi dung.",
       "error": "Khong tai duoc danh sach nguoi dung.",
+      "sections": {
+        "account": "Thong tin tai khoan",
+        "access": "Quyen truy cap"
+      },
       "fields": {
         "name": "Ten",
         "email": "Email",
         "password": "Mat khau",
         "passwordOptional": "de trong neu giu mat khau cu",
+        "passwordOptionalHint": "De trong neu muon giu mat khau hien tai.",
         "role": "Vai tro",
         "status": "Trang thai"
       },

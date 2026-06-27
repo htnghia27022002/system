@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { LayoutGridIcon, ShieldIcon, UsersIcon } from 'lucide-react'
+import { LayoutGridIcon, ShieldCheckIcon } from 'lucide-react'
 import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 
@@ -17,39 +17,49 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from '@/components/ui/sidebar'
-import { usePermissions } from '@/features/access-control'
+import { usePermissions, PermissionKeys } from '@/features/access-control'
 import type { NavItem } from '@/types/navigation'
 
 export function AppSidebar() {
   const { t } = useTranslation('admin')
   const { hasPermission } = usePermissions()
 
-  const mainNavItems: NavItem[] = useMemo(
-    () =>
-      [
-        {
-          title: t('nav.dashboard'),
-          href: '/admin',
-          icon: LayoutGridIcon,
-          permission: 'dashboard:read',
-        },
-        {
-          title: t('nav.users'),
-          href: '/admin/users',
-          icon: UsersIcon,
-          permission: 'users:read',
-        },
-        {
-          title: t('nav.roles'),
-          href: '/admin/roles',
-          icon: ShieldIcon,
-          permission: 'roles:read',
-        },
-      ].filter(
-        (item) => !item.permission || hasPermission(item.permission),
-      ),
-    [hasPermission, t],
-  )
+  const mainNavItems: NavItem[] = useMemo(() => {
+    const accessControlItems: NavItem[] = [
+      {
+        title: t('nav.users'),
+        href: '/admin/users',
+        permission: PermissionKeys.users.view,
+      },
+      {
+        title: t('nav.roles'),
+        href: '/admin/roles',
+        permission: PermissionKeys.roles.view,
+      },
+    ].filter((item) => !item.permission || hasPermission(item.permission))
+
+    const items: NavItem[] = [
+      {
+        title: t('nav.dashboard'),
+        href: '/admin',
+        icon: LayoutGridIcon,
+        permission: PermissionKeys.dashboard.view,
+      },
+    ]
+
+    if (accessControlItems.length > 0) {
+      items.push({
+        title: t('nav.accessControl'),
+        href: accessControlItems[0].href,
+        icon: ShieldCheckIcon,
+        items: accessControlItems,
+      })
+    }
+
+    return items.filter(
+      (item) => !item.permission || hasPermission(item.permission),
+    )
+  }, [hasPermission, t])
 
   return (
     <Sidebar collapsible="icon" variant="inset">

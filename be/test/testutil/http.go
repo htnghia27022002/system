@@ -6,10 +6,6 @@ import (
 	"be/internal/app"
 	"be/internal/config"
 	"be/internal/database"
-	authmodel "be/internal/models/auth"
-	permissionmodel "be/internal/models/permission"
-	rolemodel "be/internal/models/role"
-	usermodel "be/internal/models/user"
 	"be/public/routes"
 
 	"github.com/gin-gonic/gin"
@@ -29,17 +25,11 @@ func ConnectPostgres(t *testing.T) *gorm.DB {
 	return db
 }
 
-// MigrateTestSchema runs GORM AutoMigrate for all application models.
+// MigrateTestSchema applies SQL migrations for integration and e2e tests.
 func MigrateTestSchema(t *testing.T, db *gorm.DB) {
 	t.Helper()
-	if err := db.AutoMigrate(
-		&usermodel.User{},
-		&rolemodel.Role{},
-		&rolemodel.RolePermission{},
-		&permissionmodel.Permission{},
-		&authmodel.RefreshToken{},
-		&authmodel.OAuthAccount{},
-	); err != nil {
+	cfg := config.Load()
+	if err := database.RunMigrations(cfg); err != nil {
 		t.Fatalf("migrate test schema: %v", err)
 	}
 }

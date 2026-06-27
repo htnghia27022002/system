@@ -26,6 +26,15 @@ cors:
 redis:
   url: ""
 
+cache:
+  enabled: false
+  driver: file
+  defaultTtl: 5m
+  file:
+    dir: storage/cache
+  redis:
+    url: ""
+
 oauth:
   redirectUrl: http://localhost:3000/auth/callback
   allowedProviders:

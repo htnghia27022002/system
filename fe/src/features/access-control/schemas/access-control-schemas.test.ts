@@ -18,7 +18,7 @@ describe('access-control schemas', () => {
     const result = createRoleSchema.safeParse({
       name: 'Editor',
       slug: 'editor',
-      permissionKeys: ['dashboard:read'],
+      permissionKeys: ['dashboard:view'],
     })
 
     expect(result.success).toBe(true)

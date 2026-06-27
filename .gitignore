@@ -4,6 +4,9 @@
 docker/data/postgres/
 docker/data/redis/
 
+# BE file cache (cache.file.dir)
+**/storage/cache/
+
 **/.env
 **/.env.local
 **/.env.development.local

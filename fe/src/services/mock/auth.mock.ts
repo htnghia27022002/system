@@ -4,6 +4,7 @@ import type {
   LoginRequest,
   RegisterRequest,
 } from '@/features/auth/types'
+import type { AuthUser } from '@/types/auth'
 import {
   ensureRbacSeed,
   getRoleById,
@@ -12,6 +13,7 @@ import {
   resolveAuthUserByCredentials,
   resolveAuthUserByEmail,
 } from '@/services/mock/access-control.mock'
+import { authTokenService } from '@/services/auth-token-service'
 import { mockDelay } from '@/utils/mock-delay'
 import { createMockAuthTokens } from '@/utils/mock-jwt'
 
@@ -100,6 +102,31 @@ export const mockAuthApi = {
       }
 
       return buildAuthResponse(resolved)
+    })
+  },
+
+  async me(): Promise<AuthUser> {
+    return withDelay(() => {
+      ensureRbacSeed()
+      const token = authTokenService.getAccessToken()
+      if (!token) {
+        throw new MockAuthError('Unauthorized', 401)
+      }
+
+      const payload = authTokenService.decodeAccessToken(token)
+      const resolved = resolveAuthUserByEmail(payload.email ?? '')
+      if (!resolved) {
+        throw new MockAuthError('Unauthorized', 401)
+      }
+
+      return {
+        id: resolved.id,
+        email: resolved.email,
+        name: resolved.name,
+        role: resolved.role,
+        roleId: resolved.roleId,
+        permissions: resolved.permissions,
+      }
     })
   },
 }

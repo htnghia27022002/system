@@ -18,7 +18,7 @@ export function useLogin() {
     onSuccess: (data) => {
       signIn(data)
       toast.success('Signed in successfully')
-      router.replace(getPostLoginPath(data.user.role))
+      router.replace(getPostLoginPath())
     },
     onError: (error) => {
       toast.error(

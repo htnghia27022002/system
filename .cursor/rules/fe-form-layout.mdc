@@ -1,0 +1,63 @@
+---
+description: Form and dialog layout patterns for admin CRUD forms in fe/.
+globs: fe/**/*
+alwaysApply: false
+---
+
+# FE form layout (dialogs, sheets, settings)
+
+Apply these rules to create/edit forms in modals, sheets, and admin pages.
+
+## Grid rules
+
+- **Mobile first:** single column on default; multi-column from `sm:` or `md:` only.
+- **Prefer 2 columns** on desktop for paired fields (name + email, role + status, city + state).
+- **Do not use 3 columns** unless the form has 6+ short fields that fill rows evenly. Avoid orphan columns (e.g. row 1 has 3 fields, row 2 has 2).
+- **Full-width rows** for: password, textarea, rich text, file upload, permission pickers, long selects.
+- **Equal column width:** use `grid gap-4 sm:grid-cols-2` — never mix 3-col and 2-col rows in the same form without `col-span-full`.
+
+## Section grouping
+
+Group related fields with visual sections (common admin pattern):
+
+```tsx
+<div className="space-y-6">
+  <fieldset className="space-y-4">
+    <legend className="text-sm font-medium">Section title</legend>
+    <div className="grid gap-4 sm:grid-cols-2">{/* paired fields */}</div>
+    {/* full-width field if needed */}
+  </fieldset>
+</div>
+```
+
+- **Identity / account:** name, email, password
+- **Access / permissions:** role, status, permission keys
+- **Metadata:** slug, description (when applicable)
+
+## Labels and hints
+
+- Every input needs a visible `<Label>` — never placeholder-only.
+- Put optional/long hints in **helper text** below the label (`text-xs text-muted-foreground`), not appended to the label string.
+- Keep labels short; move “leave blank to keep current” to helper text.
+
+## Dialog / sheet width
+
+| Layout | Tailwind max-width |
+|--------|-------------------|
+| 1 column (≤4 simple fields) | `sm:max-w-md` or `sm:max-w-lg` |
+| 2 columns (typical CRUD) | `sm:max-w-xl` or `sm:max-w-2xl` |
+| Wide pickers / tables inside | `sm:max-w-2xl lg:max-w-3xl` |
+
+Match width to column count — do not use `max-w-3xl` for a 2-field form.
+
+## Footer
+
+- Sticky footer with `border-t bg-muted/30` for scrollable body.
+- Actions right-aligned on `sm+`: Cancel (outline) + primary submit.
+- Full-width stacked buttons on mobile only.
+
+## Reference patterns
+
+- shadcn [Field](https://ui.shadcn.com/docs/components/field) — label + control + description + error
+- Pair related inputs horizontally; stack unrelated or sensitive fields vertically
+- One primary action per form footer

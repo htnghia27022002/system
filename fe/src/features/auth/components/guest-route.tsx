@@ -16,7 +16,7 @@ export function GuestGuard({ children }: GuestGuardProps) {
 
   useEffect(() => {
     if (hasHydrated && user) {
-      router.replace(getPostLoginPath(user.role))
+      router.replace(getPostLoginPath())
     }
   }, [hasHydrated, user, router])
 

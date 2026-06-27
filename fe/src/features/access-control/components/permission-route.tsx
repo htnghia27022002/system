@@ -13,18 +13,20 @@ type PermissionGuardProps = {
 }
 
 export function PermissionGuard({ permission, children }: PermissionGuardProps) {
-  const { hasPermission } = usePermissions()
+  const { hasPermission, sessionSynced } = usePermissions()
   const { t } = useTranslation('admin')
   const router = useRouter()
   const allowed = hasPermission(permission)
 
   useEffect(() => {
-    if (!allowed) {
-      toast.error(t('access.insufficientPermissions'))
-      router.replace('/admin')
+    if (!sessionSynced || allowed) {
+      return
     }
-  }, [allowed, t, router])
+    toast.error(t('access.insufficientPermissions'))
+    router.replace('/admin')
+  }, [allowed, sessionSynced, t, router])
 
+  if (!sessionSynced) return null
   if (!allowed) return null
 
   return <>{children}</>

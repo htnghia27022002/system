@@ -1,31 +1,17 @@
 'use client'
 
-import { useEffect, type ReactNode } from 'react'
-import { useRouter } from 'next/navigation'
-
-import { useAuthStore } from '@/store/auth-store'
+import type { ReactNode } from 'react'
 
 type AdminGuardProps = {
   children: ReactNode
 }
 
+/** @deprecated Admin area access is gated by ProtectedGuard + per-page PermissionGuard. */
 export function AdminGuard({ children }: AdminGuardProps) {
-  const hasHydrated = useAuthStore((state) => state.hasHydrated)
-  const isAdmin = useAuthStore((state) => state.isAdmin)
-  const router = useRouter()
-
-  useEffect(() => {
-    if (hasHydrated && !isAdmin) {
-      router.replace('/')
-    }
-  }, [hasHydrated, isAdmin, router])
-
-  if (!hasHydrated || !isAdmin) return null
-
   return <>{children}</>
 }
 
-/** @deprecated Use AdminGuard in layouts. Kept for auth/index.ts export compatibility. */
+/** @deprecated Use ProtectedGuard in layouts. Kept for auth/index.ts export compatibility. */
 export function AdminRoute() {
   return null
 }

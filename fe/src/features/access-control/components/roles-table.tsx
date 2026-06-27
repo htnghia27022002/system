@@ -26,6 +26,8 @@ import { ListRowActionsMenu } from './list-row-actions-menu'
 import { MobileRecordCard } from './mobile-record-card'
 import { PermissionGate } from './permission-gate'
 import { RoleFormDialog } from './role-form-dialog'
+import { PermissionKeys } from '../permission-keys'
+import { usePermissions } from '../hooks/use-permissions'
 import { useRoleMutations, useRolesList } from '../hooks/use-roles'
 import type {
   CreateRoleFormValues,
@@ -36,7 +38,9 @@ import type { Role } from '../types'
 export function RolesTable() {
   const { t } = useTranslation('admin')
   const rolesQuery = useRolesList()
+  const { canModify } = usePermissions()
   const { createRole, updateRole, deleteRole } = useRoleMutations()
+  const canManageRoles = canModify('roles')
 
   const [dialogOpen, setDialogOpen] = useState(false)
   const [dialogMode, setDialogMode] = useState<'create' | 'edit'>('create')
@@ -55,14 +59,15 @@ export function RolesTable() {
     setDialogOpen(true)
   }
 
-  const renderActions = (role: Role) => (
+  const renderActions = (role: Role) =>
+    canManageRoles ? (
     <ListRowActionsMenu>
-      <PermissionGate permission="roles:update">
+      <PermissionGate permission={PermissionKeys.roles.modify}>
         <DropdownMenuItem onSelect={() => openEdit(role)}>
           {t('access.actions.edit')}
         </DropdownMenuItem>
       </PermissionGate>
-      <PermissionGate permission="roles:delete">
+      <PermissionGate permission={PermissionKeys.roles.modify}>
         <DropdownMenuItem
           variant="destructive"
           onSelect={() => setDeleteTarget(role)}
@@ -71,7 +76,7 @@ export function RolesTable() {
         </DropdownMenuItem>
       </PermissionGate>
     </ListRowActionsMenu>
-  )
+    ) : null
 
   const columns = useMemo<ColumnDef<Role>[]>(
     () => [
@@ -198,7 +203,7 @@ export function RolesTable() {
         title={t('access.roles.title')}
         description={t('access.roles.description')}
         actions={
-          <PermissionGate permission="roles:create">
+          <PermissionGate permission={PermissionKeys.roles.modify}>
             <Button className="w-full md:w-auto" onClick={openCreate}>
               {t('access.roles.createAction')}
             </Button>

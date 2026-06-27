@@ -15,7 +15,20 @@ func main() {
 		log.Fatal(err)
 	}
 
-	if err := public.Run(cfg, db); err != nil {
+	redisURL := cfg.RedisURL
+	if cfg.Cache.Enabled && cfg.Cache.Driver == "redis" && cfg.Cache.RedisURL != "" {
+		redisURL = cfg.Cache.RedisURL
+	}
+
+	redisClient, err := database.ConnectRedisURL(redisURL)
+	if err != nil {
+		log.Fatal(err)
+	}
+	if redisClient != nil {
+		defer func() { _ = redisClient.Close() }()
+	}
+
+	if err := public.Run(cfg, db, redisClient); err != nil {
 		log.Fatal(err)
 	}
 }

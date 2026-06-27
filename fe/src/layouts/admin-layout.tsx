@@ -13,10 +13,13 @@ import { NavLoadingBar } from '@/components/common/nav-loading-bar'
 import { TooltipProvider } from '@/components/ui/tooltip'
 import type { BreadcrumbItem } from '@/types/navigation'
 
-const BREADCRUMB_MAP: Record<string, string> = {
-  '/admin': 'nav.dashboard',
-  '/admin/users': 'nav.users',
-  '/admin/roles': 'nav.roles',
+const BREADCRUMB_MAP: Record<
+  string,
+  { label: string; parent?: string }
+> = {
+  '/admin': { label: 'nav.dashboard' },
+  '/admin/users': { label: 'nav.users', parent: 'nav.accessControl' },
+  '/admin/roles': { label: 'nav.roles', parent: 'nav.accessControl' },
 }
 
 type AdminLayoutProps = {
@@ -28,13 +31,20 @@ export function AdminLayout({ children }: AdminLayoutProps) {
   const pathname = usePathname()
 
   const breadcrumbs = useMemo((): BreadcrumbItem[] => {
-    const key = BREADCRUMB_MAP[pathname]
-    if (!key) return [{ title: t('nav.dashboard'), href: '/admin' }]
-    if (pathname === '/admin') return [{ title: t(key) }]
-    return [
+    const entry = BREADCRUMB_MAP[pathname]
+    if (!entry) return [{ title: t('nav.dashboard'), href: '/admin' }]
+    if (pathname === '/admin') return [{ title: t(entry.label) }]
+
+    const trail: BreadcrumbItem[] = [
       { title: t('nav.dashboard'), href: '/admin' },
-      { title: t(key) },
     ]
+
+    if (entry.parent) {
+      trail.push({ title: t(entry.parent) })
+    }
+
+    trail.push({ title: t(entry.label) })
+    return trail
   }, [pathname, t])
 
   return (

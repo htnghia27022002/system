@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react'
 
-import { MainLayout } from '@/layouts/main-layout'
+import { LandingLayout } from '@/layouts/landing-layout'
 
 export default function PublicGroupLayout({ children }: { children: ReactNode }) {
-  return <MainLayout>{children}</MainLayout>
+  return <LandingLayout>{children}</LandingLayout>
 }
