@@ -1,6 +1,6 @@
 ---
 name: fe-develop
-description: General frontend implementation skill for React + TypeScript in this repository. Use for feature/page/layout implementation, architecture-safe file placement, import boundaries, accessibility baseline, and quality checks. When styling UI, components, layouts, or marketing surfaces, follow fe/DESIGN.md as the project design system. For extra anti-slop polish on landing pages, also read design-taste-frontend.
+description: General frontend implementation skill for React + TypeScript in this repository. Use for feature/page/layout implementation, architecture-safe file placement, import boundaries, accessibility baseline, and quality checks. Theme via fe/src/styles/index.css. For landing/marketing polish, also read design-taste-frontend.
 disable-model-invocation: false
 ---
 
@@ -21,9 +21,9 @@ For best indexing and best output quality, route tasks as follows:
 When a request matches the design-heavy cases above, also read and apply:
 - `.cursor/skills/design-taste-frontend/SKILL.md`
 
-**Project design authority:** For any UI styling, component design, layout composition, or visual refactor in `fe/`, `fe/DESIGN.md` is mandatory and overrides generic defaults. Do not duplicate `DESIGN.md` here; read the file and apply its tokens, components, and do/don't rules.
+**Project design authority:** For UI styling, use `fe/src/styles/index.css` CSS variables and shadcn components in `fe/src/components/ui/`. For marketing/landing polish, also read `.cursor/skills/design-taste-frontend/SKILL.md`.
 
-Do not duplicate all design-taste rules inside this file. Keep this file lean and implementation-focused.
+Do not duplicate design rules here. Keep this file lean and implementation-focused.
 
 ## Scope
 
@@ -45,16 +45,16 @@ Before editing code:
 1. Read the user brief and infer page/product intent.
 2. Confirm the target module and route surface.
 3. Respect `fe/README.md` and `fe/AGENTS.md` as architectural policy.
-4. If the task changes UI (components, pages, layouts, styles, tokens), read `fe/DESIGN.md` first and implement against it.
+4. Theme and tokens: `fe/src/styles/index.css` (`:root` / `.dark`).
 5. If the request is ambiguous, ask one focused clarifying question.
 
 ## Architecture Rules (Repository-Specific)
 
-- Follow the `src` structure defined in `fe/README.md`.
+- Follow the `src` structure defined in `fe/README.md` and `fe/AGENTS.md`.
 - Keep business logic inside `src/features/<feature-name>`.
-- Keep route-level composition in `src/pages`.
-- Keep shared reusable UI in `src/components`.
-- Keep global API plumbing in `src/services`.
+- Keep route wiring in `src/app/` (thin pages + metadata only).
+- Keep shared reusable UI in `src/components/`.
+- Keep global API plumbing in `src/services/`.
 - Avoid creating new top-level folders unless explicitly requested.
 
 ## Feature Boundary Rules
@@ -109,41 +109,24 @@ Good examples:
 - **Do not bypass the library** with parallel UI (raw `<div>` loading bars, `<button>`, bespoke `.ds-*` layers) when shadcn covers the pattern — e.g. nav loading → `Progress`, not a custom animated div.
 - **`components/common` is for composition**, not a second design system.
 
-## Project Design System (`fe/DESIGN.md`)
+## Project design system (`src/styles/index.css`)
 
-`DESIGN.md` is the **visual reference** (tokens, patterns, do/don't). Apply it **through** the library stack — not by replacing it.
+Theme authority is **`fe/src/styles/index.css`** — edit `:root` and `.dark` CSS variables (`--primary`, `--background`, `--radius`, etc.).
 
-Apply this whenever you design or restyle UI in `fe/`.
-
-### When to use
-- New pages, layouts, marketing tiles, auth screens, nav, footer, cards, buttons, forms.
-- Visual refactors, spacing/typography/radius/color updates, component variants.
-- Any task where the user says "design", "style", "UI polish", or "make it look like the spec".
-
-### Implementation rules
-- Map DESIGN patterns onto **existing** components (e.g. `store-utility-card` → `Card` + tokenized `className`; `button-primary` → `Button variant="pill"`; forms → `Input` + `Label`).
-- Put tokens in `src/styles/design-tokens.css` and shadcn theme aliases; extend component **variants** when a pattern repeats — do not add parallel component CSS layers.
-- Use the documented color, typography, spacing, radius, and elevation tokens. Prefer CSS variables / Tailwind theme tokens aligned with `DESIGN.md`; avoid random hex values.
-- Single accent only: Action Blue (`#0066cc` / `{colors.primary}`) for interactive elements on light surfaces.
-- Typography: body at 17px / weight 400; headlines at weight 600 with negative letter-spacing; no weight 500.
-- No decorative gradients, no card/button shadows (product imagery shadow only), no second accent color.
-- Button grammar: pill radius for primary CTAs; `active:scale-[0.95]` for press feedback; visible focus ring on keyboard focus.
-- Section rhythm: alternate light/parchment/dark full-bleed tiles; use surface color change as dividers, not heavy borders.
-- Font stack: `SF Pro Display`, `SF Pro Text`, with `system-ui` / `-apple-system` fallbacks; Inter only as off-Apple substitute per `DESIGN.md`.
+Apply styling **through** shadcn/ui components and Tailwind classes that reference those tokens — not parallel custom layers.
 
 ### Conflict resolution
-1. Installed libraries + their docs (shadcn/ui, Radix, next-themes, etc.)
-2. `fe/DESIGN.md` (visual tokens and patterns applied **via** those components)
-3. `fe/README.md` + `fe/AGENTS.md` (structure and boundaries)
-4. `design-taste-frontend` skill (anti-slop guardrails, not a replacement for `DESIGN.md`)
 
-If `design-taste-frontend` conflicts with `DESIGN.md`, follow `DESIGN.md` for this repository. Never satisfy `DESIGN.md` by dropping the UI library.
+1. Installed libraries + their docs (shadcn/ui, Radix, next-themes)
+2. `fe/src/styles/index.css` (theme tokens)
+3. `fe/README.md` + `fe/AGENTS.md` (structure and boundaries)
+4. `design-taste-frontend` skill (anti-slop for landing/marketing only)
 
 ## UI and Layout Discipline
 
 - Avoid generic templated output (for example: repetitive three-equal-card sections by default).
 - Prefer clear visual hierarchy over decorative noise.
-- Use consistent spacing, typography, radius, and color strategy from `fe/DESIGN.md`.
+- Use consistent spacing, typography, radius, and color from CSS variables in `index.css`.
 - Use Grid for multi-column composition when layout relationships matter.
 - Keep hero content concise and visible without forced scrolling when building landing sections.
 
@@ -203,7 +186,7 @@ When task is a redesign:
 - [ ] Imports use the `@/*` alias and feature public entries (no `../../../` chains, no deep feature imports).
 - [ ] Tests are colocated next to the file under test (`*.test.ts` / `*.test.tsx`).
 - [ ] Registry checked; shadcn component added or reused (no parallel hand-rolled UI where registry covers it).
-- [ ] UI work followed `fe/DESIGN.md` via tokens/variants on existing components.
+- [ ] UI work uses `src/styles/index.css` tokens via shadcn/Tailwind (no random hex values).
 - [ ] For extra landing/marketing polish, `design-taste-frontend` was checked when relevant.
 - [ ] UI is coherent (type, spacing, color, radius, components).
 - [ ] Interaction states exist (loading, empty, error, focus/active).

@@ -3,11 +3,21 @@
 This file defines strict implementation rules for AI agents working in `fe/`.
 Follow these rules before creating, editing, moving, or deleting files.
 
+## 0) Self-contained package
+
+`fe/` is a **standalone frontend package**. It can be moved out of this workspace without changing internal import paths.
+
+- Package root: `fe/package.json`
+- Internal imports: `@/*` → `src/*` only
+- API integration: HTTP via `NEXT_PUBLIC_API_BASE_URL` — do **not** import from `be/`
+- Run all FE commands from `fe/` (or repo root scripts that delegate to `fe/`)
+
+When relocating the frontend, move the entire `fe/` directory. Update only external wiring (Docker, CI, env) at the new location.
+
 ## 1) Source of Truth
 
 - Use `README.md` in this folder as the architecture baseline.
 - Use `src/styles/index.css` (`:root` / `.dark` CSS variables) as the visual theme baseline for all UI work.
-- `DESIGN.md` is deprecated legacy reference only — do not apply its Apple tokens to new work.
 
 ## 2) Stack
 

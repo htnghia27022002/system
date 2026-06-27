@@ -13,6 +13,7 @@ import { Spinner } from '@/components/ui/spinner'
 
 import { useLogin } from '../hooks/use-login'
 import { loginSchema, type LoginFormValues } from '../schemas/auth-schemas'
+import { AuthSocialLogin } from './auth-social-login'
 
 export function LoginForm() {
   const { t } = useTranslation('common')
@@ -36,7 +37,7 @@ export function LoginForm() {
       onSubmit={handleSubmit((values) => loginMutation.mutate(values))}
       noValidate
     >
-      <div className="grid gap-6">
+      <div className="grid gap-5">
         <div className="grid gap-2">
           <Label htmlFor="email">{t('auth.fields.email')}</Label>
           <Input
@@ -75,6 +76,8 @@ export function LoginForm() {
             ? t('auth.actions.signingIn')
             : t('auth.actions.signIn')}
         </Button>
+
+        <AuthSocialLogin />
       </div>
 
       <div className="text-center text-sm text-muted-foreground">

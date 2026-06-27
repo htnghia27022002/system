@@ -34,6 +34,7 @@ type AuthState = {
   accessToken: string | null
   user: AuthUser | null
   isAdmin: boolean
+  hasHydrated: boolean
   setAccessToken: (token: string | null) => void
   signIn: (response: AuthResponse) => void
   hydrateFromStorage: () => void
@@ -50,20 +51,24 @@ function buildState(accessToken: string | null, user: AuthUser | null = null) {
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
-  ...buildState(authTokenService.getAccessToken()),
-  setAccessToken: (token) => set(buildState(token)),
+  ...buildState(null),
+  hasHydrated: false,
+  setAccessToken: (token) => set({ ...buildState(token), hasHydrated: true }),
   signIn: (response) => {
     authTokenService.setTokens({
       accessToken: response.accessToken,
       refreshToken: response.refreshToken,
     })
-    set(buildState(response.accessToken, response.user))
+    set({ ...buildState(response.accessToken, response.user), hasHydrated: true })
   },
   hydrateFromStorage: () =>
-    set(buildState(authTokenService.getAccessToken())),
+    set({
+      ...buildState(authTokenService.getAccessToken()),
+      hasHydrated: true,
+    }),
   signOut: () => {
     authTokenService.clearTokens()
-    set(buildState(null))
+    set({ ...buildState(null), hasHydrated: true })
   },
 }))
 

@@ -44,6 +44,17 @@
       "title": "Tao tai khoan",
       "description": "Dien thong tin de dang ky tai khoan moi.",
       "hasAccount": "Da co tai khoan?"
+    },
+    "oauth": {
+      "divider": "Hoac tiep tuc voi",
+      "continueWithGoogle": "Tiep tuc voi Google",
+      "callbackTitle": "Dang dang nhap",
+      "callbackDescription": "Dang hoan tat dang nhap…",
+      "callbackErrorDescription": "Khong the hoan tat dang nhap.",
+      "cancelled": "Da huy dang nhap. Thu lai khi ban san sang.",
+      "missingCode": "Thieu ma xac thuc. Vui long dang nhap lai.",
+      "failed": "Dang nhap that bai. Thu email/mat khau hoac Google.",
+      "success": "Dang nhap thanh cong"
     }
   }
 }

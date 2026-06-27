@@ -1,0 +1,40 @@
+---
+description: Feature workflow order spec → tasks → plan → implement → test. Flat files in docs/features/.
+globs:
+  - docs/**/*
+  - .specify/**/*
+alwaysApply: false
+---
+
+# Docs + Speckit workflow
+
+## Agent auto-skills
+
+| Agent | Skills invoked automatically |
+|-------|------------------------------|
+| `@ba` | `speckit-specify`, `speckit-clarify`, `speckit-tasks` |
+| `@be` | `speckit-plan`, `speckit-implement` |
+| `@fe` | `speckit-plan`, `speckit-implement` |
+| `@qa` | `speckit-checklist`, `speckit-analyze` |
+
+## Language
+
+Chat in any language; **docs/features/** output **English only** (`english-only-file-edits.mdc`).
+
+## Phase order (do not skip)
+
+1. **spec.md** — `@ba` `/speckit-specify`
+2. **tasks.md** — `/speckit-tasks` (from spec)
+3. **plan.md** + **be-implement.md** + **fe-implement.md** — `@be` `@fe` `/speckit-plan`
+4. **implement** — `/speckit-implement` → `be/`, `fe/`
+5. **test** — `@qa` `/speckit-checklist`, `make test`
+
+## Flat feature folder
+
+```text
+spec.md → tasks.md → plan.md → be-implement.md → fe-implement.md → (code) → qa-checklist.md
+```
+
+No role subfolders.
+
+Prompts: [`docs/workflow/agent-prompts.md`](../../docs/workflow/agent-prompts.md)

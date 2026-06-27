@@ -10,17 +10,18 @@ type ProtectedGuardProps = {
 }
 
 export function ProtectedGuard({ children }: ProtectedGuardProps) {
+  const hasHydrated = useAuthStore((state) => state.hasHydrated)
   const accessToken = useAuthStore((state) => state.accessToken)
   const router = useRouter()
   const pathname = usePathname()
 
   useEffect(() => {
-    if (!accessToken) {
+    if (hasHydrated && !accessToken) {
       router.replace(`/login?from=${encodeURIComponent(pathname)}`)
     }
-  }, [accessToken, router, pathname])
+  }, [accessToken, hasHydrated, router, pathname])
 
-  if (!accessToken) return null
+  if (!hasHydrated || !accessToken) return null
 
   return <>{children}</>
 }

@@ -1,0 +1,12 @@
+**/.git
+**/.gitignore
+**/.cursor
+**/node_modules
+**/.next
+**/dist
+**/.env
+**/.env.*
+!**/.env.example
+!**/.env.docker.example
+**/*.md
+**/terminals

@@ -1,5 +1,9 @@
 **/node_modules
 
+# Docker persistent data (bind mounts)
+docker/data/postgres/
+docker/data/redis/
+
 **/.env
 **/.env.local
 **/.env.development.local

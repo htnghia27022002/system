@@ -16,6 +16,7 @@ import {
   registerSchema,
   type RegisterFormValues,
 } from '../schemas/auth-schemas'
+import { AuthSocialLogin } from './auth-social-login'
 
 export function RegisterForm() {
   const { t } = useTranslation('common')
@@ -108,6 +109,8 @@ export function RegisterForm() {
             ? t('auth.actions.creatingAccount')
             : t('auth.actions.createAccount')}
         </Button>
+
+        <AuthSocialLogin />
       </div>
 
       <div className="text-center text-sm text-muted-foreground">

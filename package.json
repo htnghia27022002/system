@@ -6,6 +6,8 @@
     "dev": "pnpm --filter fe dev",
     "build": "pnpm --filter fe build",
     "test": "pnpm --filter fe test:run",
-    "lint": "pnpm --filter fe lint"
+    "lint": "pnpm --filter fe lint",
+    "docker:up": "docker compose up --build",
+    "docker:down": "docker compose down"
   }
 }

@@ -10,16 +10,17 @@ type AdminGuardProps = {
 }
 
 export function AdminGuard({ children }: AdminGuardProps) {
+  const hasHydrated = useAuthStore((state) => state.hasHydrated)
   const isAdmin = useAuthStore((state) => state.isAdmin)
   const router = useRouter()
 
   useEffect(() => {
-    if (!isAdmin) {
+    if (hasHydrated && !isAdmin) {
       router.replace('/')
     }
-  }, [isAdmin, router])
+  }, [hasHydrated, isAdmin, router])
 
-  if (!isAdmin) return null
+  if (!hasHydrated || !isAdmin) return null
 
   return <>{children}</>
 }

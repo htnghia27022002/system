@@ -1,0 +1,32 @@
+# Public application config (safe to commit).
+# Secrets and environment-specific overrides come from env — see .env.example
+
+server:
+  port: "8080"
+
+database:
+  host: localhost
+  port: "5432"
+  name: myapp_pg
+  user: postgres
+  sslMode: disable
+
+jwt:
+  accessTtl: 15m
+  refreshTtl: 168h
+
+cors:
+  origins:
+    - http://localhost:3000
+    - http://127.0.0.1:3000
+    - http://localhost:8080
+    - http://system.local
+    - http://system.local:8080
+
+redis:
+  url: ""
+
+oauth:
+  redirectUrl: http://localhost:3000/auth/callback
+  allowedProviders:
+    - google

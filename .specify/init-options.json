@@ -1,0 +1,10 @@
+{
+  "ai": "cursor-agent",
+  "ai_skills": true,
+  "feature_numbering": "sequential",
+  "feature_root": "docs/features",
+  "here": false,
+  "integration": "cursor-agent",
+  "script": "sh",
+  "speckit_version": "0.11.9"
+}

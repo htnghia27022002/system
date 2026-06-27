@@ -10,6 +10,7 @@ beforeEach(() => {
     accessToken: null,
     user: null,
     isAdmin: false,
+    hasHydrated: true,
   })
 })
 

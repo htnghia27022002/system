@@ -10,16 +10,17 @@ type GuestGuardProps = {
 }
 
 export function GuestGuard({ children }: GuestGuardProps) {
+  const hasHydrated = useAuthStore((state) => state.hasHydrated)
   const user = useAuthStore((state) => state.user)
   const router = useRouter()
 
   useEffect(() => {
-    if (user) {
+    if (hasHydrated && user) {
       router.replace(getPostLoginPath(user.role))
     }
-  }, [user, router])
+  }, [hasHydrated, user, router])
 
-  if (user) return null
+  if (hasHydrated && user) return null
 
   return <>{children}</>
 }

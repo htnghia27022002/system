@@ -44,6 +44,17 @@
       "title": "Create account",
       "description": "A few details to get you started.",
       "hasAccount": "Already have an account?"
+    },
+    "oauth": {
+      "divider": "Or continue with",
+      "continueWithGoogle": "Continue with Google",
+      "callbackTitle": "Signing you in",
+      "callbackDescription": "Completing sign-in with your provider…",
+      "callbackErrorDescription": "We could not complete sign-in.",
+      "cancelled": "Sign-in was cancelled. Try again when you are ready.",
+      "missingCode": "Missing authorization code. Please start sign-in again.",
+      "failed": "Sign-in failed. Try email and password or try Google again.",
+      "success": "Signed in successfully"
     }
   }
 }

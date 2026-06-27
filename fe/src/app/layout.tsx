@@ -14,6 +14,10 @@ export const metadata: Metadata = {
   },
   description: 'System application with admin dashboard and access control.',
   robots: { index: true, follow: true },
+  icons: {
+    icon: [{ url: '/favicon.svg', type: 'image/svg+xml' }],
+    apple: [{ url: '/favicon.svg', type: 'image/svg+xml' }],
+  },
 }
 
 export default function RootLayout({ children }: { children: ReactNode }) {

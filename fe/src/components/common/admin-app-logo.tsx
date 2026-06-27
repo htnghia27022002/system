@@ -1,20 +1,18 @@
 'use client'
 
-import { useTranslation } from 'react-i18next'
+import Image from 'next/image'
+
+import logoLockup from '@/assets/favicon/logo-lockup.svg'
 
 export function AdminAppLogo() {
-  const { t } = useTranslation('common')
-
   return (
-    <>
-      <div className="flex aspect-square size-8 items-center justify-center rounded-md bg-primary text-sm font-semibold text-primary-foreground">
-        {t('appName').charAt(0).toUpperCase()}
-      </div>
-      <div className="ml-1 grid flex-1 text-left text-sm">
-        <span className="mb-0.5 truncate leading-tight font-semibold">
-          {t('appName')}
-        </span>
-      </div>
-    </>
+    <Image
+      src={logoLockup}
+      alt="htnghia"
+      width={152}
+      height={48}
+      className="h-8 w-auto max-w-[9.5rem]"
+      priority
+    />
   )
 }

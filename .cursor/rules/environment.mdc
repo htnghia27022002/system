@@ -1,0 +1,70 @@
+---
+description: Workspace root, env files, and shell commands for agents. Run tests from repo root — not ad-hoc cd into WSL subfolders.
+alwaysApply: true
+---
+
+# Environment & commands
+
+## Workspace root
+
+All agent shell commands start from the **repository root** (the folder that contains `docker-compose.yml`, `be/`, `fe/`, `docs/`).
+
+| Variable | Meaning |
+|----------|---------|
+| Workspace / repo root | Cursor workspace path — e.g. `/home/htnghia/Sources/system` |
+| `REPO_ROOT` | Same as workspace root when writing docs or scripts |
+
+Do **not** assume a different path. Do **not** `cd` into `be/` or `fe/` unless a command explicitly requires it (e.g. `go mod tidy` inside the Go module).
+
+## Env files
+
+| File | Scope | Used by |
+|------|-------|---------|
+| `.env` (repo root) | Docker compose, nginx, `NEXT_PUBLIC_*` for FE container | `make up`, `docker compose` |
+| `be/.env` | Local BE only (host `go run`, `DB_HOST=localhost`) | Split local dev without Docker |
+| `fe/.env` | Local FE only (host `pnpm dev`) | Split local dev without Docker |
+
+**Default for agents:** Docker stack + root `.env` (`cp .env.docker.example .env`).
+
+Speckit feature state: `.specify/feature.json` — not shell env unless user exports `SPECIFY_FEATURE_DIRECTORY`.
+
+## How to run (from repo root)
+
+Prefer **Makefile / root pnpm scripts** — do not invent `cd be && …` on the host.
+
+| Task | Command (repo root) | Notes |
+|------|---------------------|-------|
+| Start stack | `make up-d` | Docker: nginx, be, fe, postgres, redis |
+| Stop stack | `make down` | Data kept in `docker/data/` |
+| All tests | `make test` | BE in container + FE on host |
+| BE tests (unit) | `make test-be` | `docker compose exec be make test` → `./test/unit/...` |
+| BE integration | `make test-be-integration` | Postgres in stack required |
+| BE e2e | `make test-be-e2e` | Postgres in stack required |
+| BE all tiers | `make test-be-all` | unit + integration + e2e |
+| FE tests | `make test-fe` or `pnpm test` | Vitest |
+| FE lint | `make lint` or `pnpm lint` | ESLint |
+| Redis ping | `make redis` | |
+| Postgres shell | `make psql` | |
+
+### Do not use on WSL host (unless user installed Go locally)
+
+- `cd be && make test` — fails when `go` is not on PATH
+- `cd be && make run` — use Docker stack or explicit local Go setup
+
+### When Docker is not running
+
+Start it first: `make up-d`, then `make test-be`.
+
+For FE-only work without Docker: `pnpm test` / `pnpm dev` from repo root is fine.
+
+## URLs (current `.env` default)
+
+- App: `http://system.local:8080` (add `127.0.0.1 system.local` to hosts)
+- API: `http://system.local:8080/api`
+- CORS must include origin **with port** when `NGINX_HTTP_PORT=8080`
+
+## Agent checklist before running tests
+
+1. `pwd` should be repo root (or use absolute path to repo root).
+2. Docker stack up for BE tests: `docker compose ps` shows `be` running.
+3. Use `make test`, not scattered `cd` into subfolders.

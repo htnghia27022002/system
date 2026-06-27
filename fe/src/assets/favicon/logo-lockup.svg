@@ -1,0 +1,14 @@
+<svg viewBox="0 0 380 120" xmlns="http://www.w3.org/2000/svg">
+  <g transform="translate(0,10) scale(0.5)" stroke="#3D72E0" stroke-width="11" stroke-linecap="round" fill="none">
+    <line x1="40" y1="30" x2="40" y2="170"/>
+    <line x1="110" y1="30" x2="110" y2="170"/>
+    <line x1="180" y1="30" x2="180" y2="170"/>
+    <line x1="20" y1="60" x2="200" y2="60"/>
+    <path d="M40,85 Q40,145 110,170"/>
+    <path d="M110,75 Q110,135 180,170"/>
+  </g>
+  <circle cx="112" cy="29" r="3.5" fill="#C0392B"/>
+
+  <text x="135" y="78" font-family="ui-sans-serif, Inter, 'Segoe UI', system-ui, sans-serif"
+        font-size="44" font-weight="650" letter-spacing="-1" fill="#3D72E0">htnghia</text>
+</svg>

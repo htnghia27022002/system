@@ -62,19 +62,46 @@ src/app/
 
 ## Getting Started
 
+**Docker (full stack, from repo root):**
+
 ```bash
-cd fe
-cp .env.example .env.local
+cp .env.docker.example .env && make up
+# → http://localhost:8080
+```
+
+**Local FE only:**
+
+```bash
+cp .env.example .env
 pnpm install
 pnpm dev
 ```
 
-### Demo accounts (mock API default)
+### Demo accounts
 
 | Role | Email | Password |
 |------|-------|----------|
 | Admin | `admin@example.com` | `admin1234` |
 | User | `demo@example.com` | `password123` |
+
+Works with mock API or real BE when `NEXT_PUBLIC_USE_MOCK_API=false`.
+
+## Env Variables
+
+See `fe/.env.example`. Key vars (via `src/config/env.ts`):
+
+| Variable | Docker | Local + real BE |
+|----------|--------|-----------------|
+| `NEXT_PUBLIC_API_BASE_URL` | `http://localhost:8080/api` | `http://localhost:8080/api` |
+| `NEXT_PUBLIC_USE_MOCK_API` | `false` | `false` |
+| `NEXT_PUBLIC_APP_NAME` | `System App` | `System App` |
+
+For mock-only local dev: `NEXT_PUBLIC_USE_MOCK_API=true`, `NEXT_PUBLIC_API_BASE_URL=http://localhost:3000/api`.
+
+## Related docs
+
+- Architecture rules: [`AGENTS.md`](AGENTS.md)
+- Monorepo + Docker: [`../README.md`](../README.md), [`../docker/README.md`](../docker/README.md)
 
 ## Scripts
 
@@ -85,17 +112,6 @@ pnpm start     # next start
 pnpm test      # vitest watch
 pnpm test:run  # vitest run (CI)
 pnpm lint      # eslint
-```
-
-## Env Variables
-
-```env
-# .env.local
-NEXT_PUBLIC_API_BASE_URL=http://localhost:3000/api
-NEXT_PUBLIC_APP_NAME=System App
-NEXT_PUBLIC_USE_MOCK_API=true
-NEXT_PUBLIC_MOCK_API_DELAY_MS=1200
-NEXT_PUBLIC_SITE_URL=https://yourdomain.com
 ```
 
 ## Stack

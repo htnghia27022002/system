@@ -7,6 +7,7 @@ import { useTranslation } from 'react-i18next'
 import { NavLoadingBar } from '@/components/common/nav-loading-bar'
 import { ThemeToggle } from '@/components/common/theme-toggle'
 import { Button } from '@/components/ui/button'
+import { useSignOut } from '@/features/auth/hooks/use-sign-out'
 import { useAuthStore } from '@/store/auth-store'
 
 type MainLayoutProps = {
@@ -16,7 +17,7 @@ type MainLayoutProps = {
 export function MainLayout({ children }: MainLayoutProps) {
   const { t, i18n } = useTranslation('common')
   const accessToken = useAuthStore((state) => state.accessToken)
-  const signOut = useAuthStore((state) => state.signOut)
+  const signOutMutation = useSignOut()
 
   return (
     <div className="min-h-[100dvh] bg-background">
@@ -28,7 +29,12 @@ export function MainLayout({ children }: MainLayoutProps) {
           </Link>
           <nav className="flex items-center gap-2">
             {accessToken ? (
-              <Button variant="outline" size="sm" onClick={() => signOut()}>
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={signOutMutation.isPending}
+                onClick={() => signOutMutation.mutate()}
+              >
                 {t('auth.actions.signOut')}
               </Button>
             ) : (
