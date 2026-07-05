@@ -19,15 +19,25 @@ be/
 │   ├── handlers/
 │   └── routes/
 ├── internal/
-│   ├── app/container.go      # DI wiring
+│   ├── app/
+│   │   ├── container.go      # DI orchestrator (public Container API)
+│   │   └── dependency/       # Service resolvers (repos + wiring per domain)
 │   ├── config/
 │   ├── database/
+│   ├── handlers/             # Queue publisher + subscribers (not HTTP)
+│   ├── queue/                # NATS JetStream (constants, nats.json, client)
 │   ├── middleware/
 │   ├── models/
 │   ├── dto/
 │   ├── repository/
+│   ├── search/               # Elasticsearch client
 │   ├── services/
 │   └── common/
+├── cmd/
+│   ├── migrate/
+│   ├── seed/
+│   ├── queue/                # NATS consumer worker
+│   └── reindex/              # Bulk search reindex CLI
 ├── migrations/
 ├── test/                     # All unit, integration, and e2e tests
 │   ├── unit/
@@ -40,7 +50,7 @@ be/
 
 ## Stack
 
-Go 1.22 · Gin · GORM · PostgreSQL · JWT · OAuth2 · golangci-lint
+Go 1.22 · Gin · GORM · PostgreSQL · JWT · OAuth2 · Elasticsearch · NATS JetStream · golangci-lint
 
 ## API routes
 
@@ -49,7 +59,7 @@ Base URL: `/api` (via nginx `http://localhost:8080/api` in Docker, or `http://lo
 | Group | Paths |
 |-------|-------|
 | Auth | `POST /auth/login`, `/register`, `/refresh`, `/logout`; `GET /auth/me`; OAuth under `/auth/oauth/:provider/*` |
-| Admin | CRUD `/admin/users`, `/admin/roles`; `GET /admin/permissions` |
+| Admin | CRUD `/admin/users`, `/admin/roles`; `GET /admin/permissions`; `GET /admin/search` (+ reindex / outbox admin) |
 
 JSON responses use **camelCase**. Admin routes require Bearer JWT + permissions.
 
@@ -66,17 +76,12 @@ Seeded on first startup via `internal/database/seeders/` (Laravel-style) after [
 
 ## Environment
 
-**Public config:** [`config.yaml`](config.yaml) — port, JWT TTL, CORS, OAuth provider list, non-secret defaults (safe to commit).
+| Run mode | Env file |
+|----------|----------|
+| **Docker / queue / prod** | `be/.env` only (`env_file`) |
+| **Local host** | same `be/.env` — set `DB_HOST=localhost`, local service URLs |
 
-**Secrets & overrides:** copy [`be/.env.example`](.env.example) to `be/.env` for local host runs, or set env in Docker compose. Env **always wins** over `config.yaml`.
-
-| Source | Examples |
-|--------|----------|
-| `config.yaml` | `server.port`, `jwt.accessTtl`, `cors.origins`, `cache.*`, `oauth.allowedProviders` |
-| Env (secrets) | `DB_PASSWORD`, `JWT_SECRET`, `OAUTH_GOOGLE_CLIENT_ID`, `OAUTH_GOOGLE_CLIENT_SECRET` |
-| Env (deploy override) | `DB_HOST=postgres`, `REDIS_URL`, `CACHE_ENABLED`, `CACHE_DRIVER`, `CORS_ORIGINS`, `CONFIG_FILE` |
-
-**Docker:** configured in root `docker-compose.yml` — see [`docker/README.md`](../docker/README.md).
+**Public config:** [`config.yaml`](config.yaml). **Everything else:** `be/.env`.
 
 ## Commands
 
@@ -93,6 +98,8 @@ make migrate-version  # print current migration version
 make migrate-create name=add_users_index  # scaffold up/down files
 make seed             # run DatabaseSeeder
 make seed-class class=PermissionSeeder  # run one seeder class
+go run ./cmd/queue        # NATS queue worker (consumers; separate from API)
+go run ./cmd/reindex      # one-shot Elasticsearch bulk reindex
 ```
 
 ## Cache
@@ -108,13 +115,58 @@ Optional layer in `internal/common/cache`. Disabled by default (`cache.enabled: 
 
 Package API: `cache.Init(cfg.Cache, redisClient)` at startup, then `cache.Get`, `cache.Set`, `cache.Delete`, `cache.Purge`, `cache.Close`. Redis client comes from `database.ConnectRedis(cfg)` in `main.go`.
 
+## Queue (NATS JetStream)
+
+Search index sync uses a **transactional outbox** in PostgreSQL and NATS JetStream for async processing.
+
+| Layer | Path | Role |
+|-------|------|------|
+| Infra | `internal/queue/` | Connect, stream/consumer bootstrap, publish |
+| Constants | `internal/queue/constants.go` | Stream, subject, consumer, handler names |
+| Options | `internal/queue/nats.json` | Retention, ack policy, etc. (not names) |
+| Publish | `internal/handlers/publisher/` | Outbound messages after DB write |
+| Consume | `internal/handlers/subscribers/` | Inbound handlers (`process_search`, …) |
+| Worker | `cmd/queue/` | Runs consumers (Docker service `queue`) |
+
+The API process publishes only. **`cmd/queue`** calls `EnsureInfrastructure` and `StartConsumers` on startup.
+
+Env: `NATS_ENABLED`, `NATS_URL`, optional `QUEUE_CONFIG_FILE` (default `internal/queue/nats.json`).
+
+When NATS is disabled, the publisher no-ops and `cmd/queue` polls the outbox table.
+
+Design reference: [`docs/features/002-elasticsearch-search/be-implement.md`](../docs/features/002-elasticsearch-search/be-implement.md).
+
 From monorepo root: `make test-be`, `make test-be-integration`, `make test-be-e2e`, `make test-be-all`.
 
 See [`test/README.md`](test/README.md) for layout and conventions.
 
+## Dependency injection
+
+Wiring lives under `internal/app/`. **`container.go`** is a thin orchestrator; each domain resolver in **`internal/app/dependency/`** constructs its repositories and related services.
+
+```text
+internal/app/
+├── container.go              # NewContainer — exposes handlers + services to routes/cmd
+└── dependency/
+    ├── infra.go              # Queue, JWT, publisher, Elasticsearch client
+    ├── repositories.go       # newAuthRepository, newUserRepository, …
+    ├── search.go             # Outbox, index processor, search query service
+    ├── auth_service.go       # Auth + OAuth
+    ├── user_service.go       # UserService (+ user repo)
+    ├── role_service.go       # RoleService (+ role repo for auth middleware)
+    ├── permission_service.go
+    └── handlers.go           # HTTP handler constructors
+```
+
+**Resolve order in `NewContainer`:** `Infra` → `SearchStack` (shared outbox) → domain services → `HTTPHandlers`.
+
+Add a new domain service by adding `dependency/<feature>_service.go` with a `New…` constructor, then register it in `container.go`. Keep business logic in `internal/services/<feature>/`; resolvers only wire dependencies.
+
 ## Conventions
 
 - HTTP in `public/handlers`, routes in `public/routes`
+- Queue publish/consume in `internal/handlers/publisher` and `internal/handlers/subscribers`
+- NATS infra in `internal/queue/` — subject names from `constants.go` only
 - Business logic in `internal/services/<feature>`
 - DTOs separate from models
 - Errors via `internal/common/errors` + `response.HandleError`

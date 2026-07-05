@@ -1,6 +1,8 @@
 ---
 description: Workspace root, env files, and shell commands for agents. Run tests from repo root — not ad-hoc cd into WSL subfolders.
 alwaysApply: true
+globs:
+  - "**/*"
 ---
 
 # Environment & commands
@@ -9,62 +11,36 @@ alwaysApply: true
 
 All agent shell commands start from the **repository root** (the folder that contains `docker-compose.yml`, `be/`, `fe/`, `docs/`).
 
-| Variable | Meaning |
-|----------|---------|
-| Workspace / repo root | Cursor workspace path — e.g. `/home/htnghia/Sources/system` |
-| `REPO_ROOT` | Same as workspace root when writing docs or scripts |
+## Env files — one owner each
 
-Do **not** assume a different path. Do **not** `cd` into `be/` or `fe/` unless a command explicitly requires it (e.g. `go mod tidy` inside the Go module).
+| File | Owner | Contains | Used by |
+|------|-------|----------|---------|
+| **`.env`** (root) | Docker wiring | `NGINX_HTTP_PORT` only | compose auto-load |
+| **`be/.env`** | BE app | DB, Redis, ES, NATS, JWT, OAuth, CORS, queue worker | `env_file` on `be` / `queue` / `be-prod`; local `cd be && make run`; `--env-file be/.env` for postgres `${DB_*}` |
+| **`fe/.env`** | FE app | `NEXT_PUBLIC_*` | `env_file` on `fe` / `fe-prod`; local `pnpm dev`; `--env-file fe/.env` for prod build args |
 
-## Env files
+**Root `.env` does NOT hold OAuth, JWT, or `NEXT_PUBLIC_*`.** Those belong in the app package that owns them.
 
-| File | Scope | Used by |
-|------|-------|---------|
-| `.env` (repo root) | Docker compose, nginx, `NEXT_PUBLIC_*` for FE container | `make up`, `docker compose` |
-| `be/.env` | Local BE only (host `go run`, `DB_HOST=localhost`) | Split local dev without Docker |
-| `fe/.env` | Local FE only (host `pnpm dev`) | Split local dev without Docker |
+Deploy BE alone on a server → copy `be/` + set `be/.env` (point `DB_HOST` at that server's Postgres).  
+Deploy FE alone → copy `fe/` + set `fe/.env`.  
+Monorepo Docker dev → `make up-d` reads all three files; compose only wires containers.
 
-**Default for agents:** Docker stack + root `.env` (`cp .env.docker.example .env`).
-
-Speckit feature state: `.specify/feature.json` — not shell env unless user exports `SPECIFY_FEATURE_DIRECTORY`.
+Templates: `.env.example`, `be/.env.example`, `fe/.env.example`. Setup: `make env`.
 
 ## How to run (from repo root)
 
-Prefer **Makefile / root pnpm scripts** — do not invent `cd be && …` on the host.
+| Task | Command |
+|------|---------|
+| Start stack | `make up-d` |
+| Stop stack | `make down` |
+| BE tests | `make test-be` |
+| FE tests | `make test-fe` |
+| Local BE (no Docker) | set `be/.env` with `DB_HOST=localhost`, then `cd be && make run` |
+| Local FE (no Docker) | set `fe/.env` for `localhost:3000`, then `pnpm dev` |
 
-| Task | Command (repo root) | Notes |
-|------|---------------------|-------|
-| Start stack | `make up-d` | Docker: nginx, be, fe, postgres, redis |
-| Stop stack | `make down` | Data kept in `docker/data/` |
-| All tests | `make test` | BE in container + FE on host |
-| BE tests (unit) | `make test-be` | `docker compose exec be make test` → `./test/unit/...` |
-| BE integration | `make test-be-integration` | Postgres in stack required |
-| BE e2e | `make test-be-e2e` | Postgres in stack required |
-| BE all tiers | `make test-be-all` | unit + integration + e2e |
-| FE tests | `make test-fe` or `pnpm test` | Vitest |
-| FE lint | `make lint` or `pnpm lint` | ESLint |
-| Redis ping | `make redis` | |
-| Postgres shell | `make psql` | |
+Do **not** use `cd be && make test` on WSL host unless Go is installed locally — use `make test-be`.
 
-### Do not use on WSL host (unless user installed Go locally)
+## URLs
 
-- `cd be && make test` — fails when `go` is not on PATH
-- `cd be && make run` — use Docker stack or explicit local Go setup
-
-### When Docker is not running
-
-Start it first: `make up-d`, then `make test-be`.
-
-For FE-only work without Docker: `pnpm test` / `pnpm dev` from repo root is fine.
-
-## URLs (current `.env` default)
-
-- App: `http://system.local:8080` (add `127.0.0.1 system.local` to hosts)
-- API: `http://system.local:8080/api`
-- CORS must include origin **with port** when `NGINX_HTTP_PORT=8080`
-
-## Agent checklist before running tests
-
-1. `pwd` should be repo root (or use absolute path to repo root).
-2. Docker stack up for BE tests: `docker compose ps` shows `be` running.
-3. Use `make test`, not scattered `cd` into subfolders.
+When `NGINX_HTTP_PORT=8080` in root `.env`: app at `http://system.local:8080`, API at `http://system.local:8080/api`.  
+Match `CORS_ORIGINS` and `OAUTH_REDIRECT_URL` in **`be/.env`**, and `NEXT_PUBLIC_*` in **`fe/.env`**, to that origin.

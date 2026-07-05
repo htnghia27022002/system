@@ -3,6 +3,8 @@ import type {
   AuthResolvedUser,
   CreateRoleInput,
   CreateUserInput,
+  ListPermissionsParams,
+  ListRolesParams,
   ListUsersParams,
   ManagedUser,
   PaginatedResponse,
@@ -313,12 +315,58 @@ async function withDelay<T>(run: () => T | Promise<T>): Promise<T> {
 }
 
 export const mockAccessControlApi = {
-  async listPermissions(): Promise<Permission[]> {
-    return withDelay(() => readPermissions())
+  async listPermissions(
+    params: ListPermissionsParams = {},
+  ): Promise<PaginatedResponse<Permission>> {
+    return withDelay(() => {
+      const page = params.page ?? 1
+      const pageSize = params.pageSize ?? 1000
+      let permissions = readPermissions()
+
+      if (params.group?.trim()) {
+        permissions = permissions.filter((p) => p.group === params.group)
+      }
+
+      if (params.search?.trim()) {
+        const q = params.search.trim().toLowerCase()
+        permissions = permissions.filter(
+          (p) =>
+            p.key.toLowerCase().includes(q) ||
+            p.name.toLowerCase().includes(q) ||
+            p.description.toLowerCase().includes(q),
+        )
+      }
+
+      return paginate(permissions, page, pageSize)
+    })
   },
 
-  async listRoles(): Promise<Role[]> {
-    return withDelay(() => readRoles())
+  async listRoles(params: ListRolesParams = {}): Promise<PaginatedResponse<Role>> {
+    return withDelay(() => {
+      const page = params.page ?? 1
+      const pageSize = params.pageSize ?? 50
+      let roles = readRoles()
+
+      if (params.id?.trim()) {
+        roles = roles.filter((r) => r.id === params.id)
+      }
+
+      if (params.search?.trim()) {
+        const q = params.search.trim().toLowerCase()
+        roles = roles.filter(
+          (r) =>
+            r.name.toLowerCase().includes(q) ||
+            r.slug.toLowerCase().includes(q),
+        )
+      }
+
+      if (params.permissionKey?.trim()) {
+        const key = params.permissionKey.trim()
+        roles = roles.filter((r) => r.permissionKeys.includes(key))
+      }
+
+      return paginate(roles, page, pageSize)
+    })
   },
 
   async getRole(id: string): Promise<Role> {
@@ -422,6 +470,10 @@ export const mockAccessControlApi = {
 
       if (params.roleId) {
         users = users.filter((u) => u.roleId === params.roleId)
+      }
+
+      if (params.id?.trim()) {
+        users = users.filter((u) => u.id === params.id)
       }
 
       if (params.search?.trim()) {

@@ -22,7 +22,38 @@
     "accessControl": "Quan ly truy cap",
     "users": "Nguoi dung",
     "roles": "Vai tro",
-    "permissions": "Quyen"
+    "permissions": "Quyen",
+    "search": "Tim kiem"
+  },
+  "search": {
+    "title": "Tim kiem thong nhat",
+    "description": "Tim nguoi dung, vai tro va quyen trong khu vuc quan tri.",
+    "barLabel": "Tim kiem quan tri",
+    "placeholder": "Tim nguoi dung, vai tro, quyen…",
+    "queryLabel": "Tu khoa",
+    "typeLabel": "Loai thuc the",
+    "submit": "Tim kiem",
+    "prompt": "Nhap tu khoa o tren de bat dau tim kiem.",
+    "loading": "Dang tim…",
+    "refreshing": "Dang cap nhat",
+    "error": "Khong tai duoc ket qua tim kiem.",
+    "empty": "Khong co ket qua phu hop.",
+    "noResults": "Khong co ket qua.",
+    "viewAllResults": "Xem tat ca ket qua",
+    "clearSearch": "Xoa tim kiem",
+    "resultsCount": "{{count}} ket qua",
+    "pageSummary": "Trang {{page}} / {{totalPages}}",
+    "previous": "Truoc",
+    "next": "Sau",
+    "degradedTitle": "Che do tim kiem han che",
+    "degradedDescription": "Chi muc tim kiem khong kha dung. Ket qua co the chi gom nguoi dung tu co so du lieu.",
+    "degraded": "Chi muc tim kiem khong kha dung — ket qua co the bi gioi han.",
+    "filters": {
+      "all": "Tat ca",
+      "users": "Nguoi dung",
+      "roles": "Vai tro",
+      "permissions": "Quyen"
+    }
   },
   "access": {
     "insufficientPermissions": "Khong du quyen truy cap",

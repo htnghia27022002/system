@@ -1,5 +1,6 @@
 import { env } from '@/config/env'
 import { apiClient } from '@/services/api-client'
+import { normalizePaginatedResponse } from '@/lib/normalize-paginated-response'
 import {
   mockAccessControlApi,
   MockAccessControlError,
@@ -8,6 +9,8 @@ import {
 import type {
   CreateRoleInput,
   CreateUserInput,
+  ListPermissionsParams,
+  ListRolesParams,
   ListUsersParams,
   ManagedUser,
   PaginatedResponse,
@@ -20,20 +23,49 @@ import type {
 export { MockAccessControlError }
 
 export const accessControlApi = {
-  listPermissions(): Promise<Permission[]> {
+  listPermissions(
+    params: ListPermissionsParams = {},
+  ): Promise<PaginatedResponse<Permission>> {
     if (env.VITE_USE_MOCK_API) {
-      return mockAccessControlApi.listPermissions()
+      return mockAccessControlApi.listPermissions(params)
     }
     return apiClient
-      .get<Permission[]>('/admin/permissions')
+      .get<PaginatedResponse<Permission>>('/admin/permissions', { params })
+      .then((r) => normalizePaginatedResponse<Permission>(r.data, params.pageSize))
+  },
+
+  listAllPermissions(): Promise<Permission[]> {
+    if (env.VITE_USE_MOCK_API) {
+      return mockAccessControlApi
+        .listPermissions({ page: 1, pageSize: 1000 })
+        .then((r) => r.items)
+    }
+    return apiClient
+      .get<Permission[]>('/admin/permissions/all')
       .then((r) => r.data)
   },
 
-  listRoles(): Promise<Role[]> {
+  listRoles(params: ListRolesParams = {}): Promise<PaginatedResponse<Role>> {
     if (env.VITE_USE_MOCK_API) {
-      return mockAccessControlApi.listRoles()
+      return mockAccessControlApi.listRoles(params)
     }
-    return apiClient.get<Role[]>('/admin/roles').then((r) => r.data)
+    return apiClient
+      .get<PaginatedResponse<Role>>('/admin/roles', {
+        params,
+        skipNavLoading: true,
+      })
+      .then((r) => normalizePaginatedResponse<Role>(r.data, params.pageSize))
+  },
+
+  listAllRoles(): Promise<Role[]> {
+    if (env.VITE_USE_MOCK_API) {
+      return mockAccessControlApi
+        .listRoles({ page: 1, pageSize: 1000 })
+        .then((r) => r.items)
+    }
+    return apiClient
+      .get<Role[]>('/admin/roles/all', { skipNavLoading: true })
+      .then((r) => r.data)
   },
 
   getRole(id: string): Promise<Role> {
@@ -71,8 +103,11 @@ export const accessControlApi = {
       return mockAccessControlApi.listUsers(params)
     }
     return apiClient
-      .get<PaginatedResponse<ManagedUser>>('/admin/users', { params })
-      .then((r) => r.data)
+      .get<PaginatedResponse<ManagedUser>>('/admin/users', {
+        params,
+        skipNavLoading: true,
+      })
+      .then((r) => normalizePaginatedResponse<ManagedUser>(r.data, params.pageSize))
   },
 
   getUser(id: string): Promise<ManagedUser> {

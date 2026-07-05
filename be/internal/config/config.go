@@ -32,6 +32,13 @@ type Config struct {
 
 	RedisURL string
 	Cache    CacheConfig
+
+	Elasticsearch ElasticsearchConfig
+}
+
+type ElasticsearchConfig struct {
+	Enabled bool
+	URL     string
 }
 
 type CacheConfig struct {
@@ -78,6 +85,10 @@ type fileConfig struct {
 		RedirectURL      string   `yaml:"redirectUrl"`
 		AllowedProviders []string `yaml:"allowedProviders"`
 	} `yaml:"oauth"`
+	Elasticsearch struct {
+		Enabled bool   `yaml:"enabled"`
+		URL     string `yaml:"url"`
+	} `yaml:"elasticsearch"`
 }
 
 // Load reads public settings from config.yaml, then applies env overrides.
@@ -148,6 +159,15 @@ func Load() Config {
 		firstNonEmpty(os.Getenv("JWT_REFRESH_TTL"), fc.JWT.RefreshTTL, "168h"),
 		7*24*time.Hour,
 	)
+
+	cfg.Elasticsearch = ElasticsearchConfig{
+		Enabled: parseBoolEnv(os.Getenv("ELASTICSEARCH_ENABLED"), fc.Elasticsearch.Enabled),
+		URL: firstNonEmpty(
+			os.Getenv("ELASTICSEARCH_URL"),
+			fc.Elasticsearch.URL,
+			"http://localhost:9200",
+		),
+	}
 
 	if cfg.DBPass == "" {
 		cfg.DBPass = "postgres"
@@ -239,4 +259,17 @@ func parseBoolEnv(raw string, yamlDefault bool) bool {
 	default:
 		return yamlDefault
 	}
+}
+
+func parseIntEnv(raw string, yamlDefault int, fallback int) int {
+	raw = strings.TrimSpace(raw)
+	if raw != "" {
+		if n, err := strconv.Atoi(raw); err == nil {
+			return n
+		}
+	}
+	if yamlDefault > 0 {
+		return yamlDefault
+	}
+	return fallback
 }

@@ -1,43 +1,49 @@
 .PHONY: up up-d down logs prod psql redis env test test-be test-fe lint
 
+# be/.env for DB_* substitution (postgres) + be/queue containers. fe/.env for prod FE build args.
+COMPOSE := docker compose --env-file be/.env
+COMPOSE_PROD := docker compose --env-file be/.env --env-file fe/.env
+
 up:
-	docker compose up --build
+	$(COMPOSE) up --build
 
 up-d:
-	docker compose up --build -d
+	$(COMPOSE) up --build -d
 
 down:
 	docker compose down
 
 logs:
-	docker compose logs -f
+	$(COMPOSE) logs -f
 
 prod:
-	docker compose --profile prod up --build
+	$(COMPOSE_PROD) --profile prod up --build
 
 psql:
-	docker compose exec postgres psql -U $${POSTGRES_USER:-postgres} -d $${POSTGRES_DB:-myapp_pg}
+	$(COMPOSE) exec postgres psql -U $${DB_USER:-postgres} -d $${DB_NAME:-myapp_pg}
 
 redis:
-	docker compose exec redis redis-cli ping
+	$(COMPOSE) exec redis redis-cli ping
 
 env:
-	@test -f .env || cp .env.docker.example .env
-	@echo "Created .env from .env.docker.example"
+	@test -f .env || cp .env.example .env
+	@test -f be/.env || cp be/.env.example be/.env
+	@test -f fe/.env || cp fe/.env.example fe/.env
+	@echo "Created missing env files (.env, be/.env, fe/.env)"
 
 test: test-be test-fe
 
 test-be:
-	docker compose exec -T be go test ./test/unit/...
+	$(COMPOSE) exec -T be go test ./test/unit/...
 
 test-be-integration:
-	docker compose exec -T be go test -tags=integration ./test/integration/...
+	$(COMPOSE) exec -T be go test -tags=integration ./test/integration/...
 
 test-be-e2e:
-	docker compose exec -T be go test -tags=e2e ./test/e2e/...
+	$(COMPOSE) exec -T be go test -tags=e2e ./test/e2e/...
 
 test-be-all:
-	docker compose exec -T be sh -c "go test ./test/unit/... && go test -tags=integration ./test/integration/... && go test -tags=e2e ./test/e2e/..."
+	$(COMPOSE) exec -T be sh -c "go test ./test/unit/... && go test -tags=integration ./test/integration/... && go test -tags=e2e ./test/e2e/..."
 
 test-fe:
 	pnpm test

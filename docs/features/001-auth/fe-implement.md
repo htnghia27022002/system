@@ -47,7 +47,12 @@ Login → "Continue with Google"
 
 ## Env
 
-| Variable | Example |
-|----------|---------|
-| `NEXT_PUBLIC_SITE_URL` | `http://system.local:8080` |
-| `NEXT_PUBLIC_API_BASE_URL` | `http://system.local:8080/api` |
+| Run mode | File |
+|----------|------|
+| Docker / compose | `fe/.env` |
+| Local FE | `fe/.env` |
+
+| Variable | Docker example | Local example |
+|----------|----------------|---------------|
+| `NEXT_PUBLIC_SITE_URL` | `http://system.local:8080` | `http://localhost:3000` |
+| `NEXT_PUBLIC_API_BASE_URL` | `http://system.local:8080/api` | `http://localhost:8080/api` |

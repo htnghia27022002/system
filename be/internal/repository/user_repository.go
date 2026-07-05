@@ -3,11 +3,11 @@ package repository
 import (
 	"context"
 	"errors"
-	"strings"
 
 	"gorm.io/gorm"
 
 	usermodel "be/internal/models/user"
+	"be/internal/common/query"
 	"be/internal/repository/interfaces"
 )
 
@@ -47,26 +47,21 @@ func (r *UserRepository) GetByEmail(ctx context.Context, email string) (*usermod
 	return &user, nil
 }
 
-func (r *UserRepository) List(ctx context.Context, filter interfaces.UserListFilter) ([]usermodel.User, int64, error) {
-	query := r.db.WithContext(ctx).Model(&usermodel.User{})
-	if filter.Search != "" {
-		term := "%" + strings.ToLower(filter.Search) + "%"
-		query = query.Where("LOWER(email) LIKE ? OR LOWER(full_name) LIKE ?", term, term)
-	}
-	if filter.RoleID != "" {
-		query = query.Where("role_id = ?", filter.RoleID)
-	}
-
-	var total int64
-	if err := query.Count(&total).Error; err != nil {
-		return nil, 0, err
-	}
-
+func (r *UserRepository) List(ctx context.Context, q *query.Query) ([]usermodel.User, int64, error) {
 	var users []usermodel.User
-	if err := query.Order("created_at DESC").Offset(filter.Offset).Limit(filter.Limit).Find(&users).Error; err != nil {
-		return nil, 0, err
+	total, err := query.Paginate[usermodel.User](ctx, r.db, q, &users)
+	return users, total, err
+}
+
+func (r *UserRepository) ListAll(ctx context.Context) ([]usermodel.User, error) {
+	var users []usermodel.User
+	if err := r.db.WithContext(ctx).
+		Where("status = ?", usermodel.StatusActive).
+		Order("created_at ASC").
+		Find(&users).Error; err != nil {
+		return nil, err
 	}
-	return users, total, nil
+	return users, nil
 }
 
 func (r *UserRepository) Update(ctx context.Context, user *usermodel.User) error {

@@ -7,14 +7,23 @@ import {
   accessControlApi,
   MockAccessControlError,
 } from '../services/access-control-api'
-import type { CreateRoleInput, UpdateRoleInput } from '../types'
+import type { CreateRoleInput, ListRolesParams, UpdateRoleInput } from '../types'
 
 const rolesKey = ['admin', 'access-control', 'roles'] as const
 
-export function useRolesList() {
+export function useRolesList(params: ListRolesParams = {}) {
   return useQuery({
-    queryKey: rolesKey,
-    queryFn: () => accessControlApi.listRoles(),
+    queryKey: [...rolesKey, params],
+    queryFn: () => accessControlApi.listRoles(params),
+    meta: { skipNavLoading: true },
+  })
+}
+
+export function useAllRolesList() {
+  return useQuery({
+    queryKey: [...rolesKey, 'all'],
+    queryFn: () => accessControlApi.listAllRoles(),
+    meta: { skipNavLoading: true },
   })
 }
 

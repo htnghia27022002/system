@@ -9,6 +9,6 @@ const permissionsKey = ['admin', 'access-control', 'permissions'] as const
 export function usePermissionsCatalog() {
   return useQuery({
     queryKey: permissionsKey,
-    queryFn: () => accessControlApi.listPermissions(),
+    queryFn: () => accessControlApi.listAllPermissions(),
   })
 }

@@ -28,11 +28,13 @@ Core auth (login, register, refresh, logout, me, OAuth service) is implemented. 
 | `be/public/handlers/auth_handler.go` | `OAuthProviders` handler |
 | `be/public/routes/auth.go` | Register providers route |
 
-## OAuth env (Docker)
+## OAuth env
 
-| Variable | Purpose |
-|----------|---------|
-| `OAUTH_GOOGLE_CLIENT_ID` | Google client ID |
-| `OAUTH_GOOGLE_CLIENT_SECRET` | Google secret |
-| `OAUTH_ALLOWED_PROVIDERS` | `google` |
-| `OAUTH_REDIRECT_URL` | Must match FE `/auth/callback` URL registered in Google Console |
+| Run mode | File | Variables |
+|----------|------|-----------|
+| **Docker / monorepo compose** | `be/.env` | `OAUTH_*`, `JWT_*`, `CORS_*`, `DB_*`, `REDIS_URL`, … |
+| **Local BE** | `be/.env` | Same file; use `DB_HOST=localhost`, `OAUTH_REDIRECT_URL=http://localhost:3000/auth/callback` |
+
+After changing **`be/.env`**, recreate BE: `docker compose up -d be` (or `make up-d`).
+
+Google Console **Authorized redirect URI** must match the active `OAUTH_REDIRECT_URL` (e.g. `http://system.local:8080/auth/callback` for Docker on port 8080).

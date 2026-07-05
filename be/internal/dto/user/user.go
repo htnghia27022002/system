@@ -1,5 +1,7 @@
 package user
 
+import "be/internal/common/query"
+
 type CreateUserRequest struct {
 	Email    string `json:"email" binding:"required,email"`
 	Password string `json:"password" binding:"required,min=8"`
@@ -25,10 +27,10 @@ type UserResponse struct {
 }
 
 type ListUsersQuery struct {
-	Page     int    `form:"page"`
-	PageSize int    `form:"pageSize"`
-	Search   string `form:"search"`
-	RoleID   string `form:"roleId"`
+	query.PageParams
+	Search string `form:"search" binding:"omitempty,max=200"`
+	RoleID string `form:"roleId" binding:"omitempty,uuid"`
+	ID     string `form:"id" binding:"omitempty,uuid"`
 }
 
 type PaginatedUsersResponse struct {

@@ -1,0 +1,35 @@
+---
+description: Senior engineer mindset — app independence, deploy portability, env ownership. Apply when making any architectural, config, or env decision.
+alwaysApply: true
+---
+
+
+Before implementing any feature, task, or env/config change, reason through **two lenses**:
+
+## 1. Independent deployability
+
+Each app (`be/`, `fe/`) MUST be deployable on its own server without the other:
+
+- **`be/`** — standalone Go binary: copy `be/` + `be/.env`. No knowledge of FE paths or `NEXT_PUBLIC_*`.
+- **`fe/`** — standalone Next.js: copy `fe/` + `fe/.env`. Calls BE via `NEXT_PUBLIC_API_BASE_URL` (HTTP only).
+- **Root compose** — dev/staging convenience only. It wires containers; it does NOT own app config.
+
+If a secret or connection string touches only one app, it lives in **that app's `.env`** — never in root `.env` or the other app's config.
+
+## 2. Reusability across environments
+
+The same `be/.env` pattern works for Docker compose, bare-metal, or any PaaS. Change hostnames (`DB_HOST`, `REDIS_URL`, `ELASTICSEARCH_URL`, `NATS_URL`) per environment; business config (`JWT_SECRET`, `OAUTH_*`, `CORS_ORIGINS`) stays stable.
+
+| Deploy scenario | What to copy | What to configure |
+|-----------------|-------------|-------------------|
+| Full stack (Docker) | whole repo | `be/.env`, `fe/.env`, root `.env` (nginx port only) |
+| BE on dedicated server | `be/` | `be/.env` — point `DB_HOST`, `REDIS_URL`, etc. at real hosts |
+| FE on CDN/edge | `fe/` | `fe/.env` — set `NEXT_PUBLIC_API_BASE_URL` to BE URL |
+| Staging clone | whole repo | duplicate `be/.env` + `fe/.env` with staging URLs/secrets |
+
+## Enforcement rules
+
+- **Never** add app-level config (JWT, OAuth, CORS, `NEXT_PUBLIC_*`, DB creds) to root `.env`.
+- **Never** hardcode Docker service hostnames (`postgres`, `redis`) inside compose `environment:` blocks — those belong in `be/.env` so the app works outside Docker too.
+- **Never** couple BE and FE through shared env vars — they communicate only via HTTP.
+- When adding a new env var, ask: *"Which app owns this? Can it be configured independently?"*

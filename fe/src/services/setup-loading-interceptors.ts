@@ -6,6 +6,10 @@ import { useGlobalLoadingStore } from '@/store/global-loading-store'
 const TRACKED_METHODS = new Set(['get', 'head'])
 
 function shouldTrackRequest(config: InternalAxiosRequestConfig): boolean {
+  if (config.skipNavLoading) {
+    return false
+  }
+
   if (env.VITE_USE_MOCK_API) {
     return false
   }

@@ -55,7 +55,20 @@ route → handler → service → repository → database
 | Routes | `be/public/routes/` |
 | Handlers | `be/public/handlers/` |
 | Services | `be/internal/services/<feature>/` |
-| DI | `be/internal/app/container.go` |
+| DI | `be/internal/app/container.go` + `be/internal/app/dependency/` |
+
+## Queue worker
+
+Search sync and future async jobs use NATS JetStream:
+
+| Layer | Path |
+|-------|------|
+| Infra | `be/internal/queue/` |
+| Publish | `be/internal/handlers/publisher/` |
+| Consume | `be/internal/handlers/subscribers/` |
+| Worker | `be/cmd/queue/` (Docker service `queue`) |
+
+Rules: constants in `queue/constants.go`; options in `queue/nats.json`; API never runs consumers. See `be/AGENTS.md` §12.
 
 ## Feature docs (BE-owned)
 

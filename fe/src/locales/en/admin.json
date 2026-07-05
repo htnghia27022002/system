@@ -22,7 +22,38 @@
     "accessControl": "Access control",
     "users": "Users",
     "roles": "Roles",
-    "permissions": "Permissions"
+    "permissions": "Permissions",
+    "search": "Search"
+  },
+  "search": {
+    "title": "Unified search",
+    "description": "Find users, roles, and permissions across the admin area.",
+    "barLabel": "Admin search",
+    "placeholder": "Search users, roles, permissions…",
+    "queryLabel": "Search query",
+    "typeLabel": "Entity type",
+    "submit": "Search",
+    "prompt": "Enter a query above to search the admin catalog.",
+    "loading": "Searching…",
+    "refreshing": "Refreshing",
+    "error": "Could not load search results.",
+    "empty": "No results matched your query.",
+    "noResults": "No results.",
+    "viewAllResults": "View all results",
+    "clearSearch": "Clear search",
+    "resultsCount": "{{count}} results",
+    "pageSummary": "Page {{page}} of {{totalPages}}",
+    "previous": "Previous",
+    "next": "Next",
+    "degradedTitle": "Limited search mode",
+    "degradedDescription": "The search index is unavailable. Results may only include users from the database fallback.",
+    "degraded": "Search index unavailable — results may be limited.",
+    "filters": {
+      "all": "All entities",
+      "users": "Users",
+      "roles": "Roles",
+      "permissions": "Permissions"
+    }
   },
   "access": {
     "insufficientPermissions": "Insufficient permissions",
@@ -44,6 +75,9 @@
       "deleteTitle": "Delete user",
       "deleteDescription": "Remove {{name}}? This cannot be undone.",
       "empty": "No users yet.",
+      "emptyTitle": "No users yet",
+      "emptyDescription": "Create a user account to get started.",
+      "filterPlaceholder": "Search users…",
       "error": "Could not load users.",
       "sections": {
         "account": "Account details",
@@ -75,6 +109,11 @@
       "deleteTitle": "Delete role",
       "deleteDescription": "Remove role {{name}}? Users must be reassigned first.",
       "empty": "No roles yet.",
+      "emptyTitle": "No roles yet",
+      "emptyDescription": "Create a role to group permissions for your team.",
+      "emptySearchTitle": "No matching roles",
+      "emptySearchDescription": "Try a different search term or clear filters.",
+      "filterPlaceholder": "Search roles…",
       "error": "Could not load roles.",
       "fields": {
         "name": "Name",

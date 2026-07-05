@@ -39,3 +39,7 @@ oauth:
   redirectUrl: http://localhost:3000/auth/callback
   allowedProviders:
     - google
+
+elasticsearch:
+  enabled: false
+  url: "http://localhost:9200"

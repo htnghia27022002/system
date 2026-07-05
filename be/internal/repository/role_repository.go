@@ -8,6 +8,7 @@ import (
 
 	permissionmodel "be/internal/models/permission"
 	rolemodel "be/internal/models/role"
+	"be/internal/common/query"
 	"be/internal/repository/interfaces"
 )
 
@@ -47,12 +48,18 @@ func (r *RoleRepository) GetBySlug(ctx context.Context, slug string) (*rolemodel
 	return &role, nil
 }
 
-func (r *RoleRepository) List(ctx context.Context) ([]rolemodel.Role, error) {
+func (r *RoleRepository) ListAll(ctx context.Context) ([]rolemodel.Role, error) {
 	var roles []rolemodel.Role
 	if err := r.db.WithContext(ctx).Order("created_at ASC").Find(&roles).Error; err != nil {
 		return nil, err
 	}
 	return roles, nil
+}
+
+func (r *RoleRepository) List(ctx context.Context, q *query.Query) ([]rolemodel.Role, int64, error) {
+	var roles []rolemodel.Role
+	total, err := query.Paginate[rolemodel.Role](ctx, r.db, q, &roles)
+	return roles, total, err
 }
 
 func (r *RoleRepository) Update(ctx context.Context, role *rolemodel.Role) error {

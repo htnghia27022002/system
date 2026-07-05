@@ -33,13 +33,33 @@ func (h *RoleHandler) Create(c *gin.Context) {
 	response.JSON(c, http.StatusCreated, role)
 }
 
-func (h *RoleHandler) List(c *gin.Context) {
-	roles, err := h.svc.List(c.Request.Context())
+func (h *RoleHandler) ListAll(c *gin.Context) {
+	roles, err := h.svc.ListAll(c.Request.Context())
 	if err != nil {
 		response.HandleError(c, err)
 		return
 	}
 	response.JSON(c, http.StatusOK, roles)
+}
+
+func (h *RoleHandler) List(c *gin.Context) {
+	var query roledto.ListRolesQuery
+	if err := c.ShouldBindQuery(&query); err != nil {
+		response.Error(c, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	roles, total, page, pageSize, err := h.svc.List(c.Request.Context(), query)
+	if err != nil {
+		response.HandleError(c, err)
+		return
+	}
+	response.JSON(c, http.StatusOK, roledto.PaginatedRolesResponse{
+		Items:    roles,
+		Total:    total,
+		Page:     page,
+		PageSize: pageSize,
+	})
 }
 
 func (h *RoleHandler) Get(c *gin.Context) {

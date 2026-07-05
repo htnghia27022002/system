@@ -1,5 +1,7 @@
 package role
 
+import "be/internal/common/query"
+
 type CreateRoleRequest struct {
 	Name           string   `json:"name" binding:"required,min=2,max=50"`
 	Slug           string   `json:"slug" binding:"required,min=2,max=50"`
@@ -17,4 +19,18 @@ type RoleResponse struct {
 	Name           string   `json:"name"`
 	Slug           string   `json:"slug"`
 	PermissionKeys []string `json:"permissionKeys"`
+}
+
+type ListRolesQuery struct {
+	query.PageParams
+	Search        string `form:"search" binding:"omitempty,max=200"`
+	ID            string `form:"id" binding:"omitempty,uuid"`
+	PermissionKey string `form:"permissionKey" binding:"omitempty,max=100"`
+}
+
+type PaginatedRolesResponse struct {
+	Items    []RoleResponse `json:"items"`
+	Total    int64          `json:"total"`
+	Page     int            `json:"page"`
+	PageSize int            `json:"pageSize"`
 }

@@ -7,6 +7,7 @@ import (
 	"gorm.io/gorm"
 
 	permissionmodel "be/internal/models/permission"
+	"be/internal/common/query"
 	"be/internal/repository/interfaces"
 )
 
@@ -26,6 +27,12 @@ func (r *PermissionRepository) ListAll(ctx context.Context) ([]permissionmodel.P
 		return nil, err
 	}
 	return permissions, nil
+}
+
+func (r *PermissionRepository) List(ctx context.Context, q *query.Query) ([]permissionmodel.Permission, int64, error) {
+	var permissions []permissionmodel.Permission
+	total, err := query.Paginate[permissionmodel.Permission](ctx, r.db, q, &permissions)
+	return permissions, total, err
 }
 
 func (r *PermissionRepository) GetByKey(ctx context.Context, key string) (*permissionmodel.Permission, error) {

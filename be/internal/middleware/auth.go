@@ -93,6 +93,10 @@ func GetUserID(c *gin.Context) string {
 	return id
 }
 
+func GetPermissions(c *gin.Context) ([]string, bool) {
+	return permissionsFromContext(c)
+}
+
 func permissionsFromContext(c *gin.Context) ([]string, bool) {
 	raw, ok := c.Get(ContextPermissionsKey)
 	if !ok {

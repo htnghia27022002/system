@@ -36,9 +36,25 @@ public/routes → public/handlers → internal/services → internal/repository 
 | Entities | `be/internal/models/<feature>/` |
 | JWT, hash, pagination | `be/internal/common/` |
 | Auth middleware | `be/internal/middleware/` |
-| Wiring | `be/internal/app/container.go` |
+| DI orchestrator | `be/internal/app/container.go` |
+| DI resolvers | `be/internal/app/dependency/` (one file per domain, e.g. `user_service.go`) |
 
 Never put business logic in handlers or HTTP formatting in repositories.
+
+## Queue / NATS (JetStream)
+
+Async messaging for search outbox sync (and future events). See `be/AGENTS.md` §12 and `docs/features/002-elasticsearch-search/be-implement.md`.
+
+```text
+internal/queue/                 # NATS infra, constants, nats.json options
+internal/handlers/publisher/    # Publish* after DB writes
+internal/handlers/subscribers/  # process_* consumers
+cmd/queue/                      # Worker process (not in API)
+```
+
+- Subject/stream/consumer names → `internal/queue/constants.go` only
+- API publishes; `cmd/queue` consumes
+- Do not add in-process goroutine workers in `main.go`
 
 ## API contract
 
@@ -76,6 +92,8 @@ cd be && make run && make test
 
 - `DB_HOST=postgres`
 - `REDIS_URL=redis://redis:6379`
+- `NATS_ENABLED`, `NATS_URL` — queue publish/consume (`internal/queue/nats.json` for JetStream options)
+- `ELASTICSEARCH_ENABLED`, `ELASTICSEARCH_URL`
 - `CORS_ORIGINS` must include nginx origin (`http://localhost:8080`)
 
 ## Quality checks

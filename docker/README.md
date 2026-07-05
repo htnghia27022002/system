@@ -5,7 +5,7 @@ Run the full stack (nginx, Go BE, Next.js FE, PostgreSQL, Redis) with one comman
 ## Quick start
 
 ```bash
-cp .env.docker.example .env
+cp .env.example .env
 
 # Add local hostname (once)
 echo "127.0.0.1 system.local" | sudo tee -a /etc/hosts
@@ -43,9 +43,12 @@ docker/nginx/
 |---------|---------------|---------------|-------|
 | nginx | `nginx` | 80 → host `NGINX_HTTP_PORT` | Reverse proxy, `server_name system.local` |
 | frontend | `fe` | 3000 | Next.js dev server |
-| backend | `be` | 8080 | Go + Gin API |
+| backend | `be` | 8080 | Go + Gin API (publishes to NATS, no consumers) |
+| queue | `queue` | — | `go run ./cmd/queue` — JetStream consumers |
 | postgres | `postgres` | 5432 | Data: `docker/data/postgres/` |
 | redis | `redis` | 6379 | Data: `docker/data/redis/` |
+| elasticsearch | `elasticsearch` | 9200 | Search index; data: `docker/data/elasticsearch/` |
+| nats | `nats` | 4222 (client), 8222 (monitor) | JetStream message broker |
 
 ## Commands
 
@@ -83,17 +86,17 @@ docker compose --profile prod up --build
 
 ## Environment
 
-Copy [`.env.docker.example`](../.env.docker.example) to `.env` at the repo root.
+Three files — **no app config in root `.env`**.
 
-| Variable | Purpose |
-|----------|---------|
-| `APP_HOST` | Local hostname (`system.local`) |
-| `NGINX_HTTP_PORT` | Host port for nginx (default `80`) |
-| `NEXT_PUBLIC_API_BASE_URL` | FE API base (`http://system.local/api`) |
-| `NEXT_PUBLIC_USE_MOCK_API` | `false` = real backend |
-| `CORS_ORIGINS` | Browser origins allowed by BE (include host **with port**, e.g. `http://system.local:8080`) |
+| File | Purpose |
+|------|---------|
+| `.env` | `NGINX_HTTP_PORT` only (compose auto-loads) |
+| `be/.env` | Full BE + queue: `DB_*`, `REDIS_URL`, `ELASTICSEARCH_*`, `NATS_*`, JWT, OAuth, CORS |
+| `fe/.env` | Full FE: `NEXT_PUBLIC_*` |
 
-For non-Docker local dev, use `be/.env` and `fe/.env` separately.
+Setup: `make env` or copy `.env.example`, `be/.env.example`, `fe/.env.example`.
+
+Compose uses `env_file: ./be/.env` on `be` / `queue` / `be-prod`, and `env_file: ./fe/.env` on `fe` / `fe-prod`. Postgres init reads `${DB_*}` from `be/.env` via `make` → `docker compose --env-file be/.env`.
 
 ## Persistent data
 
@@ -101,8 +104,9 @@ Database and cache data are stored under [`data/`](data/) as bind mounts:
 
 ```text
 docker/data/
-├── postgres/   # PostgreSQL files
-└── redis/      # Redis AOF/RDB (if enabled)
+├── postgres/       # PostgreSQL files
+├── redis/          # Redis AOF/RDB (if enabled)
+└── elasticsearch/  # Elasticsearch index data
 ```
 
 `make down` stops containers only — data in `docker/data/` remains on disk.

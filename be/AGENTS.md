@@ -17,7 +17,7 @@ When relocating the backend, move the entire `be/` directory (including `go.mod`
 ## 2) Source of truth
 
 - Use `README.md` in this folder for API routes, layers, and commands
-- Use `internal/app/container.go` for dependency wiring
+- Use `internal/app/container.go` for the DI entrypoint; per-domain wiring in `internal/app/dependency/`
 
 ## 3) Stack
 
@@ -42,15 +42,27 @@ be/
 │   ├── handlers/
 │   └── routes/
 ├── internal/
-│   ├── app/container.go
+│   ├── app/
+│   │   ├── container.go
+│   │   └── dependency/     # Service resolvers (infra, repos, handlers)
 │   ├── config/
 │   ├── database/
+│   ├── handlers/           # Queue handlers (not HTTP)
+│   │   ├── publisher/      # Outbound NATS publish + payload types
+│   │   └── subscribers/    # Inbound message handlers
 │   ├── middleware/
 │   ├── models/
 │   ├── dto/
+│   ├── queue/              # NATS JetStream infra (constants, nats.json, client)
 │   ├── repository/
+│   ├── search/             # Elasticsearch client
 │   ├── services/
 │   └── common/
+├── cmd/
+│   ├── migrate/
+│   ├── seed/
+│   ├── queue/              # Queue worker (consumers)
+│   └── reindex/            # Bulk reindex CLI
 └── migrations/
 ```
 
@@ -65,15 +77,19 @@ route → handler → service → repository interface → repository → databa
 | HTTP routes | `public/routes/` |
 | HTTP handlers | `public/handlers/` |
 | Bootstrap | `public/api.go` |
-| DI container | `internal/app/container.go` |
+| DI orchestrator | `internal/app/container.go` |
+| DI resolvers | `internal/app/dependency/` |
 | Business logic | `internal/services/<feature>/` |
 | Persistence contracts | `internal/repository/interfaces/` |
 | Persistence impl | `internal/repository/` |
 | Models / DTOs | `internal/models/`, `internal/dto/` |
 | Shared helpers | `internal/common/` |
 | Middleware | `internal/middleware/` |
+| NATS infra | `internal/queue/` |
+| Queue publish | `internal/handlers/publisher/` |
+| Queue consume | `internal/handlers/subscribers/` |
 
-Never put business logic in handlers or HTTP formatting in repositories.
+Never put business logic in HTTP handlers or HTTP formatting in repositories.
 
 ## 6) Import rules
 
@@ -108,9 +124,10 @@ Integration with the frontend is **HTTP only**. Do not import FE code or share t
 
 Priority: **env > config.yaml > built-in default**. Never commit secrets in YAML.
 
-**Docker:** root `docker-compose.yml` — see [`docker/README.md`](../docker/README.md).
-
-**Local:** secrets in `be/.env`; public settings in `config.yaml`.
+| Run mode | Env file |
+|----------|----------|
+| **Docker stack** | repo root `.env` — compose injects into BE container; `be/.env` is **not** read |
+| **Local host** | `be/.env` only — copy from `be/.env.example` |
 
 ## 9) Before finishing any task
 
@@ -144,7 +161,7 @@ handler → OAuthService → oauth.Registry → oauth.Provider (GoogleProvider, 
 1. Run GitNexus before editing shared symbols: `npx gitnexus query "oauth provider"` or `npx gitnexus impact OAuthService`.
 2. Create `oauth/<provider>_provider.go` implementing `Provider`.
 3. Register it in `oauth/registry.go` (`NewRegistry`).
-4. Add env fields in `internal/config/config.go` and `be/.env.example`.
+4. Add env fields in `internal/config/config.go`; document in root `.env.example` (Docker) and `be/.env.example` (local host).
 5. Append provider ID to `OAUTH_ALLOWED_PROVIDERS` (comma-separated).
 6. Run `make test-be`.
 
@@ -163,3 +180,34 @@ All unit, integration, and e2e tests belong under `be/test/` — **never** under
 Shared mocks and helpers: `test/testutil/`. Full guide: [`test/README.md`](test/README.md).
 
 Before adding tests for a feature, run `npx gitnexus query "<feature> test"` to find existing coverage and callers.
+
+## 12) Queue / NATS (JetStream)
+
+Async work uses **NATS JetStream** with a strict four-layer layout under `internal/`. The HTTP API publishes only; consumers run in **`cmd/queue`** (Docker service `queue`).
+
+```text
+internal/queue/              # Infrastructure — connect, EnsureInfrastructure, Publish
+internal/handlers/publisher/ # Outbound — payload types + Publish* methods
+internal/handlers/subscribers/  # Inbound — process_* handlers + registry
+cmd/queue/                   # Separate process — bootstrap streams/consumers + consume
+```
+
+| Rule | Detail |
+|------|--------|
+| Names | All stream, subject, consumer, handler names in `internal/queue/constants.go` — **no string literals** elsewhere |
+| JSON config | `internal/queue/nats.json` holds JetStream **options** only; keys (`search`, `search_outbox`) map to constants via `config.go` |
+| Env | `NATS_ENABLED`, `NATS_URL`, optional `QUEUE_CONFIG_FILE` |
+| HTTP vs worker | `be/main.go` (API) wires publisher only; **never** call `StartConsumers` in the API process |
+| Services | After DB write, call `handlers/publisher` — do not import `subscribers` from services |
+| Subscribers | Import `publisher` for payload decode; call `internal/services/*` for business logic |
+
+**Adding a consumer:** constants → `nats.json` options → `resolveStream`/`resolveConsumer` → publisher method → subscriber + registry → service hook. See `docs/features/002-elasticsearch-search/be-implement.md`.
+
+**Commands:**
+
+```bash
+go run ./cmd/queue      # queue worker
+go run ./cmd/reindex    # one-shot ES reindex
+```
+
+Docker: `queue` service runs `go run ./cmd/queue`. When NATS is disabled, `cmd/queue` polls `search_outbox` instead.

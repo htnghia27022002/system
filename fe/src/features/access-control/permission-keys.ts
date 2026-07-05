@@ -3,7 +3,11 @@ export const PermissionAction = {
   modify: 'modify',
 } as const
 
-export type PermissionResource = 'dashboard' | 'users' | 'roles' | 'permissions'
+export type PermissionResource =
+  | 'dashboard'
+  | 'users'
+  | 'roles'
+  | 'permissions'
 
 export const PermissionKeys = {
   dashboard: {

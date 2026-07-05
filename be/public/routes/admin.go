@@ -13,9 +13,11 @@ func RegisterAdminRoutes(r *gin.RouterGroup, c *app.Container) {
 	{
 		permissions := admin.Group("/permissions")
 		permissions.GET("", middleware.RequireView("permissions"), c.PermissionHandler.List)
+		permissions.GET("/all", middleware.RequireView("permissions"), c.PermissionHandler.ListAll)
 
 		roles := admin.Group("/roles")
 		roles.GET("", middleware.RequireView("roles"), c.RoleHandler.List)
+		roles.GET("/all", middleware.RequireView("roles"), c.RoleHandler.ListAll)
 		roles.POST("", middleware.RequireModify("roles"), c.RoleHandler.Create)
 		roles.GET("/:id", middleware.RequireView("roles"), c.RoleHandler.Get)
 		roles.PATCH("/:id", middleware.RequireModify("roles"), c.RoleHandler.Update)
@@ -27,5 +29,11 @@ func RegisterAdminRoutes(r *gin.RouterGroup, c *app.Container) {
 		users.GET("/:id", middleware.RequireView("users"), c.UserHandler.Get)
 		users.PATCH("/:id", middleware.RequireModify("users"), c.UserHandler.Update)
 		users.DELETE("/:id", middleware.RequireModify("users"), c.UserHandler.Delete)
+
+		search := admin.Group("/search")
+		search.GET("", c.SearchHandler.Search)
+		search.POST("/reindex", c.SearchHandler.Reindex)
+		search.GET("/outbox/stats", c.SearchHandler.OutboxStats)
+		search.POST("/outbox/replay", c.SearchHandler.ReplayOutbox)
 	}
 }

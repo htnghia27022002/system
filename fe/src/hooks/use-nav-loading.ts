@@ -7,7 +7,9 @@ import { useGlobalLoadingStore } from '@/store/global-loading-store'
  * Form mutations (login/register) use button-level loading instead.
  */
 export function useNavLoading(): boolean {
-  const queryFetchingCount = useIsFetching()
+  const queryFetchingCount = useIsFetching({
+    predicate: (query) => !query.meta?.skipNavLoading,
+  })
   const httpPendingCount = useGlobalLoadingStore((state) => state.httpPendingCount)
 
   return queryFetchingCount > 0 || httpPendingCount > 0

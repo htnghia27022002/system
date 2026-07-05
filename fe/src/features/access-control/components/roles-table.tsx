@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { Suspense, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { PencilIcon } from 'lucide-react'
 import type { ColumnDef } from '@tanstack/react-table'
@@ -26,7 +26,9 @@ import { ListRowActionsMenu } from './list-row-actions-menu'
 import { MobileRecordCard } from './mobile-record-card'
 import { PermissionGate } from './permission-gate'
 import { RoleFormDialog } from './role-form-dialog'
+import { ServerListSearch } from './server-list-search'
 import { PermissionKeys } from '../permission-keys'
+import { useListQueryParams } from '../hooks/use-list-query-params'
 import { usePermissions } from '../hooks/use-permissions'
 import { useRoleMutations, useRolesList } from '../hooks/use-roles'
 import type {
@@ -36,8 +38,35 @@ import type {
 import type { Role } from '../types'
 
 export function RolesTable() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex flex-col gap-4 p-4">
+          <DataTableSkeleton columns={4} />
+        </div>
+      }
+    >
+      <RolesTableContent />
+    </Suspense>
+  )
+}
+
+function RolesTableContent() {
   const { t } = useTranslation('admin')
-  const rolesQuery = useRolesList()
+  const { values, setParams } = useListQueryParams([
+    'search',
+    'permissionKey',
+    'id',
+  ] as const)
+  const page = Number(values.page) || 1
+
+  const rolesQuery = useRolesList({
+    page,
+    pageSize: 50,
+    search: values.search || undefined,
+    permissionKey: values.permissionKey || undefined,
+    id: values.id || undefined,
+  })
   const { canModify } = usePermissions()
   const { createRole, updateRole, deleteRole } = useRoleMutations()
   const canManageRoles = canModify('roles')
@@ -116,7 +145,7 @@ export function RolesTable() {
       },
       {
         id: 'permissions',
-        accessorFn: (row) => row.permissionKeys.length,
+        accessorFn: (row) => row.permissionKeys?.length ?? 0,
         header: ({ column }) => (
           <DataTableColumnHeader
             column={column}
@@ -124,7 +153,7 @@ export function RolesTable() {
           />
         ),
         cell: ({ row }) => {
-          const keys = row.original.permissionKeys
+          const keys = row.original.permissionKeys ?? []
           if (keys.length === 0) {
             return (
               <span className="text-sm text-muted-foreground">
@@ -195,7 +224,19 @@ export function RolesTable() {
     )
   }
 
-  const roles = rolesQuery.data ?? []
+  const roles = rolesQuery.data?.items ?? []
+  const isRefreshing = rolesQuery.isFetching && !rolesQuery.isLoading
+  const hasActiveFilter = Boolean(values.search || values.permissionKey)
+  const emptyTitle = hasActiveFilter
+    ? t('access.roles.emptySearchTitle', { defaultValue: 'No matching roles' })
+    : t('access.roles.emptyTitle', { defaultValue: 'No roles yet' })
+  const emptyDescription = hasActiveFilter
+    ? t('access.roles.emptySearchDescription', {
+        defaultValue: 'Try a different search term or clear filters.',
+      })
+    : t('access.roles.emptyDescription', {
+        defaultValue: 'Create a role to group permissions for your team.',
+      })
 
   return (
     <div className="flex flex-1 flex-col gap-4 p-4">
@@ -215,11 +256,34 @@ export function RolesTable() {
         columns={columns}
         data={roles}
         getRowId={(row) => row.id}
-        filterKey="name"
-        filterPlaceholder={t('access.roles.filterPlaceholder', {
-          defaultValue: 'Search roles…',
-        })}
-        emptyMessage={t('access.roles.empty')}
+        localPagination={false}
+        isRefreshing={isRefreshing}
+        emptyTitle={emptyTitle}
+        emptyDescription={emptyDescription}
+        emptyAction={
+          !hasActiveFilter ? (
+            <PermissionGate permission={PermissionKeys.roles.modify}>
+              <Button onClick={openCreate}>{t('access.roles.createAction')}</Button>
+            </PermissionGate>
+          ) : undefined
+        }
+        toolbar={
+          <ServerListSearch
+            value={values.search}
+            placeholder={t('access.roles.filterPlaceholder', {
+              defaultValue: 'Search roles…',
+            })}
+            onSearch={(next) =>
+              setParams({
+                search: next || undefined,
+                permissionKey: undefined,
+              })
+            }
+            onClear={() =>
+              setParams({ search: undefined, permissionKey: undefined })
+            }
+          />
+        }
         renderMobileCard={(role) => (
           <MobileRecordCard
             title={role.name}

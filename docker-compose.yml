@@ -1,19 +1,23 @@
 name: system
 
+# be/.env  → be, queue, be-prod (+ postgres creds via ${DB_*})
+# fe/.env  → fe, fe-prod build args (make prod loads --env-file fe/.env)
+# .env     → root infra only (NGINX_HTTP_PORT) — auto-loaded by compose
+
 services:
   postgres:
     image: postgres:16-alpine
     restart: unless-stopped
     environment:
-      POSTGRES_DB: ${POSTGRES_DB:-myapp_pg}
-      POSTGRES_USER: ${POSTGRES_USER:-postgres}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${DB_NAME:-myapp_pg}
+      POSTGRES_USER: ${DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
     ports:
       - "5432:5432"
     volumes:
       - ./docker/data/postgres:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-myapp_pg}"]
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-postgres} -d ${DB_NAME:-myapp_pg}"]
       interval: 5s
       timeout: 5s
       retries: 10
@@ -33,29 +37,74 @@ services:
     networks:
       - system_net
 
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.15.0
+    restart: unless-stopped
+    environment:
+      discovery.type: single-node
+      xpack.security.enabled: "false"
+      ES_JAVA_OPTS: -Xms512m -Xmx512m
+    volumes:
+      - ./docker/data/elasticsearch:/usr/share/elasticsearch/data
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fs http://localhost:9200/_cluster/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks:
+      - system_net
+
+  nats:
+    image: nats:2.10-alpine
+    restart: unless-stopped
+    command: ["-js", "-m", "8222"]
+    volumes:
+      - ./docker/data/nats:/data
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8222/healthz"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    networks:
+      - system_net
+
   be:
     build:
       context: .
       dockerfile: docker/be/Dockerfile.dev
     restart: unless-stopped
+    env_file:
+      - ./be/.env
     volumes:
       - ./be:/app
-    environment:
-      CONFIG_FILE: config.yaml
-      DB_HOST: postgres
-      DB_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
-      DB_NAME: ${POSTGRES_DB:-myapp_pg}
-      DB_USER: ${POSTGRES_USER:-postgres}
-      JWT_SECRET: ${JWT_SECRET:-dev-jwt-secret-change-in-production}
-      REDIS_URL: redis://redis:6379
-      CORS_ORIGINS: ${CORS_ORIGINS:-http://system.local,http://system.local:8080,http://localhost,http://localhost:8080,http://127.0.0.1,http://127.0.0.1:8080}
-      OAUTH_REDIRECT_URL: ${OAUTH_REDIRECT_URL:-http://system.local/auth/callback}
-      OAUTH_GOOGLE_CLIENT_ID: ${OAUTH_GOOGLE_CLIENT_ID:-}
-      OAUTH_GOOGLE_CLIENT_SECRET: ${OAUTH_GOOGLE_CLIENT_SECRET:-}
     depends_on:
       postgres:
         condition: service_healthy
       redis:
+        condition: service_healthy
+      elasticsearch:
+        condition: service_healthy
+      nats:
+        condition: service_healthy
+    networks:
+      - system_net
+
+  queue:
+    build:
+      context: .
+      dockerfile: docker/be/Dockerfile.dev
+    restart: unless-stopped
+    command: ["go", "run", "./cmd/queue"]
+    env_file:
+      - ./be/.env
+    volumes:
+      - ./be:/app
+    depends_on:
+      postgres:
+        condition: service_healthy
+      elasticsearch:
+        condition: service_healthy
+      nats:
         condition: service_healthy
     networks:
       - system_net
@@ -65,6 +114,8 @@ services:
       context: .
       dockerfile: docker/fe/Dockerfile.dev
     restart: unless-stopped
+    env_file:
+      - ./fe/.env
     volumes:
       - ./fe:/app/fe
       - ./package.json:/app/package.json
@@ -73,10 +124,6 @@ services:
       - fe_node_modules:/app/fe/node_modules
       - fe_next:/app/fe/.next
     environment:
-      NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL:-http://system.local/api}
-      NEXT_PUBLIC_APP_NAME: ${NEXT_PUBLIC_APP_NAME:-System App}
-      NEXT_PUBLIC_USE_MOCK_API: ${NEXT_PUBLIC_USE_MOCK_API:-false}
-      NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL:-http://system.local}
       WATCHPACK_POLLING: "true"
     depends_on:
       - be
@@ -103,18 +150,8 @@ services:
       context: .
       dockerfile: docker/be/Dockerfile.prod
     restart: unless-stopped
-    environment:
-      CONFIG_FILE: config.yaml
-      DB_HOST: postgres
-      DB_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
-      DB_NAME: ${POSTGRES_DB:-myapp_pg}
-      DB_USER: ${POSTGRES_USER:-postgres}
-      JWT_SECRET: ${JWT_SECRET:-dev-jwt-secret-change-in-production}
-      REDIS_URL: redis://redis:6379
-      CORS_ORIGINS: ${CORS_ORIGINS:-http://system.local,http://system.local:8080,http://localhost,http://localhost:8080,http://127.0.0.1,http://127.0.0.1:8080}
-      OAUTH_REDIRECT_URL: ${OAUTH_REDIRECT_URL:-http://system.local/auth/callback}
-      OAUTH_GOOGLE_CLIENT_ID: ${OAUTH_GOOGLE_CLIENT_ID:-}
-      OAUTH_GOOGLE_CLIENT_SECRET: ${OAUTH_GOOGLE_CLIENT_SECRET:-}
+    env_file:
+      - ./be/.env
     depends_on:
       postgres:
         condition: service_healthy
@@ -129,11 +166,13 @@ services:
       context: .
       dockerfile: docker/fe/Dockerfile.prod
       args:
-        NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL:-http://system.local/api}
-        NEXT_PUBLIC_APP_NAME: ${NEXT_PUBLIC_APP_NAME:-System App}
-        NEXT_PUBLIC_USE_MOCK_API: ${NEXT_PUBLIC_USE_MOCK_API:-false}
-        NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL:-http://system.local}
+        NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL}
+        NEXT_PUBLIC_APP_NAME: ${NEXT_PUBLIC_APP_NAME}
+        NEXT_PUBLIC_USE_MOCK_API: ${NEXT_PUBLIC_USE_MOCK_API}
+        NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL}
     restart: unless-stopped
+    env_file:
+      - ./fe/.env
     environment:
       NODE_ENV: production
     depends_on:

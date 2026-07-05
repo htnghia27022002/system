@@ -13,7 +13,7 @@ import (
 
 func TestCreateHashesPassword(t *testing.T) {
 	repo := &testutil.MemoryUserRepo{Users: map[string]*usermodel.User{}}
-	svc := usersvc.NewService(repo)
+	svc := usersvc.NewService(repo, nil)
 
 	user, err := svc.Create(context.Background(), userdto.CreateUserRequest{
 		Email:    "demo@example.com",
@@ -35,7 +35,7 @@ func TestDeleteBlocksSelfDelete(t *testing.T) {
 			"self-id": {ID: "self-id", Email: "self@example.com", FullName: "Self"},
 		},
 	}
-	svc := usersvc.NewService(repo)
+	svc := usersvc.NewService(repo, nil)
 
 	err := svc.Delete(context.Background(), "self-id", "self-id")
 	if err == nil || !apperrors.IsForbidden(err) {

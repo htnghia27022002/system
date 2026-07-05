@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { Suspense, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { ColumnDef } from '@tanstack/react-table'
 
@@ -28,10 +28,12 @@ import { AccessControlPageHeader } from './access-control-page-header'
 import { ListRowActionsMenu } from './list-row-actions-menu'
 import { MobileRecordCard } from './mobile-record-card'
 import { PermissionGate } from './permission-gate'
+import { ServerListSearch } from './server-list-search'
 import { UserFormDialog } from './user-form-dialog'
 import { PermissionKeys } from '../permission-keys'
+import { useListQueryParams } from '../hooks/use-list-query-params'
 import { usePermissions } from '../hooks/use-permissions'
-import { useRolesList } from '../hooks/use-roles'
+import { useAllRolesList } from '../hooks/use-roles'
 import { useUserMutations, useUsersList } from '../hooks/use-users'
 import type {
   CreateUserFormValues,
@@ -40,9 +42,32 @@ import type {
 import type { ManagedUser } from '../types'
 
 export function UsersTable() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex flex-col gap-4 p-4">
+          <DataTableSkeleton columns={5} />
+        </div>
+      }
+    >
+      <UsersTableContent />
+    </Suspense>
+  )
+}
+
+function UsersTableContent() {
   const { t } = useTranslation('admin')
-  const usersQuery = useUsersList({ page: 1, pageSize: 50 })
-  const rolesQuery = useRolesList()
+  const { values, setParams } = useListQueryParams(['search', 'roleId', 'id'] as const)
+  const page = Number(values.page) || 1
+
+  const usersQuery = useUsersList({
+    page,
+    pageSize: 50,
+    search: values.search || undefined,
+    roleId: values.roleId || undefined,
+    id: values.id || undefined,
+  })
+  const rolesQuery = useAllRolesList()
   const { canModify } = usePermissions()
   const { createUser, updateUser, deleteUser } = useUserMutations()
   const canManageUsers = canModify('users')
@@ -226,6 +251,7 @@ export function UsersTable() {
   }
 
   const users = usersQuery.data?.items ?? []
+  const isRefreshing = usersQuery.isFetching && !usersQuery.isLoading
 
   return (
     <div className="flex flex-1 flex-col gap-4 p-4">
@@ -245,11 +271,22 @@ export function UsersTable() {
         columns={columns}
         data={users}
         getRowId={(row) => row.id}
-        filterKey="name"
-        filterPlaceholder={t('access.users.filterPlaceholder', {
-          defaultValue: 'Search users…',
+        localPagination={false}
+        isRefreshing={isRefreshing}
+        emptyTitle={t('access.users.emptyTitle', { defaultValue: 'No users yet' })}
+        emptyDescription={t('access.users.emptyDescription', {
+          defaultValue: 'Create a user account to get started.',
         })}
-        emptyMessage={t('access.users.empty')}
+        toolbar={
+          <ServerListSearch
+            value={values.search}
+            placeholder={t('access.users.filterPlaceholder', {
+              defaultValue: 'Search users…',
+            })}
+            onSearch={(next) => setParams({ search: next || undefined })}
+            onClear={() => setParams({ search: undefined })}
+          />
+        }
         renderMobileCard={(user) => {
           const role = roleById.get(user.roleId)
           return (

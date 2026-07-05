@@ -6,8 +6,8 @@ import (
 
 	authmodel "be/internal/models/auth"
 	rolemodel "be/internal/models/role"
+	"be/internal/common/query"
 	usermodel "be/internal/models/user"
-	"be/internal/repository/interfaces"
 )
 
 // MockAuthRepo is an in-memory AuthRepository for unit tests.
@@ -91,7 +91,12 @@ func (m *MockRoleRepo) GetBySlug(_ context.Context, slug string) (*rolemodel.Rol
 	}
 	return nil, nil
 }
-func (m *MockRoleRepo) List(context.Context) ([]rolemodel.Role, error) { return nil, nil }
+func (m *MockRoleRepo) ListAll(context.Context) ([]rolemodel.Role, error) {
+	return nil, nil
+}
+func (m *MockRoleRepo) List(context.Context, *query.Query) ([]rolemodel.Role, int64, error) {
+	return nil, 0, nil
+}
 func (m *MockRoleRepo) Update(context.Context, *rolemodel.Role) error  { return nil }
 func (m *MockRoleRepo) Delete(context.Context, string) error           { return nil }
 func (m *MockRoleRepo) AssignPermissions(context.Context, string, []string) error {
@@ -114,9 +119,10 @@ func (m *MockUserRepo) GetByID(context.Context, string) (*usermodel.User, error)
 func (m *MockUserRepo) GetByEmail(context.Context, string) (*usermodel.User, error) {
 	return nil, nil
 }
-func (m *MockUserRepo) List(context.Context, interfaces.UserListFilter) ([]usermodel.User, int64, error) {
+func (m *MockUserRepo) List(context.Context, *query.Query) ([]usermodel.User, int64, error) {
 	return nil, 0, nil
 }
+func (m *MockUserRepo) ListAll(context.Context) ([]usermodel.User, error) { return nil, nil }
 func (m *MockUserRepo) Update(context.Context, *usermodel.User) error { return nil }
 func (m *MockUserRepo) Delete(context.Context, string) error { return nil }
 
@@ -150,20 +156,31 @@ func (m *MemoryUserRepo) GetByEmail(_ context.Context, email string) (*usermodel
 	return nil, nil
 }
 
-func (m *MemoryUserRepo) List(_ context.Context, filter interfaces.UserListFilter) ([]usermodel.User, int64, error) {
+func (m *MemoryUserRepo) List(_ context.Context, q *query.Query) ([]usermodel.User, int64, error) {
 	items := make([]usermodel.User, 0, len(m.Users))
 	for _, user := range m.Users {
 		items = append(items, *user)
 	}
 	total := int64(len(items))
-	if filter.Offset >= len(items) {
+	if q == nil {
+		return items, total, nil
+	}
+	if q.Offset >= len(items) {
 		return []usermodel.User{}, total, nil
 	}
-	end := filter.Offset + filter.Limit
+	end := q.Offset + q.Limit
 	if end > len(items) {
 		end = len(items)
 	}
-	return items[filter.Offset:end], total, nil
+	return items[q.Offset:end], total, nil
+}
+
+func (m *MemoryUserRepo) ListAll(_ context.Context) ([]usermodel.User, error) {
+	items := make([]usermodel.User, 0, len(m.Users))
+	for _, user := range m.Users {
+		items = append(items, *user)
+	}
+	return items, nil
 }
 
 func (m *MemoryUserRepo) Update(_ context.Context, user *usermodel.User) error {

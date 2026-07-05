@@ -65,7 +65,7 @@ src/app/
 **Docker (full stack, from repo root):**
 
 ```bash
-cp .env.docker.example .env && make up
+cp .env.example .env && make up
 # → http://localhost:8080
 ```
 
@@ -88,15 +88,18 @@ Works with mock API or real BE when `NEXT_PUBLIC_USE_MOCK_API=false`.
 
 ## Env Variables
 
-See `fe/.env.example`. Key vars (via `src/config/env.ts`):
+| Run mode | Env file |
+|----------|----------|
+| **Docker stack** | `fe/.env` via `env_file` on `fe` container |
+| **Local host** | `fe/.env` |
 
-| Variable | Docker | Local + real BE |
-|----------|--------|-----------------|
-| `NEXT_PUBLIC_API_BASE_URL` | `http://localhost:8080/api` | `http://localhost:8080/api` |
-| `NEXT_PUBLIC_USE_MOCK_API` | `false` | `false` |
-| `NEXT_PUBLIC_APP_NAME` | `System App` | `System App` |
+Key vars (via `src/config/env.ts`):
 
-For mock-only local dev: `NEXT_PUBLIC_USE_MOCK_API=true`, `NEXT_PUBLIC_API_BASE_URL=http://localhost:3000/api`.
+| Variable | Docker (`fe/.env`) | Local split dev (`fe/.env`) |
+|----------|-------------------|----------------------------|
+| `NEXT_PUBLIC_API_BASE_URL` | `http://system.local:8080/api` | `http://localhost:8080/api` |
+| `NEXT_PUBLIC_SITE_URL` | `http://system.local:8080` | `http://localhost:3000` |
+| `NEXT_PUBLIC_USE_MOCK_API` | `false` | `false` (or `true` for mock-only) |
 
 ## Related docs
 

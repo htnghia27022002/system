@@ -11,6 +11,7 @@ import { AppSidebar } from '@/components/common/app-sidebar'
 import { AppSidebarHeader } from '@/components/common/app-sidebar-header'
 import { NavLoadingBar } from '@/components/common/nav-loading-bar'
 import { TooltipProvider } from '@/components/ui/tooltip'
+import { AdminSearchBar } from '@/features/admin-search'
 import type { BreadcrumbItem } from '@/types/navigation'
 
 const BREADCRUMB_MAP: Record<
@@ -18,6 +19,7 @@ const BREADCRUMB_MAP: Record<
   { label: string; parent?: string }
 > = {
   '/admin': { label: 'nav.dashboard' },
+  '/admin/search': { label: 'nav.search' },
   '/admin/users': { label: 'nav.users', parent: 'nav.accessControl' },
   '/admin/roles': { label: 'nav.roles', parent: 'nav.accessControl' },
 }
@@ -54,7 +56,10 @@ export function AdminLayout({ children }: AdminLayoutProps) {
         <AppContent variant="sidebar" className="overflow-x-hidden">
           <div className="relative">
             <NavLoadingBar />
-            <AppSidebarHeader breadcrumbs={breadcrumbs} />
+            <AppSidebarHeader
+              breadcrumbs={breadcrumbs}
+              actions={<AdminSearchBar />}
+            />
           </div>
           {children}
         </AppContent>

@@ -13,6 +13,7 @@ import { SearchIcon } from 'lucide-react'
 import { useState, type ReactNode } from 'react'
 
 import { Input } from '@/components/ui/input'
+import { Spinner } from '@/components/ui/spinner'
 import {
   Table,
   TableBody,
@@ -47,6 +48,16 @@ type DataTableProps<TData, TValue = unknown> = {
   /** Default page size (default 10) */
   defaultPageSize?: number
 
+  /** When false, render all rows from server without client pagination */
+  localPagination?: boolean
+
+  emptyTitle?: string
+  emptyDescription?: string
+  emptyAction?: ReactNode
+
+  /** Subtle overlay while server data is refetching (e.g. search/filter). */
+  isRefreshing?: boolean
+
   className?: string
 }
 
@@ -60,6 +71,11 @@ export function DataTable<TData, TValue = unknown>({
   renderMobileCard,
   toolbar,
   defaultPageSize = 10,
+  localPagination = true,
+  emptyTitle,
+  emptyDescription,
+  emptyAction,
+  isRefreshing = false,
   className,
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = useState<SortingState>([])
@@ -72,7 +88,7 @@ export function DataTable<TData, TValue = unknown>({
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
+    ...(localPagination ? { getPaginationRowModel: getPaginationRowModel() } : {}),
     onSortingChange: setSorting,
     onColumnFiltersChange: (updater) => {
       setColumnFilters(updater)
@@ -87,6 +103,18 @@ export function DataTable<TData, TValue = unknown>({
   const rows = table.getRowModel().rows
   const hasFilter = Boolean(filterKey)
   const hasToolbar = hasFilter || Boolean(toolbar)
+  const showPagination =
+    localPagination &&
+    (table.getPageCount() > 1 ||
+      table.getState().pagination.pageSize < data.length)
+
+  const emptyState = (
+    <DataTableEmpty
+      title={emptyTitle ?? emptyMessage}
+      description={emptyDescription}
+      action={emptyAction}
+    />
+  )
 
   return (
     <div className={cn('flex flex-col gap-0', className)}>
@@ -115,19 +143,39 @@ export function DataTable<TData, TValue = unknown>({
         </div>
       )}
 
-      {/* Mobile card list — visible below md */}
-      <div className="flex flex-col gap-3 md:hidden">
-        {rows.length === 0 ? (
-          <DataTableEmpty message={emptyMessage} />
-        ) : (
-          rows.map((row) => (
-            <div key={row.id}>{renderMobileCard(row.original)}</div>
-          ))
-        )}
-      </div>
+      <div className="relative">
+        {isRefreshing ? (
+          <div
+            className="pointer-events-none absolute inset-0 z-10 flex items-start justify-center rounded-xl bg-background/50 pt-12"
+            aria-hidden
+          >
+            <Spinner className="size-4 text-muted-foreground" />
+          </div>
+        ) : null}
 
-      {/* Desktop table — visible from md */}
-      <div className="hidden min-w-0 rounded-xl border md:flex md:flex-col">
+        {/* Mobile card list — visible below md */}
+        <div
+          className={cn(
+            'flex flex-col gap-3 md:hidden',
+            isRefreshing && 'opacity-60',
+          )}
+        >
+          {rows.length === 0 ? (
+            emptyState
+          ) : (
+            rows.map((row) => (
+              <div key={row.id}>{renderMobileCard(row.original)}</div>
+            ))
+          )}
+        </div>
+
+        {/* Desktop table — visible from md */}
+        <div
+          className={cn(
+            'hidden min-w-0 rounded-xl border md:flex md:flex-col',
+            isRefreshing && 'opacity-60',
+          )}
+        >
         <div className="relative w-full overflow-x-auto">
           <Table>
             <TableHeader className="bg-muted/50">
@@ -158,9 +206,7 @@ export function DataTable<TData, TValue = unknown>({
             <TableBody>
               {rows.length === 0 ? (
                 <TableRow className="hover:bg-transparent">
-                  <TableCell colSpan={columns.length}>
-                    <DataTableEmpty message={emptyMessage} />
-                  </TableCell>
+                  <TableCell colSpan={columns.length}>{emptyState}</TableCell>
                 </TableRow>
               ) : (
                 rows.map((row) => (
@@ -183,21 +229,16 @@ export function DataTable<TData, TValue = unknown>({
           </Table>
         </div>
 
-        {table.getPageCount() > 1 ||
-        table.getState().pagination.pageSize < data.length ? (
-          <DataTablePagination table={table} />
+          {showPagination ? <DataTablePagination table={table} /> : null}
+        </div>
+
+        {/* Mobile pagination */}
+        {rows.length > 0 && showPagination ? (
+          <div className={cn('mt-2 md:hidden', isRefreshing && 'opacity-60')}>
+            <DataTablePagination table={table} />
+          </div>
         ) : null}
       </div>
-
-      {/* Mobile pagination */}
-      {rows.length > 0 && (
-        <div className="mt-2 md:hidden">
-          {table.getPageCount() > 1 ||
-          table.getState().pagination.pageSize < data.length ? (
-            <DataTablePagination table={table} />
-          ) : null}
-        </div>
-      )}
     </div>
   )
 }

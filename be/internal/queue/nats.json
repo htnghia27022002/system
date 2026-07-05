@@ -1,0 +1,30 @@
+{
+  "connection": {
+    "enabled": false,
+    "url": "nats://localhost:4222",
+    "name": "system-be",
+    "max_reconnects": -1,
+    "reconnect_wait": "2s"
+  },
+  "streams": {
+    "search": {
+      "retention": "limits",
+      "storage": "file",
+      "max_age": "168h",
+      "max_msgs": 100000,
+      "max_bytes": 1073741824,
+      "discard": "old",
+      "duplicate_window": "2m",
+      "consumers": {
+        "search_outbox": {
+          "ack_policy": "explicit",
+          "ack_wait": "30s",
+          "max_deliver": 5,
+          "max_ack_pending": 64,
+          "deliver_policy": "all",
+          "replay_policy": "instant"
+        }
+      }
+    }
+  }
+}

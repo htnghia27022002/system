@@ -3,22 +3,28 @@ package user
 import (
 	"context"
 	"fmt"
-	"strings"
 
 	apperrors "be/internal/common/errors"
 	"be/internal/common/hash"
-	"be/internal/common/pagination"
+	"be/internal/common/query"
 	userdto "be/internal/dto/user"
 	usermodel "be/internal/models/user"
+	searchpkg "be/internal/search"
 	"be/internal/repository/interfaces"
 )
 
-type Service struct {
-	repo interfaces.UserRepository
+type OutboxEnqueuer interface {
+	EnqueueUpsert(ctx context.Context, entityType, entityID string) error
+	EnqueueDelete(ctx context.Context, entityType, entityID string) error
 }
 
-func NewService(repo interfaces.UserRepository) *Service {
-	return &Service{repo: repo}
+type Service struct {
+	repo   interfaces.UserRepository
+	outbox OutboxEnqueuer
+}
+
+func NewService(repo interfaces.UserRepository, outbox OutboxEnqueuer) *Service {
+	return &Service{repo: repo, outbox: outbox}
 }
 
 func (s *Service) Create(ctx context.Context, req userdto.CreateUserRequest) (*usermodel.User, error) {
@@ -50,6 +56,7 @@ func (s *Service) Create(ctx context.Context, req userdto.CreateUserRequest) (*u
 	if err := s.repo.Create(ctx, user); err != nil {
 		return nil, err
 	}
+	s.enqueueUpsert(ctx, searchpkg.EntityUser, user.ID)
 	return user, nil
 }
 
@@ -64,19 +71,18 @@ func (s *Service) GetByID(ctx context.Context, id string) (*usermodel.User, erro
 	return user, nil
 }
 
-func (s *Service) List(ctx context.Context, query userdto.ListUsersQuery) ([]usermodel.User, int64, int, int, error) {
-	page, pageSize := pagination.NormalizePage(query.Page, query.PageSize)
-	filter := interfaces.UserListFilter{
-		Search: strings.TrimSpace(query.Search),
-		RoleID: query.RoleID,
-		Offset: pagination.Offset(page, pageSize),
-		Limit:  pageSize,
-	}
-	users, total, err := s.repo.List(ctx, filter)
+func (s *Service) List(ctx context.Context, form userdto.ListUsersQuery) ([]usermodel.User, int64, int, int, error) {
+	q := query.New(form.Page, form.PageSize).
+		OrderBy("created_at DESC").
+		WhereEqual("role_id", form.RoleID).
+		WhereEqual("id", form.ID).
+		WhereLikeAny([]string{"email", "full_name"}, form.Search)
+
+	users, total, err := s.repo.List(ctx, q)
 	if err != nil {
 		return nil, 0, 0, 0, err
 	}
-	return users, total, page, pageSize, nil
+	return users, total, q.Page, q.PageSize, nil
 }
 
 func (s *Service) Update(ctx context.Context, id string, req userdto.UpdateUserRequest, sessionUserID string) (*usermodel.User, error) {
@@ -121,6 +127,7 @@ func (s *Service) Update(ctx context.Context, id string, req userdto.UpdateUserR
 	if err := s.repo.Update(ctx, user); err != nil {
 		return nil, err
 	}
+	s.enqueueUpsert(ctx, searchpkg.EntityUser, user.ID)
 	return user, nil
 }
 
@@ -135,7 +142,25 @@ func (s *Service) Delete(ctx context.Context, id, sessionUserID string) error {
 	if user == nil {
 		return apperrors.ErrNotFound
 	}
-	return s.repo.Delete(ctx, id)
+	if err := s.repo.Delete(ctx, id); err != nil {
+		return err
+	}
+	s.enqueueDelete(ctx, searchpkg.EntityUser, id)
+	return nil
+}
+
+func (s *Service) enqueueUpsert(ctx context.Context, entityType, entityID string) {
+	if s.outbox == nil {
+		return
+	}
+	_ = s.outbox.EnqueueUpsert(ctx, entityType, entityID)
+}
+
+func (s *Service) enqueueDelete(ctx context.Context, entityType, entityID string) {
+	if s.outbox == nil {
+		return
+	}
+	_ = s.outbox.EnqueueDelete(ctx, entityType, entityID)
 }
 
 func ToResponse(user *usermodel.User) userdto.UserResponse {

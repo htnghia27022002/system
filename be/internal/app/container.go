@@ -2,12 +2,16 @@ package app
 
 import (
 	jwtmanager "be/internal/common/jwt"
+	"be/internal/app/dependency"
 	"be/internal/config"
-	"be/internal/repository"
+	"be/internal/handlers/publisher"
+	"be/internal/queue"
 	"be/internal/repository/interfaces"
+	searchpkg "be/internal/search"
 	authsvc "be/internal/services/auth"
 	permissionsvc "be/internal/services/permission"
 	rolesvc "be/internal/services/role"
+	searchsvc "be/internal/services/search"
 	usersvc "be/internal/services/user"
 	"be/public/handlers"
 
@@ -16,46 +20,70 @@ import (
 
 type Container struct {
 	Config            config.Config
+	Queue             queue.Config
+	QueueClient       *queue.Client
 	DB                *gorm.DB
 	JWT               *jwtmanager.Manager
+	Publisher         *publisher.Publisher
 	AuthService       *authsvc.Service
 	OAuthService      *authsvc.OAuthService
 	UserService       *usersvc.Service
 	RoleService       *rolesvc.Service
 	PermissionService *permissionsvc.Service
+	SearchService     *searchsvc.Service
+	SearchProcessor   *searchsvc.IndexProcessor
+	OutboxService     *searchsvc.OutboxService
+	SearchClient      *searchpkg.Client
 	RoleRepo          interfaces.RoleRepository
 	AuthHandler       *handlers.AuthHandler
 	UserHandler       *handlers.UserHandler
 	RoleHandler       *handlers.RoleHandler
 	PermissionHandler *handlers.PermissionHandler
+	SearchHandler     *handlers.SearchHandler
 }
 
 func NewContainer(cfg config.Config, db *gorm.DB) *Container {
-	authRepo := repository.NewAuthRepository(db)
-	userRepo := repository.NewUserRepository(db)
-	roleRepo := repository.NewRoleRepository(db)
-	permissionRepo := repository.NewPermissionRepository(db)
-
-	jwtManager := jwtmanager.NewManager(cfg)
-	authService := authsvc.NewService(authRepo, userRepo, roleRepo, jwtManager, cfg.JWTRefreshTTL)
-	oauthService := authsvc.NewOAuthService(cfg, authRepo, roleRepo, authService)
-	userService := usersvc.NewService(userRepo)
-	roleService := rolesvc.NewService(roleRepo)
-	permissionService := permissionsvc.NewService(permissionRepo)
+	infra := dependency.NewInfra(cfg, db)
+	searchStack := dependency.NewSearchStack(infra)
+	authServices := dependency.NewAuthServices(infra)
+	userService := dependency.NewUserService(infra, searchStack.Outbox)
+	roleServices := dependency.NewRoleServices(infra, searchStack.Outbox)
+	permissionService := dependency.NewPermissionService(infra)
+	httpHandlers := dependency.NewHTTPHandlers(
+		authServices,
+		userService,
+		roleServices,
+		permissionService,
+		searchStack,
+	)
 
 	return &Container{
-		Config:            cfg,
-		DB:                db,
-		JWT:               jwtManager,
-		AuthService:       authService,
-		OAuthService:      oauthService,
+		Config:            infra.Config,
+		Queue:             infra.Queue,
+		QueueClient:       infra.QueueClient,
+		DB:                infra.DB,
+		JWT:               infra.JWT,
+		Publisher:         infra.Publisher,
+		AuthService:       authServices.Auth,
+		OAuthService:      authServices.OAuth,
 		UserService:       userService,
-		RoleService:       roleService,
+		RoleService:       roleServices.Service,
 		PermissionService: permissionService,
-		RoleRepo:          roleRepo,
-		AuthHandler:       handlers.NewAuthHandler(authService, oauthService),
-		UserHandler:       handlers.NewUserHandler(userService),
-		RoleHandler:       handlers.NewRoleHandler(roleService),
-		PermissionHandler: handlers.NewPermissionHandler(permissionService),
+		SearchService:     searchStack.Service,
+		SearchProcessor:   searchStack.Processor,
+		OutboxService:     searchStack.Outbox,
+		SearchClient:      infra.SearchClient,
+		RoleRepo:          roleServices.Repo,
+		AuthHandler:       httpHandlers.Auth,
+		UserHandler:       httpHandlers.User,
+		RoleHandler:       httpHandlers.Role,
+		PermissionHandler: httpHandlers.Permission,
+		SearchHandler:     httpHandlers.Search,
+	}
+}
+
+func (c *Container) Close() {
+	if c.Publisher != nil {
+		c.Publisher.Close()
 	}
 }

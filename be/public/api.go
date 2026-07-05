@@ -2,6 +2,7 @@ package public
 
 import (
 	"context"
+	"log"
 	"time"
 
 	"github.com/gin-contrib/cors"
@@ -30,6 +31,16 @@ func Run(cfg config.Config, db *gorm.DB, redis *goredis.Client) error {
 	defer func() { _ = cache.Close() }()
 
 	container := app.NewContainer(cfg, db)
+	defer container.Close()
+	defer container.Close()
+
+	ctx := context.Background()
+	if container.SearchClient != nil && container.SearchClient.Enabled() {
+		if err := container.SearchService.EnsureIndex(ctx); err != nil {
+			log.Printf("search index ensure failed: %v", err)
+		}
+	}
+
 	r := gin.Default()
 	r.Use(cors.New(cors.Config{
 		AllowOrigins:     cfg.CORSOrigins,

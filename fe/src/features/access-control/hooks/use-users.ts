@@ -17,6 +17,7 @@ export function useUsersList(params: ListUsersParams = {}) {
   return useQuery({
     queryKey: [...usersKey, params],
     queryFn: () => accessControlApi.listUsers(params),
+    meta: { skipNavLoading: true },
   })
 }
 

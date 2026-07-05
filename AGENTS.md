@@ -1,7 +1,7 @@
 <!-- gitnexus:start -->
 # GitNexus — Code Intelligence
 
-This project is indexed by GitNexus as **system** (1992 symbols, 4918 relationships, 160 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
+This project is indexed by GitNexus as **system** (3455 symbols, 9013 relationships, 279 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
 
 > If any GitNexus tool warns the index is stale, run `npx gitnexus analyze` in terminal first.
 
@@ -74,23 +74,24 @@ When moving `be/` or `fe/` elsewhere, update Docker/CI/env at the destination; i
 ### Docker (default for full stack)
 
 ```bash
-cp .env.docker.example .env && make up-d
+cp .env.example .env && make up-d
 ```
 
 - Entry: `http://system.local:8080` (or port from `NGINX_HTTP_PORT` in `.env`)
 - API: `http://system.local:8080/api`
-- Env file: repo root `.env` only for compose
+- Env file: repo root `.env` (infra only); app config in `be/.env` + `fe/.env` via compose `env_file`
 - **Agents:** run shell from **repo root**; use `make test`, `make test-be`, `make test-fe` — not `cd be && make test` on WSL host (Go may be missing)
 
 See [`.cursor/rules/environment.mdc`](.cursor/rules/environment.mdc) for command matrix.
 
 ### Local (split processes)
 
-- BE: `be/.env` → requires **Go on host** → `cd be && make run`
-- FE: `fe/.env` → `pnpm dev` from **repo root** → port 3000
+- BE: **`be/.env` only** → requires **Go on host** → `cd be && make run`
+- FE: **`fe/.env` only** → `pnpm dev` from **repo root** → port 3000
+- Do **not** put BE/FE app secrets in root `.env` when running split local — use each package's `.env`
 - FE must set `NEXT_PUBLIC_API_BASE_URL=http://localhost:8080/api` when using real BE
 
-Do not mix Docker FE env with host BE URLs without updating `NEXT_PUBLIC_*` to match.
+Do not mix Docker env (root `.env`) with host `be/.env` / `fe/.env` for the same run.
 
 ## Agent routing
 
@@ -137,7 +138,8 @@ Prompt cheat sheet: [`docs/workflow/agent-prompts.md`](docs/workflow/agent-promp
 ## Backend (`be/`)
 
 - Layers: `public/routes` → `public/handlers` → `internal/services` → `internal/repository` → DB
-- DI: `internal/app/container.go`
+- Queue: `internal/queue` → `internal/handlers/publisher` (API) / `internal/handlers/subscribers` (`cmd/queue`)
+- DI: `internal/app/container.go` + resolvers in `internal/app/dependency/`
 - API prefix: `/api/auth`, `/api/admin`
 - JSON: camelCase (matches FE contract)
 - Module imports: `be/internal/...` (from `be/go.mod`, self-contained)
@@ -146,5 +148,5 @@ Prompt cheat sheet: [`docs/workflow/agent-prompts.md`](docs/workflow/agent-promp
 ## Cross-cutting rules
 
 - Write new or modified file content in **English** — including `docs/features/**` from `@ba` `@be` `@fe` `@qa`. User prompts in Vietnamese do not change this.
-- Do not commit `.env` files (use `.env.docker.example`, `fe/.env.example`).
+- Do not commit `.env` files (use root `.env.example`, `be/.env.example`, `fe/.env.example`).
 - API contract: FE calls `/auth/*` and `/admin/*` under `NEXT_PUBLIC_API_BASE_URL`.

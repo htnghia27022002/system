@@ -1,8 +1,7 @@
 **/node_modules
 
 # Docker persistent data (bind mounts)
-docker/data/postgres/
-docker/data/redis/
+docker/data/*
 
 # BE file cache (cache.file.dir)
 **/storage/cache/

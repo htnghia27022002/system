@@ -28,6 +28,22 @@ export type ListUsersParams = {
   pageSize?: number
   search?: string
   roleId?: string
+  id?: string
+}
+
+export type ListRolesParams = {
+  page?: number
+  pageSize?: number
+  search?: string
+  id?: string
+  permissionKey?: string
+}
+
+export type ListPermissionsParams = {
+  page?: number
+  pageSize?: number
+  search?: string
+  group?: string
 }
 
 export type PaginatedResponse<T> = {

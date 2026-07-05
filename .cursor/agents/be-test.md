@@ -40,6 +40,8 @@ make test-be-e2e
 make test-be-all
 ```
 
+For search/outbox features: the **`queue` Docker service** (`cmd/queue`) must be running to verify NATS-driven index sync end-to-end; unit tests mock or poll outbox directly.
+
 See [`.cursor/rules/environment.mdc`](../../.cursor/rules/environment.mdc).
 
 ## Language

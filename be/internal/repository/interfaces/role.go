@@ -3,6 +3,7 @@ package interfaces
 import (
 	"context"
 
+	"be/internal/common/query"
 	rolemodel "be/internal/models/role"
 )
 
@@ -10,7 +11,8 @@ type RoleRepository interface {
 	Create(ctx context.Context, role *rolemodel.Role) error
 	GetByID(ctx context.Context, id string) (*rolemodel.Role, error)
 	GetBySlug(ctx context.Context, slug string) (*rolemodel.Role, error)
-	List(ctx context.Context) ([]rolemodel.Role, error)
+	ListAll(ctx context.Context) ([]rolemodel.Role, error)
+	List(ctx context.Context, q *query.Query) ([]rolemodel.Role, int64, error)
 	Update(ctx context.Context, role *rolemodel.Role) error
 	Delete(ctx context.Context, id string) error
 	AssignPermissions(ctx context.Context, roleID string, permissionIDs []string) error
