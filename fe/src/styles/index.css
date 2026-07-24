@@ -168,60 +168,44 @@
 }
 
 @layer utilities {
+  /* Full-bleed hero grid — no radial mask (partial grid looked broken). */
   .landing-grid-bg {
     background-image:
       linear-gradient(
         to right,
-        color-mix(in oklch, var(--border) 35%, transparent) 1px,
+        color-mix(in oklch, var(--border) 28%, transparent) 1px,
         transparent 1px
       ),
       linear-gradient(
         to bottom,
-        color-mix(in oklch, var(--border) 35%, transparent) 1px,
+        color-mix(in oklch, var(--border) 28%, transparent) 1px,
         transparent 1px
       );
-    background-size: 64px 64px;
-    mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, black 20%, transparent 100%);
+    background-size: 40px 40px;
+    opacity: 0.45;
   }
 
   .landing-glow {
     background: radial-gradient(
-      ellipse 70% 55% at 50% 0%,
+      ellipse 70% 55% at 25% 15%,
       var(--landing-glow-primary),
       transparent 70%
     );
   }
 
   .landing-section-hero {
-    background:
-      radial-gradient(ellipse 80% 60% at 50% -10%, var(--landing-glow-primary), transparent 55%),
-      var(--background);
+    background: var(--background);
   }
 
   .landing-section-features {
-    background:
-      radial-gradient(ellipse 70% 50% at 20% 50%, var(--landing-glow-accent), transparent 50%),
-      radial-gradient(ellipse 60% 45% at 85% 30%, var(--landing-glow-primary), transparent 45%),
-      var(--background);
+    background: color-mix(in oklch, var(--muted) 55%, var(--background));
   }
 
-  .landing-section-tokenomics {
-    background:
-      radial-gradient(ellipse 65% 55% at 75% 60%, color-mix(in oklch, var(--chart-5) 25%, transparent), transparent 50%),
-      var(--background);
+  .landing-section-tools {
+    background: var(--background);
   }
 
   .landing-section-cta {
-    background:
-      radial-gradient(ellipse 70% 55% at 50% 100%, color-mix(in oklch, var(--chart-4) 22%, transparent), transparent 55%),
-      radial-gradient(ellipse 50% 40% at 50% 0%, var(--landing-glow-primary), transparent 50%),
-      var(--background);
-  }
-
-  @media (max-width: 768px) {
-    .tokenomics-card {
-      position: relative !important;
-      top: auto !important;
-    }
+    background: color-mix(in oklch, var(--muted) 40%, var(--background));
   }
 }

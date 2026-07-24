@@ -4,7 +4,8 @@
     "title": "Quan tri",
     "openMenu": "Mo menu dieu huong",
     "collapseMenu": "Thu gon menu",
-    "expandMenu": "Mo rong menu"
+    "expandMenu": "Mo rong menu",
+    "publicHome": "Trang chu cong khai"
   },
   "userMenu": {
     "settings": "Cai dat tai khoan",

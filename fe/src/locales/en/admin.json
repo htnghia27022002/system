@@ -4,7 +4,8 @@
     "title": "Admin",
     "openMenu": "Open navigation menu",
     "collapseMenu": "Collapse sidebar",
-    "expandMenu": "Expand sidebar"
+    "expandMenu": "Expand sidebar",
+    "publicHome": "Public home"
   },
   "userMenu": {
     "settings": "Account settings",

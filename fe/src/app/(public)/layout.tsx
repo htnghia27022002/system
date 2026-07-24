@@ -1,7 +1,8 @@
 import type { ReactNode } from 'react'
 
-import { LandingLayout } from '@/layouts/landing-layout'
-
+/**
+ * Thin public shell — `/`, `/tools`, and nested tool pages use normal document scroll.
+ */
 export default function PublicGroupLayout({ children }: { children: ReactNode }) {
-  return <LandingLayout>{children}</LandingLayout>
+  return children
 }

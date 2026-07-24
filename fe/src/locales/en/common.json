@@ -6,7 +6,16 @@
     "toast": "Toast notification works"
   },
   "nav": {
-    "home": "Home"
+    "home": "Home",
+    "tools": "Tools",
+    "admin": "Admin",
+    "siteLabel": "Site",
+    "openMenu": "Open navigation menu"
+  },
+  "locale": {
+    "label": "Language",
+    "en": "English",
+    "vi": "Tiếng Việt"
   },
   "theme": {
     "toggle": "Toggle theme",

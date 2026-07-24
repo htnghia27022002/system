@@ -1,52 +1,63 @@
+/**
+ * Greenfield landing marketing copy (English).
+ * Tool entries are never duplicated here — always from `@/features/tools`.
+ */
 export const landingContent = {
   hero: {
-    label: '01 — Hero',
-    eyebrow: 'Web3 Prototype',
-    headline: 'Scroll-driven experiences for the decentralized web.',
+    brand: 'System',
+    headline: 'Tools your team actually opens.',
     subline:
-      'A scrollytelling landing prototype — pinned sections, scrubbed motion, and neon cyber aesthetics. Personal details coming soon.',
-    primaryCta: 'Explore features',
-    secondaryCta: 'Join waitlist',
+      'A focused workspace home: browse the catalog, jump into Webhooks, and grow the hub without redesigning the product shell.',
+    primaryCta: 'Explore tools',
+    primaryCtaHref: '/tools',
+    secondaryCta: 'Create account',
+    secondaryCtaHref: '/register',
+    imageAlt: 'Stylized 3D avatar based on the site owner',
   },
   features: {
-    label: '02 — Features',
-    title: 'Built for momentum',
-    subtitle:
-      'Pinned scroll zone — artifacts animate in sync with your wheel. Scroll slowly to scrub through the sequence.',
+    title: 'Built for daily use',
+    subtitle: 'Less ceremony, more paths into real work.',
     items: [
-      { title: 'On-chain ready', description: 'Wallet-native flows and smart-contract hooks.' },
-      { title: 'Realtime sync', description: 'Sub-second state across nodes and clients.' },
-      { title: 'Composable UI', description: 'Glass panels, glow borders, token-driven theme.' },
+      {
+        title: 'One catalog',
+        description: 'Landing and /tools read the same entries. Add a tool once — it shows up everywhere.',
+      },
+      {
+        title: 'Nested workspaces',
+        description: 'Each tool can own /tools/{id}. Webhooks is live; more rooms ship the same way.',
+      },
+      {
+        title: 'Ready chrome',
+        description: 'Navigate, sign in, theme, and language stay consistent across home and tools.',
+      },
     ],
   },
-  tokenomics: {
-    label: '03 — Tokenomics',
-    title: 'Allocation that stacks',
-    subtitle: 'Cards stack as you scroll — each layer reveals the next allocation tier.',
-    cards: [
-      { title: 'Community', share: '40%', description: 'Ecosystem grants, builders, and governance.' },
-      { title: 'Treasury', share: '35%', description: 'Protocol reserves and long-term development.' },
-      { title: 'Core team', share: '25%', description: 'Vested allocation for contributors.' },
-    ],
+  tools: {
+    title: 'Start with Webhooks',
+    subtitle: 'A short preview from the shared catalog. Open the hub for the full list.',
+    primaryCta: 'Browse all tools',
+    primaryCtaHref: '/tools',
+    emptyTitle: 'Tools coming soon',
+    emptyBody: 'The catalog is empty for now. Check back after the next release.',
   },
   cta: {
-    label: '04 — CTA',
-    title: 'Ready to ship your Web3 surface?',
-    subtitle: 'Prototype landing — replace with your launch copy, links, and contract address.',
-    primaryCta: 'Get started',
-    secondaryCta: 'Read docs',
-    email: 'hello@example.com',
-    emailHref: 'mailto:hello@example.com',
-    footer: '© {year} htnghia. GSAP scrollytelling prototype.',
+    title: 'Create an account',
+    subtitle: 'Sign up for admin access, or sign in if you already have a seat.',
+    primaryCta: 'Create account',
+    primaryCtaHref: '/register',
+    secondaryCta: 'Sign in',
+    secondaryCtaHref: '/login',
+    footer: '© {year} System',
   },
   nav: {
-    hero: 'Hero',
-    features: 'Features',
-    tokenomics: 'Tokenomics',
-    cta: 'CTA',
+    hero: 'Home',
+    features: 'Value',
+    tools: 'Preview',
+    cta: 'Start',
   },
 } as const
 
 export type LandingContent = typeof landingContent
 
-export const scrollySectionIds = ['hero', 'features', 'tokenomics', 'cta'] as const
+/** In-page section ids for nav highlighting. */
+export const landingSectionIds = ['hero', 'features', 'tools', 'cta'] as const

@@ -10,7 +10,8 @@
     "start": "next start",
     "lint": "eslint .",
     "test": "vitest",
-    "test:run": "vitest run"
+    "test:run": "vitest run",
+    "export:hero-character": "tsx scripts/export-hero-character.mts"
   },
   "dependencies": {
     "@fontsource-variable/geist": "^5.2.9",

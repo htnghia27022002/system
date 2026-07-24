@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { LayoutGridIcon, ShieldCheckIcon } from 'lucide-react'
+import { HomeIcon, LayoutGridIcon, ShieldCheckIcon } from 'lucide-react'
 import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 
@@ -69,6 +69,14 @@ export function AppSidebar() {
             <SidebarMenuButton size="lg" asChild>
               <Link href="/admin">
                 <AdminAppLogo />
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          <SidebarMenuItem>
+            <SidebarMenuButton asChild tooltip={t('shell.publicHome')}>
+              <Link href="/" aria-label={t('shell.publicHome')}>
+                <HomeIcon />
+                <span>{t('shell.publicHome')}</span>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>

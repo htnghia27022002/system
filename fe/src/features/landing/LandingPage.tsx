@@ -1,40 +1,25 @@
 'use client'
 
-import { CtaSnapSection } from './components/sections/cta-snap-section'
-import { FeaturesSnapSection } from './components/sections/features-snap-section'
-import { HeroSnapSection } from './components/sections/hero-snap-section'
-import { TokenomicsSnapSection } from './components/sections/tokenomics-snap-section'
 import { LandingNav } from './components/landing-nav'
-import { ScrollProgressHud } from './components/scroll-progress-hud'
-import { ScrollyShell } from './components/scrolly-shell'
-import { ScrollyProvider, useScrolly } from './context/scrolly-context'
-import { useGsapContext } from './hooks/use-gsap-context'
-import { useReducedMotion } from './hooks/use-reduced-motion'
+import { CtaSection } from './components/sections/cta-section'
+import { FeaturesSection } from './components/sections/features-section'
+import { HeroSection } from './components/sections/hero-section'
+import { ToolsSection } from './components/sections/tools-section'
 
-function LandingPageInner() {
-  const { scrollerRef } = useScrolly()
-  const reducedMotion = useReducedMotion()
-
-  useGsapContext({ scrollerRef, enabled: !reducedMotion })
-
-  return (
-    <>
-      <LandingNav />
-      <ScrollyShell snapMode={reducedMotion ? 'mandatory' : 'proximity'}>
-        <HeroSnapSection />
-        <FeaturesSnapSection />
-        <TokenomicsSnapSection />
-        <CtaSnapSection />
-      </ScrollyShell>
-      <ScrollProgressHud />
-    </>
-  )
-}
-
+/**
+ * Public home — normal document scroll with padded sections and light reveal motion.
+ * Tools hub pages stay outside this shell so they share normal page scroll.
+ */
 export function LandingPage() {
   return (
-    <ScrollyProvider>
-      <LandingPageInner />
-    </ScrollyProvider>
+    <div className="min-h-[100dvh] w-full bg-background text-foreground">
+      <LandingNav />
+      <main>
+        <HeroSection />
+        <FeaturesSection />
+        <ToolsSection />
+        <CtaSection />
+      </main>
+    </div>
   )
 }

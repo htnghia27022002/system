@@ -6,7 +6,16 @@
     "toast": "Thong bao toast hoat dong"
   },
   "nav": {
-    "home": "Trang chu"
+    "home": "Trang chu",
+    "tools": "Cong cu",
+    "admin": "Quan tri",
+    "siteLabel": "Dieu huong",
+    "openMenu": "Mo menu dieu huong"
+  },
+  "locale": {
+    "label": "Ngon ngu",
+    "en": "English",
+    "vi": "Tiếng Việt"
   },
   "theme": {
     "toggle": "Doi giao dien",

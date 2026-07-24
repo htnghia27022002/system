@@ -4,6 +4,7 @@ import type { ReactNode } from 'react'
 import Link from 'next/link'
 import { useTranslation } from 'react-i18next'
 
+import { LocaleSelect } from '@/components/common/locale-select'
 import { NavLoadingBar } from '@/components/common/nav-loading-bar'
 import { ThemeToggle } from '@/components/common/theme-toggle'
 import { Button } from '@/components/ui/button'
@@ -15,7 +16,7 @@ type MainLayoutProps = {
 }
 
 export function MainLayout({ children }: MainLayoutProps) {
-  const { t, i18n } = useTranslation('common')
+  const { t } = useTranslation('common')
   const accessToken = useAuthStore((state) => state.accessToken)
   const signOutMutation = useSignOut()
 
@@ -47,15 +48,7 @@ export function MainLayout({ children }: MainLayoutProps) {
                 </Button>
               </>
             )}
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() =>
-                void i18n.changeLanguage(i18n.language === 'en' ? 'vi' : 'en')
-              }
-            >
-              {i18n.language === 'en' ? 'VI' : 'EN'}
-            </Button>
+            <LocaleSelect />
             <ThemeToggle />
           </nav>
         </div>
