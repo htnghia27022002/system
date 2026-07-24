@@ -104,16 +104,16 @@ go run ./cmd/reindex      # one-shot Elasticsearch bulk reindex
 
 ## Cache
 
-Redis connection: `database.ConnectRedis(cfg)` in `internal/database/redis.go` (shared client, ping on startup).
+Redis dial: `be/pkg/redis.Connect(url)`; app wrappers in `internal/database` (`ConnectRedis` / `ConnectRedisURL`).
 
-Optional layer in `internal/common/cache`. Disabled by default (`cache.enabled: false`).
+Cache stores live in `be/pkg/cache` (Options + drivers). App Init/Default wiring stays in `internal/common/cache` and maps `config.CacheConfig` → pkg Options. Disabled by default (`cache.enabled: false`).
 
 | Driver | Config | Notes |
 |--------|--------|-------|
 | `file` | `cache.file.dir` (default `storage/cache`) | Local JSON files under `be/storage/cache` |
 | `redis` | `cache.redis.url` or top-level `redis.url` | Uses Redis DB from URL |
 
-Package API: `cache.Init(cfg.Cache, redisClient)` at startup, then `cache.Get`, `cache.Set`, `cache.Delete`, `cache.Purge`, `cache.Close`. Redis client comes from `database.ConnectRedis(cfg)` in `main.go`.
+Package API: `cache.Init(cfg.Cache, redisClient)` at startup, then `cache.Get`, `cache.Set`, `cache.Delete`, `cache.Purge`, `cache.Close`. Redis client comes from `database.ConnectRedisURL` in `main.go`.
 
 ## Queue (NATS JetStream)
 
@@ -173,16 +173,16 @@ Add a new domain service by adding `dependency/<feature>_service.go` with a `New
 
 ## Module imports
 
-This directory is a standalone Go module (`module be` in `go.mod`). Internal imports use the module path:
+This directory is a standalone Go module (`module be` in `go.mod`). Imports use the module path:
 
 ```go
 import (
-    "be/internal/common/hash"
+    "be/pkg/hash"
     authmodel "be/internal/models/auth"
 )
 ```
 
-`be/` here is the **module name**, not a reference to the monorepo root. The whole `be/` folder can be relocated; internal imports stay valid as long as `go.mod` moves with it. See [`AGENTS.md`](AGENTS.md) for full agent rules.
+`be/pkg/...` is reusable infra (stdlib + third-party only; never imports `be/internal`). `be/` here is the **module name**, not a reference to the monorepo root. See [`AGENTS.md`](AGENTS.md) for full agent rules.
 
 ## Related docs
 

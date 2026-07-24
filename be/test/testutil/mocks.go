@@ -6,7 +6,7 @@ import (
 
 	authmodel "be/internal/models/auth"
 	rolemodel "be/internal/models/role"
-	"be/internal/common/query"
+	"be/pkg/query"
 	usermodel "be/internal/models/user"
 )
 

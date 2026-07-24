@@ -7,7 +7,7 @@ import (
 	"gorm.io/gorm"
 
 	usermodel "be/internal/models/user"
-	"be/internal/common/query"
+	"be/pkg/query"
 	"be/internal/repository/interfaces"
 )
 

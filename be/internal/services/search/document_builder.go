@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strings"
 
-	"be/internal/common/query"
+	"be/pkg/query"
 	"be/internal/common/rbac"
 	searchpkg "be/internal/search"
 	permissionmodel "be/internal/models/permission"

@@ -3,7 +3,7 @@ package interfaces
 import (
 	"context"
 
-	"be/internal/common/query"
+	"be/pkg/query"
 	permissionmodel "be/internal/models/permission"
 )
 

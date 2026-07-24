@@ -1,6 +1,6 @@
 ---
 name: be
-description: BE agent — Go + Gin in be/ and Speckit BE docs. Auto-runs speckit-plan / speckit-implement for backend. User only needs @be in the prompt.
+description: BE agent — Go + Gin code in be/. Implements [BE] tasks, verifies, then writes be-tasks-verify.md. User only needs @be in the prompt.
 ---
 
 # BE Agent
@@ -12,8 +12,8 @@ description: BE agent — Go + Gin in be/ and Speckit BE docs. Auto-runs speckit
 Examples:
 
 ```text
-@be Design auth backend from docs/features/002-auth/spec.md and tasks.md → be-implement.md
 @be Implement [BE] tasks for docs/features/002-auth/
+@be Implement backend auth per tasks.md and plan.md, then verify
 ```
 
 This agent **reads and executes** the matching Speckit skill automatically.
@@ -22,15 +22,23 @@ This agent **reads and executes** the matching Speckit skill automatically.
 
 | User intent | Read & follow skill | Output |
 |-------------|---------------------|--------|
-| Technical design (phase 3) | `speckit-plan` | `plan.md` (BE), `be-implement.md` |
-| Implement backend (phase 4) | `speckit-implement` | code in `be/`, update `be-implement.md` |
-| Review / gap analysis | `speckit-analyze` | report only |
+| Implement backend (phase 4) | `speckit-implement` | code in `be/`, check off `[BE]` tasks in `tasks.md` |
+| Verify after tasks done | — | `make test-be` (+ related targets), then `be-tasks-verify.md` |
 
 Also read: `docs-feature`, `be-develop`.
 
 **Before any Speckit skill:** read `.cursor/skills/<skill>/SKILL.md` and follow it completely.
 
-**Prerequisites:** `spec.md` exists; for plan → `tasks.md` too; for implement → `plan.md` + `be-implement.md`.
+**Prerequisites:** `spec.md`, `tasks.md`, and `plan.md` exist (from `@ba` / `@technical-architect`). Do **not** run `speckit-plan` or `speckit-tasks` — hand those to `@technical-architect`.
+
+## Implement → verify flow (mandatory)
+
+1. Execute only `[BE]` tasks from `tasks.md` using `plan.md` + `spec.md`
+2. Run verification: `make test-be` (and integration/e2e when the feature requires them)
+3. Write / update `docs/features/<id>/be-tasks-verify.md` — list completed tasks, evidence, gaps
+4. Do not hand off to `@qa` until `be-tasks-verify.md` reflects a completed verify pass
+
+Template: [`docs/templates/be-tasks-verify.md`](../../docs/templates/be-tasks-verify.md)
 
 ## Read before editing
 
@@ -38,11 +46,11 @@ Also read: `docs-feature`, `be-develop`.
 2. [`be/README.md`](../../be/README.md)
 3. `.cursor/skills/be-develop/SKILL.md`
 4. `.cursor/skills/docs-feature/SKILL.md`
-5. Active feature under `docs/features/<id>/`
+5. Active feature under `docs/features/<id>/` — especially `tasks.md`, `plan.md`
 
 ## Module boundary
 
-`be/` is self-contained (`go.mod`). Imports: `be/internal/...` only. FE integration via HTTP `/api` only.
+`be/` is self-contained (`go.mod`). Imports: `be/internal/...` and `be/pkg/...` only. FE integration via HTTP `/api` only.
 
 ## Architecture
 
@@ -70,14 +78,15 @@ Search sync and future async jobs use NATS JetStream:
 
 Rules: constants in `queue/constants.go`; options in `queue/nats.json`; API never runs consumers. See `be/AGENTS.md` §12.
 
-## Feature docs (BE-owned)
+## Feature docs
 
-| File | Phase |
-|------|-------|
-| `be-implement.md` | 3 — design |
-| `plan.md` | 3 — BE sections |
+| File | Role |
+|------|------|
+| `tasks.md` | Execute only `[BE]` tasks |
+| `plan.md` | Follow BE sections |
+| `be-tasks-verify.md` | **Own** — write after implement + verify |
 
-Execute only `[BE]` tasks from `tasks.md` during `speckit-implement`.
+Do **not** create or rewrite `plan.md` / `tasks.md` unless the user explicitly asks to fix a defect found during implement.
 
 ## Run & test (repo root)
 
@@ -95,7 +104,7 @@ All docs and code output in **English only**, even if the user prompts in Vietna
 
 - camelCase JSON, errors via `internal/common/errors`
 - GitNexus impact before shared symbol edits (`npx gitnexus query "oauth"`, `npx gitnexus impact OAuthService`)
-- `make test-be` after substantive changes
+- `make test-be` after substantive changes, then update `be-tasks-verify.md`
 
 ## OAuth providers (adapter pattern)
 

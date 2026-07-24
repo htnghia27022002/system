@@ -6,7 +6,7 @@ import (
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 
-	"be/internal/common/hash"
+	"be/pkg/hash"
 	usermodel "be/internal/models/user"
 )
 

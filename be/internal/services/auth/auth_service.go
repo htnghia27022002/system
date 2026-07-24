@@ -11,7 +11,7 @@ import (
 	"github.com/google/uuid"
 
 	apperrors "be/internal/common/errors"
-	"be/internal/common/hash"
+	"be/pkg/hash"
 	jwtmanager "be/internal/common/jwt"
 	authdto "be/internal/dto/auth"
 	authmodel "be/internal/models/auth"

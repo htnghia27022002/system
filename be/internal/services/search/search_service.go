@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strings"
 
-	listquery "be/internal/common/query"
+	listquery "be/pkg/query"
 	"be/internal/common/rbac"
 	searchdto "be/internal/dto/search"
 	searchpkg "be/internal/search"

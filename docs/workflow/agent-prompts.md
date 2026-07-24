@@ -5,7 +5,7 @@
 ## Phase order
 
 ```text
-@ba → spec.md → tasks.md → @be @fe → plan + *-implement → @be @fe → code → @qa → test
+@ba → spec.md → @technical-architect → tasks.md → plan.md → @be @fe → code + *-tasks-verify.md → @qa → test
 ```
 
 ---
@@ -25,7 +25,7 @@
 ## Phase 2 — Decompose
 
 ```text
-@ba Break down tasks from the auth spec
+@technical-architect Break down tasks from the auth spec
 ```
 
 ---
@@ -33,17 +33,16 @@
 ## Phase 3 — Design
 
 ```text
-@be Design auth backend from spec + tasks → be-implement.md
-@fe Design login/register UI from spec + be-implement → fe-implement.md
+@technical-architect Design full stack for docs/features/002-auth/ → plan.md
 ```
 
 ---
 
-## Phase 4 — Implement
+## Phase 4 — Implement + verify
 
 ```text
-@be Implement backend auth per tasks.md
-@fe Implement frontend auth per tasks.md
+@be Implement backend auth per tasks.md, then write be-tasks-verify.md
+@fe Implement frontend auth per tasks.md, then write fe-tasks-verify.md
 ```
 
 ---
@@ -60,9 +59,10 @@
 
 | Agent | Skills (auto) |
 |-------|----------------|
-| `@ba` | `speckit-specify`, `speckit-clarify`, `speckit-tasks` |
-| `@be` | `speckit-plan`, `speckit-implement`, `speckit-analyze` |
-| `@fe` | `speckit-plan`, `speckit-implement`, `speckit-analyze` |
+| `@ba` | `speckit-specify`, `speckit-clarify` |
+| `@technical-architect` | `speckit-tasks`, `speckit-plan`, `speckit-analyze` |
+| `@be` | `speckit-implement` → `make test-be` → `be-tasks-verify.md` |
+| `@fe` | `speckit-implement` → `make test-fe` → `fe-tasks-verify.md` |
 | `@qa` | `speckit-checklist`, `speckit-analyze`, `speckit-converge` |
 
 Skill files: `.cursor/skills/speckit-*/SKILL.md`

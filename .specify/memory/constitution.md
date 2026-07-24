@@ -13,9 +13,9 @@ Governance for Speckit-driven development in this workspace.
 ### II. Role-owned artifacts
 
 - **BA** → `spec.md`
-- **All roles** → `tasks.md` (decomposed from spec)
-- **BE** → `plan.md`, `be-implement.md`
-- **FE** → `fe-implement.md`
+- **Technical Architect** → `tasks.md`, `plan.md`
+- **BE** → application code in `be/` + `be-tasks-verify.md`
+- **FE** → application code in `fe/` + `fe-tasks-verify.md`
 - **QA** → `qa-checklist.md`
 
 All files sit **flat** in `docs/features/NNN-name/` — no role subfolders.
@@ -26,11 +26,11 @@ No role overwrites another role's primary artifact without explicit user approva
 
 Mandatory phase order:
 
-1. **Analyze** — `/speckit-specify` → `spec.md`
-2. **Decompose** — `/speckit-tasks` → `tasks.md` (from spec)
-3. **Design** — `/speckit-plan` → `plan.md`, `be-implement.md`, `fe-implement.md`
-4. **Implement** — `/speckit-implement` → `be/`, `fe/`
-5. **Test** — `/speckit-checklist`, `make test` → `qa-checklist.md`
+1. **Analyze** — `@ba` `/speckit-specify` → `spec.md`
+2. **Decompose** — `@technical-architect` `/speckit-tasks` → `tasks.md` (from spec)
+3. **Design** — `@technical-architect` `/speckit-plan` → `plan.md`
+4. **Implement + verify** — `@be` / `@fe` `/speckit-implement` → code + `be-tasks-verify.md` / `fe-tasks-verify.md`
+5. **Test** — `@qa` `/speckit-checklist`, `make test` → `qa-checklist.md`
 
 Skipping phases requires documented user approval.
 
@@ -39,7 +39,7 @@ Skipping phases requires documented user approval.
 - JSON responses: **camelCase** (BE matches FE types)
 - API prefix: `/api`
 - Auth: JWT + RBAC permissions
-- Contract changes must update plan and both `be-implement.md` / `fe-implement.md`
+- Contract changes must update `plan.md` and be reflected in `*-tasks-verify.md` when implemented
 
 ### V. English documentation
 
@@ -54,8 +54,8 @@ All files under `docs/` and all Speckit-generated feature artifacts are written 
 |-------|------|-------------------------|
 | 1 | `spec.md` complete, no open clarifications | Yes → blocks tasks |
 | 2 | `tasks.md` with `[BE]`/`[FE]`/`[QA]` items | Yes → blocks plan |
-| 3 | `plan.md` + `be-implement.md` + `fe-implement.md` | Yes → blocks implement |
-| 4 | Code matches tasks + plan | Yes → blocks sign-off |
+| 3 | `plan.md` complete | Yes → blocks implement |
+| 4 | Code matches tasks + plan; `be-tasks-verify.md` / `fe-tasks-verify.md` written | Yes → blocks sign-off |
 | 5 | `qa-checklist.md` + tests pass | Release gate |
 
 ## Governance
@@ -64,4 +64,4 @@ All files under `docs/` and all Speckit-generated feature artifacts are written 
 - Amendments: update this file + notify in `docs/workflow/overview.md`.
 - Agents must read this file during `/speckit-plan` constitution check.
 
-**Version**: 1.1.0 | **Ratified**: 2026-06-27 | **Last Amended**: 2026-06-27
+**Version**: 1.3.0 | **Ratified**: 2026-06-27 | **Last Amended**: 2026-07-24

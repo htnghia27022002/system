@@ -6,7 +6,7 @@ import (
 	"context"
 	"testing"
 
-	"be/internal/common/hash"
+	"be/pkg/hash"
 	"be/internal/database"
 	"be/internal/repository"
 	usermodel "be/internal/models/user"

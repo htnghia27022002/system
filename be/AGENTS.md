@@ -8,7 +8,8 @@ Follow these rules before creating, editing, moving, or deleting files.
 `be/` is a **standalone Go module**. It can be moved out of this workspace without changing internal import paths.
 
 - Module path: declared in `be/go.mod` (`module be`)
-- Internal imports: `be/internal/...`, `be/public/...` — these refer to the **module name**, not the monorepo folder layout
+- In-module imports: `be/pkg/...`, `be/internal/...`, `be/public/...` — these refer to the **module name**, not the monorepo folder layout
+- `be/pkg/...` is reusable public infra and must **never** import `be/internal/...`
 - Run all Go commands from `be/` (`go run .`, `make test`, etc.)
 - Do **not** import from `fe/`, repo root, or any path outside this module
 
@@ -37,6 +38,12 @@ Go 1.22 · Gin · GORM · PostgreSQL · JWT · OAuth2 · golangci-lint · golang
 be/
 ├── main.go
 ├── go.mod              ← module boundary; all internal imports start with `be/`
+├── pkg/                # Public reusable infra (stdlib + third-party only)
+│   ├── redis/
+│   ├── hash/
+│   ├── cache/
+│   ├── postgres/
+│   └── query/
 ├── public/
 │   ├── api.go
 │   ├── handlers/
@@ -57,7 +64,7 @@ be/
 │   ├── repository/
 │   ├── search/             # Elasticsearch client
 │   ├── services/
-│   └── common/
+│   └── common/             # App-private shared helpers (JWT, errors, response, …)
 ├── cmd/
 │   ├── migrate/
 │   ├── seed/
@@ -65,6 +72,15 @@ be/
 │   └── reindex/            # Bulk reindex CLI
 └── migrations/
 ```
+
+### 4.1) `pkg/` vs `internal/`
+
+| Path | Role |
+|------|------|
+| **`be/pkg/...`** | Public reusable infrastructure libraries (connection dialers, cache stores, query DSL, crypto helpers). May import **stdlib and third-party packages only**. Must **never** import `be/internal/...`. |
+| **`be/internal/...`** | App-private code (config, DI, domain services, product JWT/RBAC, queue/search product wiring). May import `be/pkg/...`. |
+
+Keep product-specific config loaders, JWT claims, middleware, and DI in `internal`. Put domain-agnostic dial/store helpers in `pkg`.
 
 ## 5) Layer rules
 
@@ -83,7 +99,8 @@ route → handler → service → repository interface → repository → databa
 | Persistence contracts | `internal/repository/interfaces/` |
 | Persistence impl | `internal/repository/` |
 | Models / DTOs | `internal/models/`, `internal/dto/` |
-| Shared helpers | `internal/common/` |
+| Reusable infra | `pkg/` (no `internal` imports) |
+| App-private shared helpers | `internal/common/` |
 | Middleware | `internal/middleware/` |
 | NATS infra | `internal/queue/` |
 | Queue publish | `internal/handlers/publisher/` |
@@ -93,7 +110,8 @@ Never put business logic in HTTP handlers or HTTP formatting in repositories.
 
 ## 6) Import rules
 
-- Use the module path for all in-repo imports: `be/internal/...`, `be/public/...`
+- Use the module path for all in-repo imports: `be/pkg/...`, `be/internal/...`, `be/public/...`
+- `be/pkg/...` must not import `be/internal/...`
 - Optional **file-local** package aliases are allowed to avoid name clashes, e.g.:
 
   ```go

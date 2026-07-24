@@ -7,7 +7,7 @@ import (
 	"gorm.io/gorm"
 
 	permissionmodel "be/internal/models/permission"
-	"be/internal/common/query"
+	"be/pkg/query"
 	"be/internal/repository/interfaces"
 )
 

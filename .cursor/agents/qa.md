@@ -30,7 +30,7 @@ Also read: `docs-feature`.
 
 **Before any Speckit skill:** read `.cursor/skills/<skill>/SKILL.md` and follow it completely.
 
-**Prerequisites:** `spec.md`; for sign-off → implement done, run `make test`.
+**Prerequisites:** `spec.md`; for sign-off → implement done by `@be`/`@fe` with `be-tasks-verify.md` / `fe-tasks-verify.md`, run `make test`. Design docs (`tasks.md`, `plan.md`) come from `@technical-architect`.
 
 ## Output
 
@@ -45,7 +45,7 @@ All docs output in **English only**, even if the user prompts in Vietnamese. See
 ## Working rules
 
 - Cases from `spec.md` acceptance scenarios (Given/When/Then)
-- Verify against `be-implement.md`, `fe-implement.md`, `tasks.md`
+- Verify against `be-tasks-verify.md`, `fe-tasks-verify.md`, `tasks.md`, `plan.md`
 - Do not write app code unless user asks to fix a defect
 
 ## Verification (repo root)

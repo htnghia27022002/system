@@ -1,18 +1,20 @@
 package database
 
 import (
-	"fmt"
-
 	"be/internal/config"
+	"be/pkg/postgres"
 
-	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
 
+// Connect opens PostgreSQL via GORM using app config.
 func Connect(cfg config.Config) (*gorm.DB, error) {
-	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=%s TimeZone=UTC",
-		cfg.DBHost, cfg.DBUser, cfg.DBPass, cfg.DBName, cfg.DBPort, cfg.DBSSLMode,
-	)
-
-	return gorm.Open(postgres.Open(dsn), &gorm.Config{})
+	return postgres.Connect(postgres.Options{
+		Host:    cfg.DBHost,
+		Port:    cfg.DBPort,
+		User:    cfg.DBUser,
+		Pass:    cfg.DBPass,
+		Name:    cfg.DBName,
+		SSLMode: cfg.DBSSLMode,
+	})
 }

@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	apperrors "be/internal/common/errors"
-	"be/internal/common/query"
+	"be/pkg/query"
 	roledto "be/internal/dto/role"
 	rolemodel "be/internal/models/role"
 	searchpkg "be/internal/search"

@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	"be/internal/common/query"
+	"be/pkg/query"
 	"be/internal/common/rbac"
 	searchdto "be/internal/dto/search"
 	usermodel "be/internal/models/user"

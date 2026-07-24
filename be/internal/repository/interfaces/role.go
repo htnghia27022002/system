@@ -3,7 +3,7 @@ package interfaces
 import (
 	"context"
 
-	"be/internal/common/query"
+	"be/pkg/query"
 	rolemodel "be/internal/models/role"
 )
 

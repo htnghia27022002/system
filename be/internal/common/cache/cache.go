@@ -2,90 +2,47 @@ package cache
 
 import (
 	"context"
-	"errors"
-	"fmt"
 	"sync"
 	"time"
 
-	goredis "github.com/redis/go-redis/v9"
-
 	"be/internal/config"
+	pkgcache "be/pkg/cache"
+
+	goredis "github.com/redis/go-redis/v9"
 )
 
 const (
-	DriverFile  = "file"
-	DriverRedis = "redis"
+	DriverFile  = pkgcache.DriverFile
+	DriverRedis = pkgcache.DriverRedis
 )
 
 var (
-	mu       sync.RWMutex
-	instance Store = noopStore{}
+	ErrNotFound = pkgcache.ErrNotFound
+	ErrClosed   = pkgcache.ErrClosed
 )
 
-type redisStore struct {
-	client     *goredis.Client
-	defaultTTL time.Duration
-}
+// Store is the cache backend contract.
+type Store = pkgcache.Store
 
-func newRedisStore(client *goredis.Client, defaultTTL time.Duration) Store {
-	return &redisStore{client: client, defaultTTL: defaultTTL}
-}
+var (
+	mu       sync.RWMutex
+	instance Store = pkgcache.NewNoop()
+)
 
-func (s *redisStore) Get(ctx context.Context, key string) ([]byte, error) {
-	value, err := s.client.Get(ctx, key).Bytes()
-	if err != nil {
-		if errors.Is(err, goredis.Nil) {
-			return nil, ErrNotFound
-		}
-		return nil, err
+// OptionsFromConfig maps app cache config to pkg Options.
+func OptionsFromConfig(cfg config.CacheConfig) pkgcache.Options {
+	return pkgcache.Options{
+		Enabled:    cfg.Enabled,
+		Driver:     cfg.Driver,
+		DefaultTTL: cfg.DefaultTTL,
+		FileDir:    cfg.FileDir,
 	}
-	return value, nil
-}
-
-func (s *redisStore) Set(ctx context.Context, key string, value []byte, ttl time.Duration) error {
-	if ttl <= 0 {
-		ttl = s.defaultTTL
-	}
-	if ttl <= 0 {
-		return s.client.Set(ctx, key, value, 0).Err()
-	}
-	return s.client.Set(ctx, key, value, ttl).Err()
-}
-
-func (s *redisStore) Delete(ctx context.Context, key string) error {
-	err := s.client.Del(ctx, key).Err()
-	if errors.Is(err, goredis.Nil) {
-		return nil
-	}
-	return err
-}
-
-func (s *redisStore) Purge(ctx context.Context) error {
-	return s.client.FlushDB(ctx).Err()
-}
-
-func (s *redisStore) Close() error {
-	return nil
 }
 
 // New builds a cache store from config. Returns noop store when cache is disabled.
 // When driver is redis, pass the shared client from database.ConnectRedis when available.
 func New(cfg config.CacheConfig, redis *goredis.Client) (Store, error) {
-	if !cfg.Enabled {
-		return noopStore{}, nil
-	}
-
-	switch cfg.Driver {
-	case DriverFile:
-		return newFileStore(cfg.FileDir, cfg.DefaultTTL)
-	case DriverRedis:
-		if redis == nil {
-			return nil, fmt.Errorf("cache redis: connect via database.ConnectRedis and pass the client")
-		}
-		return newRedisStore(redis, cfg.DefaultTTL), nil
-	default:
-		return nil, fmt.Errorf("cache: unsupported driver %q", cfg.Driver)
-	}
+	return pkgcache.New(OptionsFromConfig(cfg), redis)
 }
 
 // Init replaces the package-default store. Call once at startup (e.g. from api.go).
@@ -111,7 +68,7 @@ func Close() error {
 	if err := instance.Close(); err != nil {
 		return err
 	}
-	instance = noopStore{}
+	instance = pkgcache.NewNoop()
 	return nil
 }
 

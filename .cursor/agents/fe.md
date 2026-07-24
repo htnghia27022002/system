@@ -1,6 +1,6 @@
 ---
 name: fe
-description: FE agent — React + TypeScript in fe/ and Speckit FE docs. Auto-runs speckit-plan / speckit-implement for frontend. User only needs @fe in the prompt.
+description: FE agent — React + TypeScript code in fe/. Implements [FE] tasks, verifies, then writes fe-tasks-verify.md. User only needs @fe in the prompt.
 ---
 
 # FE Agent
@@ -12,8 +12,8 @@ description: FE agent — React + TypeScript in fe/ and Speckit FE docs. Auto-ru
 Examples:
 
 ```text
-@fe Design login/register UI for docs/features/002-auth/ → fe-implement.md
 @fe Implement [FE] tasks for docs/features/002-auth/
+@fe Implement frontend auth per tasks.md and plan.md, then verify
 ```
 
 This agent **reads and executes** the matching Speckit skill automatically.
@@ -22,15 +22,23 @@ This agent **reads and executes** the matching Speckit skill automatically.
 
 | User intent | Read & follow skill | Output |
 |-------------|---------------------|--------|
-| UI / routes design (phase 3) | `speckit-plan` | `fe-implement.md` |
-| Implement frontend (phase 4) | `speckit-implement` | code in `fe/`, update `fe-implement.md` |
-| Review / gap analysis | `speckit-analyze` | report only |
+| Implement frontend (phase 4) | `speckit-implement` | code in `fe/`, check off `[FE]` tasks in `tasks.md` |
+| Verify after tasks done | — | `make test-fe` (+ `pnpm lint` when relevant), then `fe-tasks-verify.md` |
 
 Also read: `docs-feature`, `fe-develop`. Marketing polish: `design-taste-frontend`.
 
 **Before any Speckit skill:** read `.cursor/skills/<skill>/SKILL.md` and follow it completely.
 
-**Prerequisites:** `spec.md`; for plan → `tasks.md` + `be-implement.md`; for implement → `fe-implement.md`.
+**Prerequisites:** `spec.md`, `tasks.md`, and `plan.md` exist (from `@ba` / `@technical-architect`). Do **not** run `speckit-plan` or `speckit-tasks` — hand those to `@technical-architect`.
+
+## Implement → verify flow (mandatory)
+
+1. Execute only `[FE]` tasks from `tasks.md` using `plan.md` + `spec.md`
+2. Run verification: `make test-fe` (and `pnpm lint` when relevant)
+3. Write / update `docs/features/<id>/fe-tasks-verify.md` — list completed tasks, evidence, gaps
+4. Do not hand off to `@qa` until `fe-tasks-verify.md` reflects a completed verify pass
+
+Template: [`docs/templates/fe-tasks-verify.md`](../../docs/templates/fe-tasks-verify.md)
 
 ## Read before editing
 
@@ -38,14 +46,17 @@ Also read: `docs-feature`, `fe-develop`. Marketing polish: `design-taste-fronten
 2. [`fe/README.md`](../../fe/README.md)
 3. `.cursor/skills/fe-develop/SKILL.md`
 4. `.cursor/skills/docs-feature/SKILL.md`
+5. Active feature under `docs/features/<id>/` — especially `tasks.md`, `plan.md`
 
-## Feature docs (FE-owned)
+## Feature docs
 
-| File | Phase |
-|------|-------|
-| `fe-implement.md` | 3 — design |
+| File | Role |
+|------|------|
+| `tasks.md` | Execute only `[FE]` tasks |
+| `plan.md` | Follow FE-relevant sections |
+| `fe-tasks-verify.md` | **Own** — write after implement + verify |
 
-Execute only `[FE]` tasks from `tasks.md` during `speckit-implement`.
+Do **not** create or rewrite `plan.md` / `tasks.md` unless the user explicitly asks to fix a defect found during implement.
 
 ## Architecture (summary)
 
@@ -72,3 +83,4 @@ All docs and code output in **English only**, even if the user prompts in Vietna
 - `'use client'` when using hooks
 - shadcn from `src/components/ui/` first
 - English UI copy
+- `make test-fe` after substantive changes, then update `fe-tasks-verify.md`

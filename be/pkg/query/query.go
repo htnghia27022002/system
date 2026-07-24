@@ -10,22 +10,22 @@ type PageParams struct {
 
 // Query describes pagination, ordering, and nested filter conditions.
 type Query struct {
-	Page         int
-	PageSize     int
-	Offset       int
-	Limit        int
-	Conditions   Group
-	OrderClause  string
+	Page        int
+	PageSize    int
+	Offset      int
+	Limit       int
+	Conditions  Group
+	OrderClause string
 }
 
 // New creates a query with normalized pagination and an AND root group.
 func New(page, pageSize int) *Query {
 	page, pageSize = NormalizePage(page, pageSize)
 	return &Query{
-		Page:     page,
-		PageSize: pageSize,
-		Offset:   Offset(page, pageSize),
-		Limit:    pageSize,
+		Page:       page,
+		PageSize:   pageSize,
+		Offset:     Offset(page, pageSize),
+		Limit:      pageSize,
 		Conditions: Group{Logic: And},
 	}
 }

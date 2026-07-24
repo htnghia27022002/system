@@ -9,8 +9,8 @@
 |-------|------|--------|
 | 1 Analyze | [spec.md](spec.md) | |
 | 2 Decompose | [tasks.md](tasks.md) | |
-| 3 Design | [plan.md](plan.md), [be-implement.md](be-implement.md), [fe-implement.md](fe-implement.md) | |
-| 4 Implement | `be/`, `fe/` code | |
+| 3 Design | [plan.md](plan.md) | |
+| 4 Implement + verify | `be/` / `fe/` code + [be-tasks-verify.md](be-tasks-verify.md) / [fe-tasks-verify.md](fe-tasks-verify.md) | |
 | 5 Test | [qa-checklist.md](qa-checklist.md) | |
 
 ## Summary

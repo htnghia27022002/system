@@ -1,5 +1,5 @@
 ---
-description: Feature workflow order spec → tasks → plan → implement → test. Flat files in docs/features/.
+description: Feature workflow order spec → tasks → plan → implement → verify → test. Flat files in docs/features/.
 globs:
   - docs/**/*
   - .specify/**/*
@@ -12,9 +12,10 @@ alwaysApply: false
 
 | Agent | Skills invoked automatically |
 |-------|------------------------------|
-| `@ba` | `speckit-specify`, `speckit-clarify`, `speckit-tasks` |
-| `@be` | `speckit-plan`, `speckit-implement` |
-| `@fe` | `speckit-plan`, `speckit-implement` |
+| `@ba` | `speckit-specify`, `speckit-clarify` |
+| `@technical-architect` | `speckit-tasks`, `speckit-plan`, `speckit-analyze` |
+| `@be` | `speckit-implement` → `make test-be` → `be-tasks-verify.md` |
+| `@fe` | `speckit-implement` → `make test-fe` → `fe-tasks-verify.md` |
 | `@qa` | `speckit-checklist`, `speckit-analyze` |
 
 ## Language
@@ -24,17 +25,17 @@ Chat in any language; **docs/features/** output **English only** (`english-only-
 ## Phase order (do not skip)
 
 1. **spec.md** — `@ba` `/speckit-specify`
-2. **tasks.md** — `/speckit-tasks` (from spec)
-3. **plan.md** + **be-implement.md** + **fe-implement.md** — `@be` `@fe` `/speckit-plan`
-4. **implement** — `/speckit-implement` → `be/`, `fe/`
+2. **tasks.md** — `@technical-architect` `/speckit-tasks` (from spec)
+3. **plan.md** — `@technical-architect` `/speckit-plan`
+4. **implement + verify** — `@be` `@fe` `/speckit-implement` → `be-tasks-verify.md` / `fe-tasks-verify.md`
 5. **test** — `@qa` `/speckit-checklist`, `make test`
 
 ## Flat feature folder
 
 ```text
-spec.md → tasks.md → plan.md → be-implement.md → fe-implement.md → (code) → qa-checklist.md
+spec.md → tasks.md → plan.md → (code) → be-tasks-verify.md / fe-tasks-verify.md → qa-checklist.md
 ```
 
-No role subfolders.
+No role subfolders. No `be-implement.md` / `fe-implement.md`.
 
 Prompts: [`docs/workflow/agent-prompts.md`](../../docs/workflow/agent-prompts.md)

@@ -16,7 +16,8 @@ description: Backend development skill for Go + Gin in be/. Use when implementin
 ## Module boundary
 
 - `be/` owns its Go module (`module be` in `go.mod`).
-- Import in-repo code as `be/internal/...` or `be/public/...` only.
+- Import in-repo code as `be/pkg/...`, `be/internal/...`, or `be/public/...` only.
+- `be/pkg/...` must not import `be/internal/...`.
 - File-local aliases (e.g. `authmodel "be/internal/models/auth"`) stay inside `be/`.
 - Never import from `fe/` or the monorepo root.
 
@@ -34,7 +35,8 @@ public/routes → public/handlers → internal/services → internal/repository 
 | DB access | `be/internal/repository/` |
 | Request/response shapes | `be/internal/dto/<feature>/` |
 | Entities | `be/internal/models/<feature>/` |
-| JWT, hash, pagination | `be/internal/common/` |
+| Hash, cache, postgres dial, query DSL | `be/pkg/` |
+| JWT, errors, response | `be/internal/common/` |
 | Auth middleware | `be/internal/middleware/` |
 | DI orchestrator | `be/internal/app/container.go` |
 | DI resolvers | `be/internal/app/dependency/` (one file per domain, e.g. `user_service.go`) |

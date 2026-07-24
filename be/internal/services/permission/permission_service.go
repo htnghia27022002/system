@@ -3,7 +3,7 @@ package permission
 import (
 	"context"
 
-	"be/internal/common/query"
+	"be/pkg/query"
 	permissiondto "be/internal/dto/permission"
 	"be/internal/repository/interfaces"
 )

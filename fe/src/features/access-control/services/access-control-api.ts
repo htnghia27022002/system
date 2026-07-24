@@ -98,7 +98,7 @@ export const accessControlApi = {
     return apiClient.delete(`/admin/roles/${id}`).then(() => undefined)
   },
 
-  listUsers(params?: ListUsersParams): Promise<PaginatedResponse<ManagedUser>> {
+  listUsers(params: ListUsersParams = {}): Promise<PaginatedResponse<ManagedUser>> {
     if (env.VITE_USE_MOCK_API) {
       return mockAccessControlApi.listUsers(params)
     }

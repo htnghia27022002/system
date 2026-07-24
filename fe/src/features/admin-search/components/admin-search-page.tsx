@@ -143,7 +143,12 @@ export function AdminSearchPage() {
 
           <div className="space-y-2">
             <Label htmlFor="admin-search-type">{t('search.typeLabel')}</Label>
-            <Select value={entityFilter} onValueChange={setEntityFilter}>
+            <Select
+              value={entityFilter}
+              onValueChange={(value) =>
+                setEntityFilter(value as 'all' | SearchEntityType)
+              }
+            >
               <SelectTrigger id="admin-search-type" className="w-full">
                 <SelectValue />
               </SelectTrigger>

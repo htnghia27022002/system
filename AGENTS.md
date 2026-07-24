@@ -100,9 +100,9 @@ Invoke **`@agent` + natural language** — each agent auto-runs Speckit skills (
 | Task | Agent | Auto skills |
 |------|-------|-------------|
 | Feature spec | `@ba` | `speckit-specify`, `speckit-clarify` |
-| Task breakdown | `@ba` | `speckit-tasks` |
-| BE design / code | `@be` | `speckit-plan`, `speckit-implement` |
-| FE design / code | `@fe` | `speckit-plan`, `speckit-implement` |
+| Task breakdown + technical design | `@technical-architect` | `speckit-tasks`, `speckit-plan`, `speckit-analyze` |
+| BE code + verify | `@be` | `speckit-implement`, `make test-be`, `be-tasks-verify.md` |
+| FE code + verify | `@fe` | `speckit-implement`, `make test-fe`, `fe-tasks-verify.md` |
 | Test & sign-off | `@qa` | `speckit-checklist`, `make test` |
 | Docker | — | `docker/README.md` |
 
@@ -112,15 +112,15 @@ Skills: `docs-feature`, `fe-develop`, `be-develop`, `design-taste-frontend` (mar
 
 Feature documentation lives in **`docs/features/`** (configured via `.specify/init-options.json`).
 
-**Phase order:** `spec.md` → `tasks.md` → `plan.md` + `*-implement.md` → implement → test
+**Phase order:** `spec.md` → `tasks.md` → `plan.md` → implement → `*-tasks-verify.md` → test
 
 ```text
 docs/features/NNN-name/
 ├── spec.md
 ├── tasks.md
 ├── plan.md
-├── be-implement.md
-├── fe-implement.md
+├── be-tasks-verify.md
+├── fe-tasks-verify.md
 └── qa-checklist.md
 ```
 
@@ -147,6 +147,6 @@ Prompt cheat sheet: [`docs/workflow/agent-prompts.md`](docs/workflow/agent-promp
 
 ## Cross-cutting rules
 
-- Write new or modified file content in **English** — including `docs/features/**` from `@ba` `@be` `@fe` `@qa`. User prompts in Vietnamese do not change this.
+- Write new or modified file content in **English** — including `docs/features/**` from `@ba` `@technical-architect` `@be` `@fe` `@qa`. User prompts in Vietnamese do not change this.
 - Do not commit `.env` files (use root `.env.example`, `be/.env.example`, `fe/.env.example`).
 - API contract: FE calls `/auth/*` and `/admin/*` under `NEXT_PUBLIC_API_BASE_URL`.

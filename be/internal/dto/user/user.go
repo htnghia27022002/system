@@ -1,6 +1,6 @@
 package user
 
-import "be/internal/common/query"
+import "be/pkg/query"
 
 type CreateUserRequest struct {
 	Email    string `json:"email" binding:"required,email"`

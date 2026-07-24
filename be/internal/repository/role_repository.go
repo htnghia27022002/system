@@ -8,7 +8,7 @@ import (
 
 	permissionmodel "be/internal/models/permission"
 	rolemodel "be/internal/models/role"
-	"be/internal/common/query"
+	"be/pkg/query"
 	"be/internal/repository/interfaces"
 )
 

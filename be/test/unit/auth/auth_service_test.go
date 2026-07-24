@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"be/internal/common/hash"
+	"be/pkg/hash"
 	jwtmanager "be/internal/common/jwt"
 	authmodel "be/internal/models/auth"
 	rolemodel "be/internal/models/role"

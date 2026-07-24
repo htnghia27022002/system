@@ -7,12 +7,12 @@ Feature documentation for this monorepo. **Code lives in `be/` and `fe/`** — `
 ```text
 docs/features/NNN-short-name/
 ├── README.md
-├── spec.md           # 1. BA — feature analysis (requirements)
-├── tasks.md          # 2. Work breakdown from spec
-├── plan.md           # 3. Technical design (last doc before code)
-├── be-implement.md   # 3. BE design detail
-├── fe-implement.md   # 3. FE design detail
-└── qa-checklist.md   # 5. Test cases & sign-off (after implement)
+├── spec.md              # 1. BA — feature analysis (requirements)
+├── tasks.md             # 2. Technical architect — work breakdown from spec
+├── plan.md              # 3. Technical architect — technical design (last doc before code)
+├── be-tasks-verify.md   # 4. BE — task completion + verify evidence
+├── fe-tasks-verify.md   # 4. FE — task completion + verify evidence
+└── qa-checklist.md      # 5. Test cases & sign-off (after implement)
 ```
 
 Feature root: `.specify/init-options.json` → `"feature_root": "docs/features"`.
@@ -22,24 +22,23 @@ Feature root: `.specify/init-options.json` → `"feature_root": "docs/features"`
 | Phase | Output | Agent | Speckit skill (auto) |
 |-------|--------|-------|----------------------|
 | **1. Analyze** | `spec.md` | `@ba` | `speckit-specify`, `speckit-clarify` |
-| **2. Decompose** | `tasks.md` | `@ba` | `speckit-tasks` |
-| **3. Design** | `plan.md`, `*-implement.md` | `@be` `@fe` | `speckit-plan` |
-| **4. Implement** | `be/`, `fe/` | `@be` `@fe` | `speckit-implement` |
+| **2. Decompose** | `tasks.md` | `@technical-architect` | `speckit-tasks` |
+| **3. Design** | `plan.md` | `@technical-architect` | `speckit-plan` |
+| **4. Implement + verify** | `be/`, `fe/`, `*-tasks-verify.md` | `@be` `@fe` | `speckit-implement` + package tests |
 | **5. Test** | `qa-checklist.md` | `@qa` | `speckit-checklist`, `make test` |
 
 User prompt: **`@agent` + description** (any language in chat). **All generated files: English only.**
 
-**Do not skip phases.** No plan or code before `spec.md`. No implement before `tasks.md` + `plan.md`.
+**Do not skip phases.** No plan or code before `spec.md`. No implement before `tasks.md` + `plan.md`. No `@qa` before role verify docs.
 
 ## Quick start
 
 ```text
 @ba Auth: email/password, Google login, JWT + refresh, modern login/register UI
-@ba Break down tasks from the auth spec
-@be Design backend → be-implement.md
-@fe Design UI → fe-implement.md
-@be Implement backend
-@fe Implement frontend
+@technical-architect Break down tasks from the auth spec
+@technical-architect Design full stack → plan.md
+@be Implement backend, then be-tasks-verify.md
+@fe Implement frontend, then fe-tasks-verify.md
 @qa Test and sign-off
 ```
 

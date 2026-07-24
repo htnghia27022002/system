@@ -1,6 +1,7 @@
 import 'axios'
 
-// Allow CSS file imports (handled by Next.js webpack/turbopack)
+// Allow CSS side-effect imports under TypeScript 6 (noUncheckedSideEffectImports).
+// Path-aliased CSS files also need a co-located `*.css.d.ts` (see src/styles/).
 declare module '*.css' {
   const styles: Record<string, string>
   export default styles

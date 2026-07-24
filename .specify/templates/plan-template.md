@@ -51,8 +51,8 @@ docs/features/[###-feature]/
 ├── spec.md              # BA (/speckit-specify)
 ├── plan.md              # Speckit plan (/speckit-plan)
 ├── tasks.md             # Task list (/speckit-tasks)
-├── be-implement.md      # BE analysis + implementation notes
-├── fe-implement.md      # FE analysis + implementation notes
+├── be-tasks-verify.md   # BE task completion + verify (@be)
+├── fe-tasks-verify.md   # FE task completion + verify (@fe)
 └── qa-checklist.md      # QA test cases
 ```
 

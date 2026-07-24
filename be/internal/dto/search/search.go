@@ -3,7 +3,7 @@ package searchdto
 import (
 	"time"
 
-	"be/internal/common/query"
+	"be/pkg/query"
 )
 
 type SearchQuery struct {

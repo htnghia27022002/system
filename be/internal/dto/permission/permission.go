@@ -1,6 +1,6 @@
 package permission
 
-import "be/internal/common/query"
+import "be/pkg/query"
 
 type PermissionResponse struct {
 	Key         string `json:"key"`

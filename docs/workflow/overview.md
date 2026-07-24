@@ -7,17 +7,17 @@ Feature docs under **`docs/features/`**. Flat files only — no role subfolders.
 ```text
 1. ANALYZE   → spec.md
 2. DECOMPOSE → tasks.md
-3. DESIGN    → plan.md + be-implement.md + fe-implement.md
-4. IMPLEMENT → be/ + fe/ code
+3. DESIGN    → plan.md
+4. IMPLEMENT → be/ + fe/ code → be-tasks-verify.md / fe-tasks-verify.md
 5. TEST      → qa-checklist.md + make test
 ```
 
 ```mermaid
 flowchart TD
   S["1. spec.md<br/>@ba /speckit-specify"]
-  T["2. tasks.md<br/>/speckit-tasks"]
-  P["3. plan + be/fe-implement<br/>@be @fe /speckit-plan"]
-  I["4. code<br/>/speckit-implement"]
+  T["2. tasks.md<br/>@technical-architect /speckit-tasks"]
+  P["3. plan.md<br/>@technical-architect /speckit-plan"]
+  I["4. code + verify<br/>@be @fe → *-tasks-verify.md"]
   Q["5. test<br/>@qa + make test"]
   S --> T --> P --> I --> Q
 ```
@@ -33,44 +33,48 @@ flowchart TD
 - Contains: user stories, acceptance criteria, scope, edge cases
 - **Gate:** No `tasks.md`, `plan.md`, or code until spec is reviewed
 
-### 2. Decompose — `tasks.md` (all roles, from spec)
+### 2. Decompose — `tasks.md` (Technical Architect)
 
 **Goal:** Break the feature into ordered work items — still no deep technical design.
 
 - Command: `/speckit-tasks` — **read `spec.md` only** (project override: tasks before plan)
+- Agent: `@technical-architect`
 - Output: high-level tasks with `[BA]` `[BE]` `[FE]` `[QA]` prefixes
 - **Gate:** No `plan.md` or implement until tasks exist
 
-### 3. Design — `plan.md` + implement docs (BE, FE)
+### 3. Design — `plan.md` (Technical Architect)
 
 **Goal:** Technical design **last** before writing code — how each task will be executed.
 
 - Command: `/speckit-plan` — input: **`spec.md` + `tasks.md`**
-- Agents: `@be` → `be-implement.md`, `plan.md` (BE sections); `@fe` → `fe-implement.md`
+- Agent: `@technical-architect` → `plan.md` only (no `be-implement` / `fe-implement`)
 - Contains: API, data model, routes, UI flows, file paths in `be/` and `fe/`
-- **Gate:** No `/speckit-implement` until plan + implement docs are complete
+- **Gate:** No `/speckit-implement` until `plan.md` is complete
 
-### 4. Implement — `be/`, `fe/`
+### 4. Implement + verify — `be/`, `fe/` → `*-tasks-verify.md`
 
-- Command: `/speckit-implement` — execute `tasks.md` using `plan.md` and `*-implement.md`
+- Command: `/speckit-implement` — execute `tasks.md` using `plan.md`
 - Agents: `@be` for `[BE]` tasks, `@fe` for `[FE]` tasks
+- After tasks are done: run package tests, then write **`be-tasks-verify.md`** / **`fe-tasks-verify.md`**
+- **Do not** run `speckit-plan` / `speckit-tasks` from `@be` / `@fe`
+- **Gate:** Verify docs must record a completed pass before `@qa` sign-off
 
 ### 5. Test — `qa-checklist.md`
 
 - Command: `/speckit-checklist`, run `make test` from repo root
 - Agent: `@qa`
-- Verify acceptance criteria from `spec.md`; sign off in `qa-checklist.md`
+- Verify acceptance criteria from `spec.md`; cross-check `be-tasks-verify.md` / `fe-tasks-verify.md`; sign off in `qa-checklist.md`
 
 ## Feature files reference
 
 | File | Phase | Owner |
 |------|-------|-------|
-| `spec.md` | 1 | BA |
-| `tasks.md` | 2 | BA + BE + FE |
-| `plan.md` | 3 | BE / FE |
-| `be-implement.md` | 3 | BE |
-| `fe-implement.md` | 3 | FE |
-| `qa-checklist.md` | 5 | QA |
+| `spec.md` | 1 | `@ba` |
+| `tasks.md` | 2 | `@technical-architect` |
+| `plan.md` | 3 | `@technical-architect` |
+| `be-tasks-verify.md` | 4 | `@be` |
+| `fe-tasks-verify.md` | 4 | `@fe` |
+| `qa-checklist.md` | 5 | `@qa` |
 
 ## Feature state
 

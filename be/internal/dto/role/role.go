@@ -1,6 +1,6 @@
 package role
 
-import "be/internal/common/query"
+import "be/pkg/query"
 
 type CreateRoleRequest struct {
 	Name           string   `json:"name" binding:"required,min=2,max=50"`

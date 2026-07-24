@@ -5,8 +5,8 @@ import (
 	"fmt"
 
 	apperrors "be/internal/common/errors"
-	"be/internal/common/hash"
-	"be/internal/common/query"
+	"be/pkg/hash"
+	"be/pkg/query"
 	userdto "be/internal/dto/user"
 	usermodel "be/internal/models/user"
 	searchpkg "be/internal/search"

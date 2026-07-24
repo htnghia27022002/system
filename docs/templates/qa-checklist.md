@@ -22,5 +22,5 @@
 ## Sign-off
 
 - [ ] P1 acceptance scenarios pass
-- [ ] BE matches `be-implement.md`
-- [ ] FE matches `fe-implement.md`
+- [ ] BE verify recorded in `be-tasks-verify.md`
+- [ ] FE verify recorded in `fe-tasks-verify.md`
