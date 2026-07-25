@@ -34,6 +34,8 @@ describe('mockAccessControlApi', () => {
     )
     expect(admin?.role).toBe('admin')
     expect(admin?.permissions).toContain('users:view')
+    expect(admin?.permissions).toContain('webhooks:view')
+    expect(admin?.permissions).toContain('webhooks:modify')
 
     const demo = resolveAuthUserByCredentials(
       'demo@example.com',

@@ -52,6 +52,13 @@ function buildAuthResponse(
       role: resolved.role,
       roleId: resolved.roleId,
       permissions: resolved.permissions,
+      phone: '',
+      avatarUrl: '',
+      general: '',
+      birthday: null,
+      address: '',
+      socialLinks: [],
+      hasPassword: true,
     },
   }
 }
@@ -126,6 +133,13 @@ export const mockAuthApi = {
         role: resolved.role,
         roleId: resolved.roleId,
         permissions: resolved.permissions,
+        phone: '',
+        avatarUrl: '',
+        general: '',
+        birthday: null,
+        address: '',
+        socialLinks: [],
+        hasPassword: true,
       }
     })
   },

@@ -65,6 +65,14 @@ cmd/queue/                      # Worker process (not in API)
 - Auth response: `{ accessToken, refreshToken, user: { id, email, name, role, roleId, permissions } }`
 - Admin routes require JWT + `RequirePermission` middleware
 
+## New feature permissions (mandatory)
+
+For admin/protected features (see `contracts/permissions.md` and `.cursor/rules/feature-permissions.mdc`):
+
+1. Seed keys in `be/internal/database/seeders/catalog.go` → `DefaultPermissions()` (`rbac.Key`, view/modify, stable UUIDs).
+2. Protect routes with `RequireView("resource")` / `RequireModify("resource")`.
+3. Rely on `RolePermissionSeeder` to attach catalog keys to the admin role.
+
 ## Run and verify
 
 **Docker:**

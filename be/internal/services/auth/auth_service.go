@@ -6,6 +6,8 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"mime/multipart"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -14,17 +16,20 @@ import (
 	"be/pkg/hash"
 	jwtmanager "be/internal/common/jwt"
 	authdto "be/internal/dto/auth"
+	userdto "be/internal/dto/user"
 	authmodel "be/internal/models/auth"
 	usermodel "be/internal/models/user"
 	"be/internal/repository/interfaces"
+	"be/internal/services/media"
 )
 
 type Service struct {
-	authRepo interfaces.AuthRepository
-	userRepo interfaces.UserRepository
-	roleRepo interfaces.RoleRepository
-	jwt      *jwtmanager.Manager
+	authRepo   interfaces.AuthRepository
+	userRepo   interfaces.UserRepository
+	roleRepo   interfaces.RoleRepository
+	jwt        *jwtmanager.Manager
 	refreshTTL time.Duration
+	media      *media.Service
 }
 
 func NewService(
@@ -33,6 +38,7 @@ func NewService(
 	roleRepo interfaces.RoleRepository,
 	jwt *jwtmanager.Manager,
 	refreshTTL time.Duration,
+	mediaSvc *media.Service,
 ) *Service {
 	return &Service{
 		authRepo:   authRepo,
@@ -40,6 +46,7 @@ func NewService(
 		roleRepo:   roleRepo,
 		jwt:        jwt,
 		refreshTTL: refreshTTL,
+		media:      mediaSvc,
 	}
 }
 
@@ -86,6 +93,13 @@ func (s *Service) buildAuthUser(ctx context.Context, user *usermodel.User) (*aut
 		Role:        roleSlug,
 		RoleID:      user.RoleID,
 		Permissions: permissions,
+		Phone:       user.Phone,
+		AvatarURL:   user.AvatarURL,
+		General:     user.General,
+		Birthday:    userdto.FormatBirthday(user.Birthday),
+		Address:     user.Address,
+		SocialLinks: userdto.SocialLinksToDTO(user.SocialLinks),
+		HasPassword: user.PasswordHash != "",
 	}, nil
 }
 
@@ -248,4 +262,90 @@ func (s *Service) Logout(ctx context.Context, refreshToken string) error {
 
 func (s *Service) Me(ctx context.Context, userID string) (*authdto.AuthUserResponse, error) {
 	return s.ResolveAuthUser(ctx, userID)
+}
+
+func (s *Service) UpdateProfile(ctx context.Context, userID string, req authdto.UpdateProfileRequest) (*authdto.AuthUserResponse, error) {
+	if err := userdto.ValidateName(req.Name); err != nil {
+		return nil, err
+	}
+	normalized, err := userdto.ValidatePersonalFields(req.Phone, req.General, req.Birthday, req.Address, req.SocialLinks)
+	if err != nil {
+		return nil, err
+	}
+
+	user, err := s.userRepo.GetByID(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+	if user == nil {
+		return nil, apperrors.ErrNotFound
+	}
+
+	user.FullName = strings.TrimSpace(req.Name)
+	normalized.Apply(user)
+	if user.SocialLinks == nil {
+		user.SocialLinks = []usermodel.SocialLink{}
+	}
+
+	if err := s.userRepo.Update(ctx, user); err != nil {
+		return nil, err
+	}
+	return s.buildAuthUser(ctx, user)
+}
+
+func (s *Service) ChangePassword(ctx context.Context, userID, currentPassword, newPassword string) error {
+	if len(newPassword) < 8 {
+		return fmt.Errorf("%w: new password must be at least 8 characters", apperrors.ErrBadRequest)
+	}
+
+	user, err := s.userRepo.GetByID(ctx, userID)
+	if err != nil {
+		return err
+	}
+	if user == nil {
+		return apperrors.ErrNotFound
+	}
+	if user.PasswordHash == "" {
+		return fmt.Errorf("%w: password change is not available for this account", apperrors.ErrBadRequest)
+	}
+	if err := hash.ComparePassword(user.PasswordHash, currentPassword); err != nil {
+		return fmt.Errorf("%w: current password is incorrect", apperrors.ErrUnauthorized)
+	}
+
+	hashed, err := hash.HashPassword(newPassword)
+	if err != nil {
+		return err
+	}
+	user.PasswordHash = hashed
+	return s.userRepo.Update(ctx, user)
+}
+
+func (s *Service) UploadAvatar(ctx context.Context, userID string, file multipart.File, header *multipart.FileHeader) (*authdto.AuthUserResponse, error) {
+	if s.media == nil {
+		return nil, fmt.Errorf("%w: media storage is not configured", apperrors.ErrBadRequest)
+	}
+
+	user, err := s.userRepo.GetByID(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+	if user == nil {
+		return nil, apperrors.ErrNotFound
+	}
+
+	publicPath, err := s.media.SaveAvatar(file, header)
+	if err != nil {
+		return nil, err
+	}
+
+	prev := user.AvatarURL
+	user.AvatarURL = publicPath
+	if err := s.userRepo.Update(ctx, user); err != nil {
+		s.media.DeleteByPublicPath(publicPath)
+		return nil, err
+	}
+	if prev != "" && prev != publicPath {
+		s.media.DeleteByPublicPath(prev)
+	}
+	return s.buildAuthUser(ctx, user)
 }

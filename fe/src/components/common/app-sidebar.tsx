@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { HomeIcon, LayoutGridIcon, ShieldCheckIcon } from 'lucide-react'
+import { LayoutGridIcon, ShieldCheckIcon, WrenchIcon } from 'lucide-react'
 import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 
@@ -38,6 +38,14 @@ export function AppSidebar() {
       },
     ].filter((item) => !item.permission || hasPermission(item.permission))
 
+    const toolsItems: NavItem[] = [
+      {
+        title: t('nav.webhooks'),
+        href: '/admin/tools/webhooks',
+        permission: PermissionKeys.webhooks.view,
+      },
+    ].filter((item) => !item.permission || hasPermission(item.permission))
+
     const items: NavItem[] = [
       {
         title: t('nav.dashboard'),
@@ -46,6 +54,15 @@ export function AppSidebar() {
         permission: PermissionKeys.dashboard.view,
       },
     ]
+
+    if (toolsItems.length > 0) {
+      items.push({
+        title: t('nav.tools'),
+        href: toolsItems[0].href,
+        icon: WrenchIcon,
+        items: toolsItems,
+      })
+    }
 
     if (accessControlItems.length > 0) {
       items.push({
@@ -69,14 +86,6 @@ export function AppSidebar() {
             <SidebarMenuButton size="lg" asChild>
               <Link href="/admin">
                 <AdminAppLogo />
-              </Link>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-          <SidebarMenuItem>
-            <SidebarMenuButton asChild tooltip={t('shell.publicHome')}>
-              <Link href="/" aria-label={t('shell.publicHome')}>
-                <HomeIcon />
-                <span>{t('shell.publicHome')}</span>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>

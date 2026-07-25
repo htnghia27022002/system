@@ -28,6 +28,7 @@ func RegisterAdminRoutes(r *gin.RouterGroup, c *app.Container) {
 		users.POST("", middleware.RequireModify("users"), c.UserHandler.Create)
 		users.GET("/:id", middleware.RequireView("users"), c.UserHandler.Get)
 		users.PATCH("/:id", middleware.RequireModify("users"), c.UserHandler.Update)
+		users.POST("/:id/avatar", middleware.RequireModify("users"), c.UserHandler.UploadAvatar)
 		users.DELETE("/:id", middleware.RequireModify("users"), c.UserHandler.Delete)
 
 		search := admin.Group("/search")

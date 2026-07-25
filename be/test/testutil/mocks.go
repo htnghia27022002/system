@@ -73,6 +73,10 @@ func (m *MockAuthRepo) UpdateOAuthAccount(context.Context, *authmodel.OAuthAccou
 	return nil
 }
 
+func (m *MockAuthRepo) ListProvidersByUserIDs(context.Context, []string) (map[string][]string, error) {
+	return map[string][]string{}, nil
+}
+
 // MockRoleRepo is an in-memory RoleRepository for unit tests.
 type MockRoleRepo struct {
 	Roles       map[string]*rolemodel.Role

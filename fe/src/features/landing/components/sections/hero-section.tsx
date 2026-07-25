@@ -23,7 +23,7 @@ export function HeroSection() {
         </>
       }
     >
-      <div className="grid items-center gap-8 md:gap-10 lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.15fr)] lg:gap-12 xl:gap-16">
+      <div className="grid items-center gap-8 md:gap-10 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)] lg:gap-12 xl:gap-14">
         <div className="order-2 min-w-0 lg:order-1">
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">
             {hero.brand}
@@ -44,7 +44,7 @@ export function HeroSection() {
           </div>
         </div>
 
-        <div className="order-1 w-full lg:order-2">
+        <div className="order-1 w-full lg:order-2 lg:justify-self-end lg:max-w-md xl:max-w-lg">
           <HeroCharacterStage />
         </div>
       </div>

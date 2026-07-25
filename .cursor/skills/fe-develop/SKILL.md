@@ -21,7 +21,7 @@ For best indexing and best output quality, route tasks as follows:
 When a request matches the design-heavy cases above, also read and apply:
 - `.cursor/skills/design-taste-frontend/SKILL.md`
 
-**Project design authority:** For UI styling, use `fe/src/styles/index.css` CSS variables and shadcn components in `fe/src/components/ui/`. For marketing/landing polish, also read `.cursor/skills/design-taste-frontend/SKILL.md`.
+**Project design authority:** Follow [`fe/DESIGN.md`](../../../fe/DESIGN.md) for theme, spacing, mobile, and clickable links. Theme tokens: `fe/src/styles/index.css`. Primitives: shadcn in `fe/src/components/ui/`. For marketing/landing polish, also read `.cursor/skills/design-taste-frontend/SKILL.md`.
 
 Do not duplicate design rules here. Keep this file lean and implementation-focused.
 
@@ -45,7 +45,7 @@ Before editing code:
 1. Read the user brief and infer page/product intent.
 2. Confirm the target module and route surface.
 3. Respect `fe/README.md` and `fe/AGENTS.md` as architectural policy.
-4. Theme and tokens: `fe/src/styles/index.css` (`:root` / `.dark`).
+4. Respect `fe/DESIGN.md` for visual / UI rules; theme tokens in `fe/src/styles/index.css` (`:root` / `.dark`).
 5. If the request is ambiguous, ask one focused clarifying question.
 
 ## Architecture Rules (Repository-Specific)
@@ -56,6 +56,15 @@ Before editing code:
 - Keep shared reusable UI in `src/components/`.
 - Keep global API plumbing in `src/services/`.
 - Avoid creating new top-level folders unless explicitly requested.
+
+## New feature permissions + admin menu (mandatory)
+
+For admin pages/menu entries (see `contracts/permissions.md` and `.cursor/rules/feature-permissions.mdc`):
+
+1. Extend `PermissionKeys` in `src/features/access-control/permission-keys.ts`.
+2. `PermissionGuard` on the admin page (view key).
+3. Sidebar in `app-sidebar.tsx`: set `permission` and filter with `hasPermission` — do not show menu items the user cannot open.
+4. `PermissionGate` for modify actions; update mocks if needed.
 
 ## Feature Boundary Rules
 
@@ -109,25 +118,26 @@ Good examples:
 - **Do not bypass the library** with parallel UI (raw `<div>` loading bars, `<button>`, bespoke `.ds-*` layers) when shadcn covers the pattern — e.g. nav loading → `Progress`, not a custom animated div.
 - **`components/common` is for composition**, not a second design system.
 
-## Project design system (`src/styles/index.css`)
+## Project design system
 
-Theme authority is **`fe/src/styles/index.css`** — edit `:root` and `.dark` CSS variables (`--primary`, `--background`, `--radius`, etc.).
+Authoritative visual rules: **`fe/DESIGN.md`**. Theme tokens: **`fe/src/styles/index.css`** (`:root` / `.dark`).
 
 Apply styling **through** shadcn/ui components and Tailwind classes that reference those tokens — not parallel custom layers.
 
 ### Conflict resolution
 
 1. Installed libraries + their docs (shadcn/ui, Radix, next-themes)
-2. `fe/src/styles/index.css` (theme tokens)
-3. `fe/README.md` + `fe/AGENTS.md` (structure and boundaries)
-4. `design-taste-frontend` skill (anti-slop for landing/marketing only)
+2. `fe/DESIGN.md` (visual / UI design rules)
+3. `fe/src/styles/index.css` (theme tokens)
+4. `fe/README.md` + `fe/AGENTS.md` (structure and boundaries)
+5. `design-taste-frontend` skill (anti-slop for landing/marketing only)
 
 ## UI and Layout Discipline
 
+- Follow **`fe/DESIGN.md`** for theme consistency, page containers/margins, mobile, and clickable table links.
 - For admin CRUD forms in dialogs/sheets, follow `.cursor/rules/fe-form-layout.mdc` (2-column pairing, sections, full-width sensitive fields).
 - Avoid generic templated output (for example: repetitive three-equal-card sections by default).
 - Prefer clear visual hierarchy over decorative noise.
-- Use consistent spacing, typography, radius, and color from CSS variables in `index.css`.
 - Use Grid for multi-column composition when layout relationships matter.
 - Keep hero content concise and visible without forced scrolling when building landing sections.
 

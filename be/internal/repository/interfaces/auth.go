@@ -18,4 +18,6 @@ type AuthRepository interface {
 	FindOAuthAccount(ctx context.Context, provider, providerUserID string) (*authmodel.OAuthAccount, error)
 	CreateOAuthAccount(ctx context.Context, account *authmodel.OAuthAccount) error
 	UpdateOAuthAccount(ctx context.Context, account *authmodel.OAuthAccount) error
+	// ListProvidersByUserIDs returns distinct OAuth provider ids keyed by user id.
+	ListProvidersByUserIDs(ctx context.Context, userIDs []string) (map[string][]string, error)
 }

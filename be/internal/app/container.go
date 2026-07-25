@@ -9,10 +9,12 @@ import (
 	"be/internal/repository/interfaces"
 	searchpkg "be/internal/search"
 	authsvc "be/internal/services/auth"
+	"be/internal/services/media"
 	permissionsvc "be/internal/services/permission"
 	rolesvc "be/internal/services/role"
 	searchsvc "be/internal/services/search"
 	usersvc "be/internal/services/user"
+	webhooksvc "be/internal/services/webhook"
 	"be/public/handlers"
 
 	"gorm.io/gorm"
@@ -25,6 +27,7 @@ type Container struct {
 	DB                *gorm.DB
 	JWT               *jwtmanager.Manager
 	Publisher         *publisher.Publisher
+	MediaService      *media.Service
 	AuthService       *authsvc.Service
 	OAuthService      *authsvc.OAuthService
 	UserService       *usersvc.Service
@@ -33,6 +36,7 @@ type Container struct {
 	SearchService     *searchsvc.Service
 	SearchProcessor   *searchsvc.IndexProcessor
 	OutboxService     *searchsvc.OutboxService
+	WebhookService    *webhooksvc.Service
 	SearchClient      *searchpkg.Client
 	RoleRepo          interfaces.RoleRepository
 	AuthHandler       *handlers.AuthHandler
@@ -40,21 +44,27 @@ type Container struct {
 	RoleHandler       *handlers.RoleHandler
 	PermissionHandler *handlers.PermissionHandler
 	SearchHandler     *handlers.SearchHandler
+	MediaHandler      *handlers.MediaHandler
+	WebhookHandler    *handlers.WebhookHandler
 }
 
 func NewContainer(cfg config.Config, db *gorm.DB) *Container {
 	infra := dependency.NewInfra(cfg, db)
 	searchStack := dependency.NewSearchStack(infra)
-	authServices := dependency.NewAuthServices(infra)
-	userService := dependency.NewUserService(infra, searchStack.Outbox)
+	mediaSvc := dependency.NewMediaService(infra)
+	authServices := dependency.NewAuthServices(infra, mediaSvc)
+	userService := dependency.NewUserService(infra, searchStack.Outbox, mediaSvc)
 	roleServices := dependency.NewRoleServices(infra, searchStack.Outbox)
 	permissionService := dependency.NewPermissionService(infra)
+	webhookService := dependency.NewWebhookService(infra)
 	httpHandlers := dependency.NewHTTPHandlers(
 		authServices,
 		userService,
 		roleServices,
 		permissionService,
 		searchStack,
+		mediaSvc,
+		webhookService,
 	)
 
 	return &Container{
@@ -64,6 +74,7 @@ func NewContainer(cfg config.Config, db *gorm.DB) *Container {
 		DB:                infra.DB,
 		JWT:               infra.JWT,
 		Publisher:         infra.Publisher,
+		MediaService:      mediaSvc,
 		AuthService:       authServices.Auth,
 		OAuthService:      authServices.OAuth,
 		UserService:       userService,
@@ -72,6 +83,7 @@ func NewContainer(cfg config.Config, db *gorm.DB) *Container {
 		SearchService:     searchStack.Service,
 		SearchProcessor:   searchStack.Processor,
 		OutboxService:     searchStack.Outbox,
+		WebhookService:    webhookService,
 		SearchClient:      infra.SearchClient,
 		RoleRepo:          roleServices.Repo,
 		AuthHandler:       httpHandlers.Auth,
@@ -79,6 +91,8 @@ func NewContainer(cfg config.Config, db *gorm.DB) *Container {
 		RoleHandler:       httpHandlers.Role,
 		PermissionHandler: httpHandlers.Permission,
 		SearchHandler:     httpHandlers.Search,
+		MediaHandler:      httpHandlers.Media,
+		WebhookHandler:    httpHandlers.Webhook,
 	}
 }
 

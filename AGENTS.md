@@ -100,7 +100,7 @@ Invoke **`@agent` + natural language** — each agent auto-runs Speckit skills (
 | Task | Agent | Auto skills |
 |------|-------|-------------|
 | Feature spec | `@ba` | `speckit-specify`, `speckit-clarify` |
-| Task breakdown + technical design | `@technical-architect` | `speckit-tasks`, `speckit-plan`, `speckit-analyze` |
+| Task breakdown + technical design | `@technical-architect` | `speckit-tasks`, `speckit-plan` (+ `contracts/`), `speckit-analyze` |
 | BE code + verify | `@be` | `speckit-implement`, `make test-be`, `be-tasks-verify.md` |
 | FE code + verify | `@fe` | `speckit-implement`, `make test-fe`, `fe-tasks-verify.md` |
 | Test & sign-off | `@qa` | `speckit-checklist`, `make test` |
@@ -112,13 +112,17 @@ Skills: `docs-feature`, `fe-develop`, `be-develop`, `design-taste-frontend` (mar
 
 Feature documentation lives in **`docs/features/`** (configured via `.specify/init-options.json`).
 
-**Phase order:** `spec.md` → `tasks.md` → `plan.md` → implement → `*-tasks-verify.md` → test
+**Phase order:** `spec.md` → `tasks.md` → `plan.md` + `contracts/` → implement → `*-tasks-verify.md` → test
 
 ```text
 docs/features/NNN-name/
 ├── spec.md
 ├── tasks.md
 ├── plan.md
+├── contracts/
+│   ├── database.md
+│   ├── endpoints.md
+│   └── permissions.md
 ├── be-tasks-verify.md
 ├── fe-tasks-verify.md
 └── qa-checklist.md
@@ -132,8 +136,8 @@ Prompt cheat sheet: [`docs/workflow/agent-prompts.md`](docs/workflow/agent-promp
 - Routing: `src/app/` App Router only. No `react-router-dom`, no `src/pages/`.
 - Domain logic: `src/features/<feature>/`
 - Env: `NEXT_PUBLIC_*` via `src/config/env.ts`
-- Theme: `src/styles/index.css` (`:root` / `.dark` CSS variables)
-- Full rules: [`fe/AGENTS.md`](fe/AGENTS.md)
+- Design: [`fe/DESIGN.md`](fe/DESIGN.md) · tokens in `src/styles/index.css`
+- Full architecture rules: [`fe/AGENTS.md`](fe/AGENTS.md)
 
 ## Backend (`be/`)
 

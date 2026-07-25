@@ -22,3 +22,11 @@ func newRoleRepository(db *gorm.DB) interfaces.RoleRepository {
 func newPermissionRepository(db *gorm.DB) interfaces.PermissionRepository {
 	return repository.NewPermissionRepository(db)
 }
+
+func newWebhookInboxRepository(db *gorm.DB) interfaces.WebhookInboxRepository {
+	return repository.NewWebhookInboxRepository(db)
+}
+
+func newWebhookRequestRepository(db *gorm.DB) interfaces.WebhookRequestRepository {
+	return repository.NewWebhookRequestRepository(db)
+}

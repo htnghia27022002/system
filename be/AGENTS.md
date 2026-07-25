@@ -130,6 +130,17 @@ Never put business logic in HTTP handlers or HTTP formatting in repositories.
 - Auth: `/api/auth/login|register|refresh|logout|me`, OAuth under `/api/auth/oauth/:provider/*`
 - Admin: `/api/admin/users|roles|permissions` — JWT + permission middleware
 
+### 7.1) New feature permissions (mandatory)
+
+When adding a protected admin/API feature:
+
+1. Add `{resource}:view` / `{resource}:modify` to `DefaultPermissions()` in `internal/database/seeders/catalog.go` (stable UUIDs via `rbac.Key`).
+2. Protect routes with `middleware.RequireView("resource")` / `RequireModify("resource")`.
+3. Admin role receives new keys automatically via `RolePermissionSeeder` (iterates catalog).
+4. Align with `docs/features/.../contracts/permissions.md`.
+
+Do not ship admin routes without catalog entries. See `.cursor/rules/feature-permissions.mdc`.
+
 Integration with the frontend is **HTTP only**. Do not import FE code or share types across repos.
 
 ## 8) Configuration (hybrid)

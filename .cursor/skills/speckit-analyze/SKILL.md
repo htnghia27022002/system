@@ -54,8 +54,9 @@ You **MUST** consider the user input before proceeding (if not empty).
 
 ## Goal
 
-Identify inconsistencies, duplications, ambiguities, and underspecified items across the three core artifacts (`spec.md`, `plan.md`, `tasks.md`) before implementation. This command MUST run only after `/speckit-tasks` has successfully produced a complete `tasks.md`.
+Identify inconsistencies, duplications, ambiguities, and underspecified items across the core artifacts (`spec.md`, `plan.md`, `tasks.md`, and when present `contracts/{database,endpoints,permissions}.md`) before implementation. This command MUST run only after `/speckit-tasks` has successfully produced a complete `tasks.md`.
 
+**Project override:** After `/speckit-plan`, also require `contracts/database.md`, `contracts/endpoints.md`, and `contracts/permissions.md` (see `.cursor/rules/feature-contracts.mdc`, `.cursor/rules/feature-permissions.mdc`). Missing contracts after plan = CRITICAL gap. Admin features without permission + menu tasks = CRITICAL gap.
 ## Operating Constraints
 
 **STRICTLY READ-ONLY**: Do **not** modify any files. Output a structured analysis report. Offer an optional remediation plan (user must explicitly approve before any follow-up editing commands would be invoked manually).
@@ -71,8 +72,11 @@ Run `.specify/scripts/bash/check-prerequisites.sh --json --require-tasks --inclu
 - SPEC = FEATURE_DIR/spec.md
 - PLAN = FEATURE_DIR/plan.md
 - TASKS = FEATURE_DIR/tasks.md
+- CONTRACTS_DB = FEATURE_DIR/contracts/database.md (required after plan)
+- CONTRACTS_API = FEATURE_DIR/contracts/endpoints.md (required after plan)
+- CONTRACTS_PERM = FEATURE_DIR/contracts/permissions.md (required after plan)
 
-Abort with an error message if any required file is missing (instruct the user to run missing prerequisite command).
+Abort with an error message if any required file is missing (instruct the user to run missing prerequisite command). If `plan.md` exists but any `contracts/*` file is missing, report CRITICAL: incomplete design.
 For single quotes in args like "I'm Groot", use escape syntax: e.g 'I'\''m Groot' (or double-quote if possible: "I'm Groot").
 
 ### 2. Load Artifacts (Progressive Disclosure)
@@ -90,9 +94,21 @@ Load only the minimal necessary context from each artifact:
 **From plan.md:**
 
 - Architecture/stack choices
-- Data Model references
+- Links to contracts (must not be the only place with schema/API/permission detail)
 - Phases
 - Technical constraints
+
+**From contracts/database.md (when present):**
+
+- Tables, columns, FKs, indexes, migration notes (or explicit N/A)
+
+**From contracts/endpoints.md (when present):**
+
+- Methods, paths, auth, request/response shapes, errors (or explicit N/A)
+
+**From contracts/permissions.md (when present):**
+
+- RBAC keys, admin menu gate, route ↔ permission map (or explicit N/A)
 
 **From tasks.md:**
 

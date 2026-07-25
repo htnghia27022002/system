@@ -5,24 +5,23 @@ import { Canvas, useThree } from '@react-three/fiber'
 import { ContactShadows, Environment } from '@react-three/drei'
 import * as THREE from 'three'
 
-import { heroCharacterConfig } from './hero-character-config'
 import { GltfHeroCharacter } from './gltf-hero-character'
-import { StylizedHeroCharacter } from './stylized-hero-character'
 
 function FramedCamera() {
   const camera = useThree((s) => s.camera)
   const size = useThree((s) => s.size)
 
   useLayoutEffect(() => {
-    camera.position.set(0, 1.05, 3.6)
+    // Pull back so full body fits with padding inside the frame
+    camera.position.set(0, 1.0, 4.6)
     camera.near = 0.1
     camera.far = 50
     if (camera instanceof THREE.PerspectiveCamera) {
-      camera.fov = 32
+      camera.fov = 30
       camera.aspect = size.width / Math.max(size.height, 1)
       camera.updateProjectionMatrix()
     }
-    camera.lookAt(0, 0.95, 0)
+    camera.lookAt(0, 0.9, 0)
   }, [camera, size.height, size.width])
 
   return null
@@ -50,7 +49,7 @@ function CharacterScene() {
       <directionalLight position={[-2.5, 1.5, -1.5]} intensity={0.25} />
       <hemisphereLight args={['#dbeafe', '#1e293b', 0.35]} />
 
-      {heroCharacterConfig.mode === 'gltf' ? <GltfHeroCharacter /> : <StylizedHeroCharacter />}
+       <GltfHeroCharacter /> 
 
       <ContactShadows position={[0, 0.01, 0]} opacity={0.35} scale={6} blur={2.2} far={3.5} />
       <Environment preset="apartment" environmentIntensity={0.2} />
@@ -66,10 +65,10 @@ type HeroCharacterCanvasProps = {
 export function HeroCharacterCanvas({ className }: HeroCharacterCanvasProps) {
   return (
     <div className={className}>
-      <Canvas
+      {/* <Canvas
         shadows
         dpr={[1, 1.75]}
-        camera={{ position: [0, 1.05, 3.6], fov: 32 }}
+        camera={{ position: [0, 1.0, 4.6], fov: 30 }}
         gl={{ antialias: true, alpha: true, premultipliedAlpha: true }}
         onCreated={({ gl, scene }) => {
           scene.background = null
@@ -79,7 +78,7 @@ export function HeroCharacterCanvas({ className }: HeroCharacterCanvasProps) {
         <Suspense fallback={null}>
           <CharacterScene />
         </Suspense>
-      </Canvas>
+      </Canvas> */}
     </div>
   )
 }

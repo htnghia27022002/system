@@ -143,4 +143,17 @@ export const accessControlApi = {
     }
     return apiClient.delete(`/admin/users/${id}`).then(() => undefined)
   },
+
+  uploadUserAvatar(id: string, file: File): Promise<ManagedUser> {
+    if (env.VITE_USE_MOCK_API) {
+      return mockAccessControlApi.uploadUserAvatar(id, file)
+    }
+    const formData = new FormData()
+    formData.append('file', file)
+    return apiClient
+      .post<ManagedUser>(`/admin/users/${id}/avatar`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      })
+      .then((r) => r.data)
+  },
 }

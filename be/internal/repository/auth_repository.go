@@ -103,6 +103,41 @@ func (r *AuthRepository) UpdateOAuthAccount(ctx context.Context, account *authmo
 	return r.db.WithContext(ctx).Save(account).Error
 }
 
+func (r *AuthRepository) ListProvidersByUserIDs(ctx context.Context, userIDs []string) (map[string][]string, error) {
+	out := make(map[string][]string)
+	if len(userIDs) == 0 {
+		return out, nil
+	}
+	type row struct {
+		UserID   string `gorm:"column:user_id"`
+		Provider string `gorm:"column:provider"`
+	}
+	var rows []row
+	if err := r.db.WithContext(ctx).
+		Model(&authmodel.OAuthAccount{}).
+		Select("user_id, provider").
+		Where("user_id IN ?", userIDs).
+		Order("provider ASC").
+		Find(&rows).Error; err != nil {
+		return nil, err
+	}
+	seen := make(map[string]map[string]struct{})
+	for _, item := range rows {
+		if item.UserID == "" || item.Provider == "" {
+			continue
+		}
+		if _, ok := seen[item.UserID]; !ok {
+			seen[item.UserID] = map[string]struct{}{}
+		}
+		if _, ok := seen[item.UserID][item.Provider]; ok {
+			continue
+		}
+		seen[item.UserID][item.Provider] = struct{}{}
+		out[item.UserID] = append(out[item.UserID], item.Provider)
+	}
+	return out, nil
+}
+
 func HashRefreshToken(value string) string {
 	return hashToken(value)
 }

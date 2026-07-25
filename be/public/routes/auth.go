@@ -21,5 +21,8 @@ func RegisterAuthRoutes(r *gin.RouterGroup, c *app.Container) {
 		protected := auth.Group("")
 		protected.Use(middleware.Auth(c.JWT, c.RoleRepo))
 		protected.GET("/me", c.AuthHandler.Me)
+		protected.PATCH("/profile", c.AuthHandler.UpdateProfile)
+		protected.POST("/profile/avatar", c.AuthHandler.UploadAvatar)
+		protected.POST("/change-password", c.AuthHandler.ChangePassword)
 	}
 }

@@ -6,6 +6,9 @@ docker/data/*
 # BE file cache (cache.file.dir)
 **/storage/cache/
 
+# BE local avatar uploads (UPLOAD_DIR default data/uploads)
+be/data/uploads/
+
 **/.env
 **/.env.local
 **/.env.development.local

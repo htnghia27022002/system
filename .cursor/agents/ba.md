@@ -34,7 +34,7 @@ Do **not** run `speckit-tasks` or `speckit-plan` — those belong to `@technical
 
 1. `@ba` → `spec.md` (`speckit-specify` / `speckit-clarify`)
 2. `@technical-architect` → `tasks.md` (`speckit-tasks`)
-3. `@technical-architect` → `plan.md` (`speckit-plan`)
+3. `@technical-architect` → `plan.md` + `contracts/*` (`speckit-plan`)
 4. `@be` `@fe` → code + `*-tasks-verify.md` (`speckit-implement` + verify)
 5. `@qa` → test (`speckit-checklist`, `make test`)
 
@@ -52,7 +52,7 @@ See [`docs/workflow/overview.md`](../../docs/workflow/overview.md).
 |------|-------|
 | `docs/features/NNN-name/spec.md` | 1 — BA only |
 
-Do **not** write `tasks.md`, `plan.md`, `be-tasks-verify.md`, `fe-tasks-verify.md`, or code.
+Do **not** write `tasks.md`, `plan.md`, `contracts/*`, `be-tasks-verify.md`, `fe-tasks-verify.md`, or code.
 
 ## Language (mandatory)
 

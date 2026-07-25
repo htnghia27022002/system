@@ -2,6 +2,7 @@
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { useInitials } from '@/hooks/use-initials'
+import { resolveMediaUrl } from '@/utils/resolve-media-url'
 import type { AuthUser } from '@/types/auth'
 
 type UserInfoProps = {
@@ -11,11 +12,12 @@ type UserInfoProps = {
 
 export function UserInfo({ user, showEmail = false }: UserInfoProps) {
   const getInitials = useInitials()
+  const avatarSrc = resolveMediaUrl(user.avatarUrl)
 
   return (
     <>
       <Avatar className="h-8 w-8 overflow-hidden rounded-full">
-        <AvatarImage src="" alt={user.name} />
+        <AvatarImage src={avatarSrc} alt={user.name} />
         <AvatarFallback className="rounded-lg bg-neutral-200 text-black dark:bg-neutral-700 dark:text-white">
           {getInitials(user.name || user.email)}
         </AvatarFallback>

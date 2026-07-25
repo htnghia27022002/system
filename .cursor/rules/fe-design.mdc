@@ -1,0 +1,19 @@
+---
+description: FE visual design — theme, page spacing, mobile, clickable table links. Full rules in fe/DESIGN.md.
+globs: fe/**/*
+alwaysApply: false
+---
+
+# FE design
+
+Authoritative visual rules: **[`fe/DESIGN.md`](../../fe/DESIGN.md)**.
+
+Must follow when building or changing UI:
+
+1. **Theme consistency** — CSS variables in `src/styles/index.css`; same tokens across components.
+2. **Page containers** — matching outer padding/margins across sibling pages (admin: `p-4` + `gap-4`).
+3. **Mobile-first** — responsive web (usable ~375px); not a native mobile-app shell.
+4. **Clickable table cells** (id, name, …) — use **link color** `text-primary` so they look clickable before hover.
+5. **shadcn first** — see also `fe-ui-library-first.mdc`; forms: `fe-form-layout.mdc`.
+
+Architecture / structure stays in `fe/AGENTS.md`.

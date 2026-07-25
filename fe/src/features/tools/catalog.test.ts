@@ -41,7 +41,8 @@ describe('tool catalog helpers', () => {
     const webhooks = getToolById('webhooks')
     expect(webhooks).toBeDefined()
     expect(webhooks?.status).toBe('available')
-    expect(webhooks?.href).toBe('/tools/webhooks')
+    expect(webhooks?.href).toBe('/admin/tools/webhooks')
+    expect(webhooks?.description.toLowerCase()).toContain('http')
   })
 
   it('exposes at least one available and one comingSoon entry', () => {

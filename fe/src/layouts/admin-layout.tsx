@@ -22,6 +22,7 @@ const BREADCRUMB_MAP: Record<
   '/admin/search': { label: 'nav.search' },
   '/admin/users': { label: 'nav.users', parent: 'nav.accessControl' },
   '/admin/roles': { label: 'nav.roles', parent: 'nav.accessControl' },
+  '/admin/tools/webhooks': { label: 'nav.webhooks', parent: 'nav.tools' },
 }
 
 type AdminLayoutProps = {
@@ -58,7 +59,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
             <NavLoadingBar />
             <AppSidebarHeader
               breadcrumbs={breadcrumbs}
-              actions={<AdminSearchBar />}
+              // actions={<AdminSearchBar />}
             />
           </div>
           {children}

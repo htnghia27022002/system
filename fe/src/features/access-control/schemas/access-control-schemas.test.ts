@@ -9,9 +9,31 @@ describe('access-control schemas', () => {
       email: 'not-an-email',
       password: 'short',
       roleId: '',
+      status: 'active',
+      phone: '',
+      general: '',
+      birthday: '',
+      address: '',
+      socialLinks: [],
     })
 
     expect(result.success).toBe(false)
+  })
+
+  it('accepts personal fields on create', () => {
+    const result = createUserSchema.safeParse({
+      name: 'Ada Lovelace',
+      email: 'ada@example.com',
+      password: 'password123',
+      roleId: 'role-user',
+      status: 'active',
+      phone: '123',
+      general: 'Bio',
+      birthday: '1990-01-01',
+      address: 'London',
+      socialLinks: [{ label: 'Site', url: 'https://example.com' }],
+    })
+    expect(result.success).toBe(true)
   })
 
   it('accepts a valid role payload', () => {

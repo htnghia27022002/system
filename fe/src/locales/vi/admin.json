@@ -1,149 +1,231 @@
 {
   "shell": {
     "badge": "Back office",
-    "title": "Quan tri",
-    "openMenu": "Mo menu dieu huong",
-    "collapseMenu": "Thu gon menu",
-    "expandMenu": "Mo rong menu",
-    "publicHome": "Trang chu cong khai"
+    "title": "Quản trị",
+    "openMenu": "Mở menu điều hướng",
+    "collapseMenu": "Thu gọn menu",
+    "expandMenu": "Mở rộng menu",
+    "publicHome": "Trang chủ công khai"
   },
   "userMenu": {
-    "settings": "Cai dat tai khoan",
-    "signOut": "Dang xuat",
-    "themeLight": "Sang",
-    "themeDark": "Toi",
-    "themeSystem": "He thong",
-    "switchToVi": "Chuyen sang tieng Viet",
-    "switchToEn": "Chuyen sang tieng Anh"
+    "settings": "Cài đặt tài khoản",
+    "signOut": "Đăng xuất",
+    "themeLight": "Sáng",
+    "themeDark": "Tối",
+    "themeSystem": "Hệ thống",
+    "language": "Ngôn ngữ",
+    "localeEn": "Tiếng Anh",
+    "localeVi": "Tiếng Việt"
   },
   "nav": {
-    "platform": "Nen tang",
+    "platform": "Nền tảng",
     "dashboard": "Dashboard",
-    "overview": "Tong quan",
-    "accessControl": "Quan ly truy cap",
-    "users": "Nguoi dung",
-    "roles": "Vai tro",
-    "permissions": "Quyen",
-    "search": "Tim kiem"
+    "overview": "Tổng quan",
+    "accessControl": "Quản lý truy cập",
+    "users": "Người dùng",
+    "roles": "Vai trò",
+    "permissions": "Quyền",
+    "tools": "Công cụ",
+    "webhooks": "Webhooks",
+    "search": "Tìm kiếm"
   },
   "search": {
-    "title": "Tim kiem thong nhat",
-    "description": "Tim nguoi dung, vai tro va quyen trong khu vuc quan tri.",
-    "barLabel": "Tim kiem quan tri",
-    "placeholder": "Tim nguoi dung, vai tro, quyen…",
-    "queryLabel": "Tu khoa",
-    "typeLabel": "Loai thuc the",
-    "submit": "Tim kiem",
-    "prompt": "Nhap tu khoa o tren de bat dau tim kiem.",
-    "loading": "Dang tim…",
-    "refreshing": "Dang cap nhat",
-    "error": "Khong tai duoc ket qua tim kiem.",
-    "empty": "Khong co ket qua phu hop.",
-    "noResults": "Khong co ket qua.",
-    "viewAllResults": "Xem tat ca ket qua",
-    "clearSearch": "Xoa tim kiem",
-    "resultsCount": "{{count}} ket qua",
+    "title": "Tìm kiếm thống nhất",
+    "description": "Tìm người dùng, vai trò và quyền trong khu vực quản trị.",
+    "barLabel": "Tìm kiếm quản trị",
+    "placeholder": "Tìm người dùng, vai trò, quyền…",
+    "queryLabel": "Từ khóa",
+    "typeLabel": "Loại thực thể",
+    "submit": "Tìm kiếm",
+    "prompt": "Nhập từ khóa ở trên để bắt đầu tìm kiếm.",
+    "loading": "Đang tìm…",
+    "refreshing": "Đang cập nhật",
+    "error": "Không tải được kết quả tìm kiếm.",
+    "empty": "Không có kết quả phù hợp.",
+    "noResults": "Không có kết quả.",
+    "viewAllResults": "Xem tất cả kết quả",
+    "clearSearch": "Xóa tìm kiếm",
+    "resultsCount": "{{count}} kết quả",
     "pageSummary": "Trang {{page}} / {{totalPages}}",
-    "previous": "Truoc",
+    "previous": "Trước",
     "next": "Sau",
-    "degradedTitle": "Che do tim kiem han che",
-    "degradedDescription": "Chi muc tim kiem khong kha dung. Ket qua co the chi gom nguoi dung tu co so du lieu.",
-    "degraded": "Chi muc tim kiem khong kha dung — ket qua co the bi gioi han.",
+    "degradedTitle": "Chế độ tìm kiếm hạn chế",
+    "degradedDescription": "Chỉ mục tìm kiếm không khả dụng. Kết quả có thể chỉ gồm người dùng từ cơ sở dữ liệu.",
+    "degraded": "Chỉ mục tìm kiếm không khả dụng — kết quả có thể bị giới hạn.",
     "filters": {
-      "all": "Tat ca",
-      "users": "Nguoi dung",
-      "roles": "Vai tro",
-      "permissions": "Quyen"
+      "all": "Tất cả",
+      "users": "Người dùng",
+      "roles": "Vai trò",
+      "permissions": "Quyền"
     }
   },
   "access": {
-    "insufficientPermissions": "Khong du quyen truy cap",
+    "insufficientPermissions": "Không đủ quyền truy cập",
     "actions": {
-      "cancel": "Huy",
-      "create": "Tao",
-      "save": "Luu",
-      "delete": "Xoa",
-      "edit": "Sua",
-      "retry": "Thu lai",
-      "openMenu": "Mo thao tac hang"
+      "cancel": "Hủy",
+      "create": "Tạo",
+      "save": "Lưu",
+      "delete": "Xóa",
+      "edit": "Sửa",
+      "retry": "Thử lại",
+      "openMenu": "Mở thao tác hàng"
     },
     "users": {
-      "title": "Nguoi dung",
-      "description": "Quan ly tai khoan, vai tro va trang thai.",
-      "createTitle": "Tao nguoi dung",
-      "editTitle": "Sua nguoi dung",
-      "createAction": "Tao nguoi dung",
-      "deleteTitle": "Xoa nguoi dung",
-      "deleteDescription": "Xoa {{name}}? Hanh dong nay khong the hoan tac.",
-      "empty": "Chua co nguoi dung.",
-      "error": "Khong tai duoc danh sach nguoi dung.",
+      "title": "Người dùng",
+      "description": "Quản lý tài khoản, vai trò và trạng thái.",
+      "createTitle": "Tạo người dùng",
+      "editTitle": "Sửa người dùng",
+      "createAction": "Tạo người dùng",
+      "deleteTitle": "Xóa người dùng",
+      "deleteDescription": "Xóa {{name}}? Hành động này không thể hoàn tác.",
+      "empty": "Chưa có người dùng.",
+      "error": "Không tải được danh sách người dùng.",
+      "filters": {
+        "role": "Vai trò",
+        "status": "Trạng thái",
+        "allRoles": "Tất cả vai trò",
+        "allStatuses": "Tất cả trạng thái"
+      },
       "sections": {
-        "account": "Thong tin tai khoan",
-        "access": "Quyen truy cap"
+        "account": "Thông tin tài khoản",
+        "personal": "Thông tin cá nhân",
+        "access": "Quyền truy cập"
       },
       "fields": {
-        "name": "Ten",
+        "name": "Tên",
         "email": "Email",
-        "password": "Mat khau",
-        "passwordOptional": "de trong neu giu mat khau cu",
-        "passwordOptionalHint": "De trong neu muon giu mat khau hien tai.",
-        "role": "Vai tro",
-        "status": "Trang thai"
+        "oauth": "OAuth",
+        "index": "#",
+        "createdAt": "Ngày tạo",
+        "password": "Mật khẩu",
+        "passwordOptional": "để trống nếu giữ mật khẩu cũ",
+        "passwordOptionalHint": "Để trống nếu muốn giữ mật khẩu hiện tại.",
+        "role": "Vai trò",
+        "status": "Trạng thái",
+        "phone": "Số điện thoại",
+        "general": "Giới thiệu",
+        "birthday": "Ngày sinh",
+        "address": "Địa chỉ",
+        "avatarHint": "Tùy chọn. JPEG, PNG hoặc WebP tối đa 2 MB."
+      },
+      "actions": {
+        "changeAvatar": "Đổi ảnh đại diện"
+      },
+      "toasts": {
+        "avatarUpdated": "Đã cập nhật ảnh đại diện"
+      },
+      "errors": {
+        "avatarUpload": "Không thể tải ảnh đại diện"
       },
       "status": {
-        "active": "Hoat dong",
-        "inactive": "Ngung hoat dong"
+        "active": "Hoạt động",
+        "inactive": "Ngừng hoạt động"
       }
     },
     "roles": {
-      "title": "Vai tro",
-      "description": "Dinh nghia vai tro va gan quyen cho nhom nguoi dung.",
-      "backToUsers": "Quay lai nguoi dung",
-      "permissionsSheetHint": "Chon quyen theo nhom. Bam tieu de nhom de bat/tat ca nhom do.",
-      "selectedCount": "Da chon {{count}}/{{total}}",
-      "createTitle": "Tao vai tro",
-      "editTitle": "Sua vai tro",
-      "createAction": "Tao vai tro",
-      "deleteTitle": "Xoa vai tro",
-      "deleteDescription": "Xoa vai tro {{name}}? Can gan lai nguoi dung truoc.",
-      "empty": "Chua co vai tro.",
-      "error": "Khong tai duoc danh sach vai tro.",
+      "title": "Vai trò",
+      "description": "Định nghĩa vai trò và gán quyền cho nhóm người dùng.",
+      "backToUsers": "Quay lại người dùng",
+      "permissionsSheetHint": "Chọn quyền theo nhóm. Bấm tiêu đề nhóm để bật/tắt cả nhóm đó.",
+      "selectedCount": "Đã chọn {{count}}/{{total}}",
+      "createTitle": "Tạo vai trò",
+      "editTitle": "Sửa vai trò",
+      "createAction": "Tạo vai trò",
+      "deleteTitle": "Xóa vai trò",
+      "deleteDescription": "Xóa vai trò {{name}}? Cần gán lại người dùng trước.",
+      "empty": "Chưa có vai trò.",
+      "error": "Không tải được danh sách vai trò.",
       "fields": {
-        "name": "Ten",
+        "name": "Tên",
         "slug": "Slug",
-        "permissions": "Quyen"
+        "permissions": "Quyền"
       }
     },
     "permissions": {
-      "title": "Quyen",
-      "description": "Danh muc quyen chi doc dung trong he thong.",
-      "empty": "Chua co quyen trong danh muc.",
-      "error": "Khong tai duoc danh muc quyen.",
+      "title": "Quyền",
+      "description": "Danh mục quyền chỉ đọc dùng trong hệ thống.",
+      "empty": "Chưa có quyền trong danh mục.",
+      "error": "Không tải được danh mục quyền.",
       "fields": {
         "key": "Key",
-        "name": "Ten",
-        "group": "Nhom",
-        "description": "Mo ta"
+        "name": "Tên",
+        "group": "Nhóm",
+        "description": "Mô tả"
       }
     }
   },
   "overview": {
-    "title": "Tong quan dashboard",
-    "description": "Chi so chinh va hoat dong trong tuan.",
-    "error": "Khong tai duoc du lieu dashboard.",
-    "retry": "Thu lai",
-    "vsLastWeek": "so voi tuan truoc",
-    "lastUpdated": "Cap nhat luc {{time}}",
-    "refreshing": "Dang lam moi",
+    "title": "Tổng quan dashboard",
+    "description": "Chỉ số chính và hoạt động trong tuần.",
+    "error": "Không tải được dữ liệu dashboard.",
+    "retry": "Thử lại",
+    "vsLastWeek": "so với tuần trước",
+    "lastUpdated": "Cập nhật lúc {{time}}",
+    "refreshing": "Đang làm mới",
     "chart": {
-      "title": "Hoat dong trong tuan",
-      "description": "Don hang va phien trong 7 ngay qua."
+      "title": "Hoạt động trong tuần",
+      "description": "Đơn hàng và phiên trong 7 ngày qua."
     },
     "kpis": {
-      "totalUsers": "Tong nguoi dung",
-      "activeSessions": "Phien dang hoat dong",
+      "totalUsers": "Tổng người dùng",
+      "activeSessions": "Phiên đang hoạt động",
       "revenue": "Doanh thu",
-      "ordersToday": "Don hom nay"
+      "ordersToday": "Đơn hôm nay"
+    }
+  },
+  "profile": {
+    "title": "Cài đặt tài khoản",
+    "description": "Quản lý thông tin cá nhân, ảnh đại diện và mật khẩu.",
+    "sections": {
+      "avatar": "Ảnh đại diện",
+      "personalInfo": "Thông tin cá nhân",
+      "identity": "Định danh",
+      "personal": "Chi tiết",
+      "password": "Đổi mật khẩu"
+    },
+    "fields": {
+      "name": "Họ tên",
+      "email": "Email",
+      "emailHint": "Không thể đổi email tại đây.",
+      "phone": "Số điện thoại",
+      "general": "Giới thiệu",
+      "birthday": "Ngày sinh",
+      "address": "Địa chỉ",
+      "socialLinks": "Liên kết mạng xã hội",
+      "socialLinksHint": "Tối đa 5 liên kết. Bắt buộc URL; nhãn tùy chọn.",
+      "socialLabel": "Nhãn",
+      "socialLabelPlaceholder": "vd. GitHub",
+      "socialUrl": "URL",
+      "currentPassword": "Mật khẩu hiện tại",
+      "newPassword": "Mật khẩu mới",
+      "confirmPassword": "Xác nhận mật khẩu mới"
+    },
+    "avatar": {
+      "hint": "JPEG, PNG hoặc WebP. Tối đa 2 MB."
+    },
+    "actions": {
+      "saveProfile": "Lưu hồ sơ",
+      "changeAvatar": "Đổi ảnh đại diện",
+      "changePassword": "Cập nhật mật khẩu",
+      "addLink": "Thêm liên kết",
+      "removeLink": "Xóa liên kết"
+    },
+    "empty": {
+      "socialLinks": "Chưa có liên kết mạng xã hội."
+    },
+    "password": {
+      "unavailable": "Không thể đổi mật khẩu vì tài khoản này không có mật khẩu (ví dụ đăng nhập bằng nhà cung cấp)."
+    },
+    "toasts": {
+      "profileSaved": "Đã lưu hồ sơ",
+      "avatarUpdated": "Đã cập nhật ảnh đại diện",
+      "passwordChanged": "Đã cập nhật mật khẩu"
+    },
+    "errors": {
+      "loadFailed": "Không tải được hồ sơ.",
+      "saveFailed": "Không thể lưu hồ sơ",
+      "avatarUpload": "Không thể tải ảnh đại diện",
+      "passwordFailed": "Không thể đổi mật khẩu"
     }
   }
 }

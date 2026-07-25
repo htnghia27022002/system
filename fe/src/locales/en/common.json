@@ -65,5 +65,95 @@
       "failed": "Sign-in failed. Try email and password or try Google again.",
       "success": "Signed in successfully"
     }
+  },
+  "tools": {
+    "webhooks": {
+      "title": "Webhooks",
+      "subtitle": "Capture and inspect inbound HTTP requests with a personal public URL.",
+      "backToTools": "Back to Tools",
+      "urlTitle": "Your public URL",
+      "urlHint": "Send any HTTP method to this URL. Requests appear in the inbox below after refresh.",
+      "publicUrlLabel": "Public webhook URL",
+      "inboxLabel": "Request inbox",
+      "totals": "{{active}} active · {{lifetime}} lifetime",
+      "actions": {
+        "copy": "Copy URL",
+        "copied": "Copied",
+        "refresh": "Refresh",
+        "regenerate": "Regenerate URL",
+        "confirmRegenerate": "Regenerate",
+        "cancel": "Cancel",
+        "remove": "Remove",
+        "clearAll": "Clear all",
+        "confirmClearAll": "Clear all",
+        "markRead": "Mark read",
+        "markUnread": "Mark unread"
+      },
+      "regenerate": {
+        "title": "Regenerate public URL?",
+        "description": "The current URL will stop accepting requests. Existing inbox history stays. Clients must use the new URL."
+      },
+      "clearAll": {
+        "title": "Clear all requests?",
+        "description": "Soft-delete all {{count}} active request(s). Lifetime totals stay; they will no longer appear in the inbox."
+      },
+      "filters": {
+        "open": "Filter",
+        "title": "Filters",
+        "clear": "Clear",
+        "search": "Search",
+        "searchPlaceholder": "URL, path, or body snippet",
+        "method": "Method",
+        "allMethods": "All methods",
+        "readStatus": "Status",
+        "read": {
+          "all": "All",
+          "unread": "Unread",
+          "read": "Read"
+        }
+      },
+      "badges": {
+        "unread": "Unread",
+        "read": "Read"
+      },
+      "empty": {
+        "title": "No requests yet",
+        "body": "Send a GET or POST to your public URL to see the first capture here."
+      },
+      "pagination": {
+        "prev": "Previous",
+        "next": "Next",
+        "page": "Page {{page}}"
+      },
+      "detail": {
+        "selectPrompt": "Select a request to inspect body, query, form, and headers.",
+        "loadError": "Could not load this request.",
+        "headers": "Headers",
+        "query": "Query",
+        "form": "Form",
+        "body": "Body",
+        "binary": "Binary",
+        "truncated": "Truncated",
+        "binaryBodyHint": "Body is binary; preview may be base64 or a short marker."
+      },
+      "list": {
+        "loading": "Loading…",
+        "showing": "Showing {{shown}} of {{total}} · page {{page}}"
+      },
+      "toasts": {
+        "copied": "Public URL copied",
+        "copyFailed": "Could not copy URL",
+        "regenerated": "Public URL regenerated",
+        "regenerateFailed": "Could not regenerate public URL",
+        "removed": "Request removed",
+        "removeFailed": "Could not remove request",
+        "cleared": "All requests cleared",
+        "clearFailed": "Could not clear requests",
+        "readFailed": "Could not update read status"
+      },
+      "errors": {
+        "inboxLoad": "Could not load your webhook inbox. Sign in again or try later."
+      }
+    }
   }
 }

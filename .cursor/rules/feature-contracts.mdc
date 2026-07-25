@@ -1,0 +1,73 @@
+---
+description: @technical-architect must create contracts/ (database + endpoints) during plan phase.
+globs:
+  - docs/features/**/*
+  - .cursor/agents/technical-architect.md
+  - .cursor/skills/speckit-plan/**
+  - .cursor/skills/docs-feature/**
+alwaysApply: false
+---
+
+# Feature contracts (`contracts/`)
+
+When `@technical-architect` runs **`speckit-plan`**, it **MUST** create:
+
+```text
+docs/features/NNN-name/contracts/
+├── database.md       # Feature persistence (tables, columns, indexes, FKs)
+├── endpoints.md      # HTTP API contracts (method, path, auth, request/response)
+└── permissions.md    # RBAC keys (view/modify) + admin menu gate
+```
+
+## Ownership
+
+| Artifact | Owner | Phase |
+|----------|-------|-------|
+| `contracts/database.md` | `@technical-architect` | 3 — Design (`speckit-plan`) |
+| `contracts/endpoints.md` | `@technical-architect` | 3 — Design (`speckit-plan`) |
+| `contracts/permissions.md` | `@technical-architect` | 3 — Design (`speckit-plan`) |
+
+Do **not** leave schema, API, or permission details only inside `plan.md`. `plan.md` may summarize and **link** to these files; the authoritative contract lives under `contracts/`.
+
+## When to skip content (not the folder)
+
+Always create the folder and all three files. If the feature has no BE persistence, no HTTP API, or no RBAC:
+
+- `database.md` → state **N/A** with one-line reason (e.g. FE-only UI).
+- `endpoints.md` → state **N/A** with one-line reason (e.g. no new `/api` routes).
+- `permissions.md` → state **N/A** only when there is no admin API, no admin menu, and no `PermissionGuard` (see `feature-permissions.mdc`).
+
+## Required contents
+
+### `database.md`
+
+- Tables/entities this feature owns or alters
+- Columns with types, nullability, defaults, unique/PK
+- Foreign keys and cascade rules
+- Indexes needed for list/filter paths
+- Migration note (new file name under `be/migrations/` when applicable)
+- English only
+
+### `endpoints.md`
+
+- Method + full path under `/api` (and any public/product path rewrites)
+- Auth (JWT, public, RBAC permission key)
+- Request query/body (camelCase JSON field names)
+- Success response shape (camelCase)
+- Important error statuses (401/403/404/413/…)
+- English only
+
+### `permissions.md`
+
+- Resource name and `{resource}:view` / `{resource}:modify` keys (or N/A)
+- Admin menu href + required view permission (or None)
+- Route ↔ permission map for BE middleware and FE guards
+- Seed / `PermissionKeys` notes
+- Template: `docs/templates/contracts/permissions.md`
+- Rule: `.cursor/rules/feature-permissions.mdc`
+
+## Consumers
+
+- `@be` / `@fe` implement against `contracts/*` + `tasks.md` + `plan.md`
+- Contract changes → update `contracts/*` (and note in `plan.md`); verify docs must reflect the final contract
+- New admin features: BE must seed permissions; FE must gate **menu** and pages with those keys

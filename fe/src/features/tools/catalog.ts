@@ -5,8 +5,8 @@
  * 1. Add a `ToolEntry` to `TOOL_CATALOG` below.
  * 2. Required fields: `id`, `name`, `description`, `order`, `status`.
  * 3. Optional: `href` (navigate only when `status === 'available'`), `category`.
- * 4. For a real tool app, add `fe/src/app/(public)/tools/{id}/page.tsx` and set
- *    `href: '/tools/{id}'` (Webhooks proves this pattern at `/tools/webhooks`).
+ * 4. For a real tool app, add a route and set `href` (Webhooks owner UI is under
+ *    admin at `/admin/tools/webhooks`; public capture stays `/tools/webhooks/{uuid}`).
  * 5. Set `order` ascending for hub sort; teaser uses the same sorted list (first N).
  * 6. Reload `/` and `/tools` — both surfaces read this module via `@/features/tools` only.
  *    No hub/landing chrome redesign is required to list a new entry.
@@ -18,10 +18,11 @@ const TOOL_CATALOG: ToolCatalog = [
   {
     id: 'webhooks',
     name: 'Webhooks',
-    description: 'Inspect and debug webhook deliveries with a dedicated tool workspace.',
+    description:
+      'Capture and inspect inbound HTTP webhook requests with a personal public URL.',
     order: 10,
     status: 'available',
-    href: '/tools/webhooks',
+    href: '/admin/tools/webhooks',
     category: 'Integrations',
   },
   {

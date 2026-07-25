@@ -1,69 +1,159 @@
 {
   "appName": "System App",
   "home": {
-    "title": "Frontend da khoi tao",
-    "description": "React, Tailwind v4, shadcn/ui, TanStack Query, i18n va auth services da san sang.",
-    "toast": "Thong bao toast hoat dong"
+    "title": "Frontend đã khởi tạo",
+    "description": "React, Tailwind v4, shadcn/ui, TanStack Query, i18n và auth store đã sẵn sàng.",
+    "toast": "Thông báo toast hoạt động"
   },
   "nav": {
-    "home": "Trang chu",
-    "tools": "Cong cu",
-    "admin": "Quan tri",
-    "siteLabel": "Dieu huong",
-    "openMenu": "Mo menu dieu huong"
+    "home": "Trang chủ",
+    "tools": "Công cụ",
+    "admin": "Quản trị",
+    "siteLabel": "Điều hướng",
+    "openMenu": "Mở menu điều hướng"
   },
   "locale": {
-    "label": "Ngon ngu",
+    "label": "Ngôn ngữ",
     "en": "English",
     "vi": "Tiếng Việt"
   },
   "theme": {
-    "toggle": "Doi giao dien",
-    "light": "Sang",
-    "dark": "Toi",
-    "system": "He thong"
+    "toggle": "Đổi giao diện",
+    "light": "Sáng",
+    "dark": "Tối",
+    "system": "Hệ thống"
   },
   "auth": {
     "fields": {
-      "name": "Ho va ten",
+      "name": "Họ và tên",
       "email": "Email",
-      "password": "Mat khau",
-      "confirmPassword": "Xac nhan mat khau"
+      "password": "Mật khẩu",
+      "confirmPassword": "Xác nhận mật khẩu"
     },
     "actions": {
-      "signIn": "Dang nhap",
-      "signingIn": "Dang dang nhap...",
-      "register": "Dang ky",
-      "createAccount": "Tao tai khoan",
-      "creatingAccount": "Dang tao tai khoan...",
-      "signOut": "Dang xuat"
+      "signIn": "Đăng nhập",
+      "signingIn": "Đang đăng nhập...",
+      "register": "Đăng ký",
+      "createAccount": "Tạo tài khoản",
+      "creatingAccount": "Đang tạo tài khoản...",
+      "signOut": "Đăng xuất"
     },
     "nav": {
-      "label": "Tai khoan"
+      "label": "Tài khoản"
     },
     "layout": {
-      "subtitle": "Truy cap tai khoan"
+      "subtitle": "Truy cập tài khoản"
     },
     "login": {
-      "title": "Dang nhap",
-      "description": "Nhap email va mat khau de tiep tuc.",
-      "noAccount": "Ban moi?"
+      "title": "Đăng nhập",
+      "description": "Nhập email và mật khẩu để tiếp tục.",
+      "noAccount": "Bạn mới?"
     },
     "register": {
-      "title": "Tao tai khoan",
-      "description": "Dien thong tin de dang ky tai khoan moi.",
-      "hasAccount": "Da co tai khoan?"
+      "title": "Tạo tài khoản",
+      "description": "Điền thông tin để đăng ký tài khoản mới.",
+      "hasAccount": "Đã có tài khoản?"
     },
     "oauth": {
-      "divider": "Hoac tiep tuc voi",
-      "continueWithGoogle": "Tiep tuc voi Google",
-      "callbackTitle": "Dang dang nhap",
-      "callbackDescription": "Dang hoan tat dang nhap…",
-      "callbackErrorDescription": "Khong the hoan tat dang nhap.",
-      "cancelled": "Da huy dang nhap. Thu lai khi ban san sang.",
-      "missingCode": "Thieu ma xac thuc. Vui long dang nhap lai.",
-      "failed": "Dang nhap that bai. Thu email/mat khau hoac Google.",
-      "success": "Dang nhap thanh cong"
+      "divider": "Hoặc tiếp tục với",
+      "continueWithGoogle": "Tiếp tục với Google",
+      "callbackTitle": "Đang đăng nhập",
+      "callbackDescription": "Đang hoàn tất đăng nhập…",
+      "callbackErrorDescription": "Không thể hoàn tất đăng nhập.",
+      "cancelled": "Đã hủy đăng nhập. Thử lại khi bạn sẵn sàng.",
+      "missingCode": "Thiếu mã xác thực. Vui lòng đăng nhập lại.",
+      "failed": "Đăng nhập thất bại. Thử email/mật khẩu hoặc Google.",
+      "success": "Đăng nhập thành công"
+    }
+  },
+  "tools": {
+    "webhooks": {
+      "title": "Webhooks",
+      "subtitle": "Bắt và xem các yêu cầu HTTP đến với URL công khai cá nhân.",
+      "backToTools": "Quay lại Tools",
+      "urlTitle": "URL công khai của bạn",
+      "urlHint": "Gửi bất kỳ phương thức HTTP đến URL này. Yêu cầu sẽ xuất hiện trong hộp thư sau khi làm mới.",
+      "publicUrlLabel": "URL webhook công khai",
+      "inboxLabel": "Hộp thư yêu cầu",
+      "totals": "{{active}} đang hiện · {{lifetime}} tổng nhận",
+      "actions": {
+        "copy": "Sao chép URL",
+        "copied": "Đã sao chép",
+        "refresh": "Làm mới",
+        "regenerate": "Tạo lại URL",
+        "confirmRegenerate": "Tạo lại",
+        "cancel": "Hủy",
+        "remove": "Xóa",
+        "clearAll": "Xóa tất cả",
+        "confirmClearAll": "Xóa tất cả",
+        "markRead": "Đánh dấu đã đọc",
+        "markUnread": "Đánh dấu chưa đọc"
+      },
+      "regenerate": {
+        "title": "Tạo lại URL công khai?",
+        "description": "URL hiện tại sẽ ngừng nhận yêu cầu. Lịch sử hộp thư vẫn giữ. Client phải dùng URL mới."
+      },
+      "clearAll": {
+        "title": "Xóa tất cả yêu cầu?",
+        "description": "Soft-delete {{count}} yêu cầu đang hiện. Tổng lifetime vẫn giữ; chúng sẽ không còn trong hộp thư."
+      },
+      "filters": {
+        "open": "Lọc",
+        "title": "Bộ lọc",
+        "clear": "Xóa lọc",
+        "search": "Tìm kiếm",
+        "searchPlaceholder": "URL, đường dẫn, hoặc đoạn nội dung",
+        "method": "Phương thức",
+        "allMethods": "Tất cả",
+        "readStatus": "Trạng thái",
+        "read": {
+          "all": "Tất cả",
+          "unread": "Chưa đọc",
+          "read": "Đã đọc"
+        }
+      },
+      "badges": {
+        "unread": "Chưa đọc",
+        "read": "Đã đọc"
+      },
+      "empty": {
+        "title": "Chưa có yêu cầu",
+        "body": "Gửi GET hoặc POST đến URL công khai để thấy bản ghi đầu tiên."
+      },
+      "pagination": {
+        "prev": "Trước",
+        "next": "Sau",
+        "page": "Trang {{page}}"
+      },
+      "detail": {
+        "selectPrompt": "Chọn một yêu cầu để xem body, query, form và headers.",
+        "loadError": "Không tải được yêu cầu này.",
+        "headers": "Headers",
+        "query": "Query",
+        "form": "Form",
+        "body": "Body",
+        "binary": "Nhị phân",
+        "truncated": "Bị cắt",
+        "binaryBodyHint": "Body là nhị phân; xem trước có thể là base64 hoặc marker ngắn."
+      },
+      "list": {
+        "loading": "Đang tải…",
+        "showing": "Hiện {{shown}} / {{total}} · trang {{page}}"
+      },
+      "toasts": {
+        "copied": "Đã sao chép URL công khai",
+        "copyFailed": "Không sao chép được URL",
+        "regenerated": "Đã tạo lại URL công khai",
+        "regenerateFailed": "Không tạo lại được URL công khai",
+        "removed": "Đã xóa yêu cầu",
+        "removeFailed": "Không xóa được yêu cầu",
+        "cleared": "Đã xóa tất cả yêu cầu",
+        "clearFailed": "Không xóa tất cả được",
+        "readFailed": "Không cập nhật trạng thái đọc"
+      },
+      "errors": {
+        "inboxLoad": "Không tải được hộp thư webhook. Đăng nhập lại hoặc thử sau."
+      }
     }
   }
 }

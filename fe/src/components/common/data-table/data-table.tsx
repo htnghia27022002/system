@@ -138,7 +138,14 @@ export function DataTable<TData, TValue = unknown>({
             </div>
           )}
           {toolbar && (
-            <div className="flex shrink-0 items-center gap-2">{toolbar}</div>
+            <div
+              className={cn(
+                'flex items-center gap-2',
+                !hasFilter && 'w-full flex-wrap',
+              )}
+            >
+              {toolbar}
+            </div>
           )}
         </div>
       )}
@@ -172,62 +179,71 @@ export function DataTable<TData, TValue = unknown>({
         {/* Desktop table — visible from md */}
         <div
           className={cn(
-            'hidden min-w-0 rounded-xl border md:flex md:flex-col',
+            'hidden min-w-0 md:flex md:flex-col',
             isRefreshing && 'opacity-60',
           )}
         >
-        <div className="relative w-full overflow-x-auto">
-          <Table>
-            <TableHeader className="bg-muted/50">
-              {table.getHeaderGroups().map((headerGroup) => (
-                <TableRow
-                  key={headerGroup.id}
-                  className="hover:bg-transparent"
-                >
-                  {headerGroup.headers.map((header) => (
-                    <TableHead
-                      key={header.id}
-                      className="text-xs font-semibold uppercase tracking-wide text-muted-foreground"
-                      style={{
-                        width: header.getSize() !== 150 ? header.getSize() : undefined,
-                      }}
+          <div className="overflow-hidden rounded-xl border border-border">
+            <div className="relative w-full overflow-x-auto">
+              <Table>
+                <TableHeader className="bg-muted/50">
+                  {table.getHeaderGroups().map((headerGroup) => (
+                    <TableRow
+                      key={headerGroup.id}
+                      className="hover:bg-transparent"
                     >
-                      {header.isPlaceholder
-                        ? null
-                        : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext(),
-                          )}
-                    </TableHead>
+                      {headerGroup.headers.map((header) => (
+                        <TableHead
+                          key={header.id}
+                          className="text-xs font-semibold uppercase tracking-wide text-muted-foreground"
+                          style={{
+                            width:
+                              header.getSize() !== 150
+                                ? header.getSize()
+                                : undefined,
+                          }}
+                        >
+                          {header.isPlaceholder
+                            ? null
+                            : flexRender(
+                                header.column.columnDef.header,
+                                header.getContext(),
+                              )}
+                        </TableHead>
+                      ))}
+                    </TableRow>
                   ))}
-                </TableRow>
-              ))}
-            </TableHeader>
-            <TableBody>
-              {rows.length === 0 ? (
-                <TableRow className="hover:bg-transparent">
-                  <TableCell colSpan={columns.length}>{emptyState}</TableCell>
-                </TableRow>
-              ) : (
-                rows.map((row) => (
-                  <TableRow
-                    key={row.id}
-                    data-state={row.getIsSelected() ? 'selected' : undefined}
-                  >
-                    {row.getVisibleCells().map((cell) => (
-                      <TableCell key={cell.id}>
-                        {flexRender(
-                          cell.column.columnDef.cell,
-                          cell.getContext(),
-                        )}
+                </TableHeader>
+                <TableBody>
+                  {rows.length === 0 ? (
+                    <TableRow className="hover:bg-transparent">
+                      <TableCell colSpan={columns.length}>
+                        {emptyState}
                       </TableCell>
-                    ))}
-                  </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
-        </div>
+                    </TableRow>
+                  ) : (
+                    rows.map((row) => (
+                      <TableRow
+                        key={row.id}
+                        data-state={
+                          row.getIsSelected() ? 'selected' : undefined
+                        }
+                      >
+                        {row.getVisibleCells().map((cell) => (
+                          <TableCell key={cell.id}>
+                            {flexRender(
+                              cell.column.columnDef.cell,
+                              cell.getContext(),
+                            )}
+                          </TableCell>
+                        ))}
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+          </div>
 
           {showPagination ? <DataTablePagination table={table} /> : null}
         </div>

@@ -62,8 +62,8 @@ You **MUST** consider the user input before proceeding (if not empty).
    - Fill Technical Context (mark unknowns as "NEEDS CLARIFICATION")
    - Fill Constitution Check section from constitution
    - Evaluate gates (ERROR if violations unjustified)
-   - Phase 0: Generate research.md (resolve all NEEDS CLARIFICATION)
-   - Phase 1: Generate data-model.md, contracts/, quickstart.md
+   - Phase 0: Generate research.md (resolve all NEEDS CLARIFICATION) — may be folded into `plan.md` Research Decisions when using this monorepo’s style
+   - Phase 1: Generate `contracts/database.md`, `contracts/endpoints.md`, `contracts/permissions.md`, fill `plan.md` (link to contracts); optional `quickstart.md`
    - Phase 1: Update agent context by running the agent script
    - Re-evaluate Constitution Check post-design
 
@@ -133,38 +133,51 @@ Command ends after Phase 2 planning. Report branch, IMPL_PLAN path, and generate
 
 ### Phase 1: Design & Contracts
 
-**Prerequisites:** `research.md` complete
+**Prerequisites:** `research.md` complete (or research folded into `plan.md` when using the project’s single-plan style)
 
-1. **Extract entities from feature spec** → `data-model.md`:
-   - Entity name, fields, relationships
-   - Validation rules from requirements
-   - State transitions if applicable
+**Project override (mandatory):** Always write contracts under the feature folder — do **not** skip this step for “flat layout”. See `.cursor/rules/feature-contracts.mdc` and `.cursor/rules/feature-permissions.mdc`.
 
-2. **Define interface contracts** (if project has external interfaces) → `/contracts/`:
-   - Identify what interfaces the project exposes to users or other systems
-   - Document the contract format appropriate for the project type
-   - Examples: public APIs for libraries, command schemas for CLI tools, endpoints for web services, grammars for parsers, UI contracts for applications
-   - Skip if project is purely internal (build scripts, one-off tools, etc.)
+1. **Extract entities from feature spec** → `contracts/database.md`:
+   - Tables/entities, columns, types, nullability, defaults
+   - PK / UNIQUE / FK / indexes
+   - Migration file name under `be/migrations/` when applicable
+   - If no persistence: keep the file and mark **N/A** with reason
+   - Start from `docs/templates/contracts/database.md`
 
-3. **Create quickstart validation guide** → `quickstart.md`:
-   - Document runnable validation scenarios that prove the feature works end-to-end
-   - Include prerequisites, setup commands, test/run commands, and expected outcomes
-   - Use links or references to contracts and data model details instead of duplicating them
-   - Do not include full implementation code, model/service/controller bodies, migrations, or complete test suites
-   - Keep this artifact as a validation/run guide; implementation details belong in `tasks.md` and the implementation phase
+2. **Define HTTP API contracts** → `contracts/endpoints.md`:
+   - Method, path under `/api`, auth, request/response (camelCase JSON)
+   - Important error statuses; product/edge path rewrites if any
+   - If no new HTTP API: keep the file and mark **N/A** with reason
+   - Start from `docs/templates/contracts/endpoints.md`
 
-4. **Agent context update**:
+3. **Define RBAC permissions** → `contracts/permissions.md`:
+   - `{resource}:view` / `{resource}:modify` keys, admin menu gate, route map
+   - If no admin API/menu/PermissionGuard: mark **N/A** with reason
+   - Start from `docs/templates/contracts/permissions.md`
+
+4. **Fill `plan.md`** using the IMPL_PLAN template:
+   - Technical Context, Constitution Check, research decisions, structure, handoff
+   - **Link** to `contracts/database.md`, `contracts/endpoints.md`, and `contracts/permissions.md` — do not treat inlined tables in `plan.md` as the only source of truth
+   - Optional: short summary tables in `plan.md` that point to contracts
+
+5. **Create quickstart validation guide** → `quickstart.md` **only if** useful for this feature (optional in this monorepo):
+   - Document runnable validation scenarios; link to contracts instead of duplicating them
+
+6. **Agent context update**:
    - Update the plan reference between the `<!-- SPECKIT START -->` and `<!-- SPECKIT END -->` markers in `.cursor/rules/specify-rules.mdc` to point to the plan file created in step 1 (the IMPL_PLAN path)
 
-**Output**: data-model.md, /contracts/*, quickstart.md, updated agent context file
+**Output (required):** `plan.md`, `contracts/database.md`, `contracts/endpoints.md`, `contracts/permissions.md`, updated agent context file
+**Output (optional):** `research.md`, `quickstart.md`, root-level `data-model.md` (prefer `contracts/database.md` instead)
 
 ## Key rules
 
 - Use absolute paths for filesystem operations; use project-relative paths for references in documentation and agent context files
 - ERROR on gate failures or unresolved clarifications
+- Missing any of `contracts/database.md`, `contracts/endpoints.md`, or `contracts/permissions.md` after plan = incomplete design (block implement handoff)
 
 ## Done When
 
 - [ ] Plan workflow executed and design artifacts generated
+- [ ] `contracts/database.md`, `contracts/endpoints.md`, and `contracts/permissions.md` exist under the feature folder
 - [ ] Extension hooks dispatched or skipped according to the rules in Mandatory Post-Execution Hooks above
-- [ ] Completion reported to user with branch, plan path, and generated artifacts
+- [ ] Completion reported to user with branch, plan path, contracts paths, and generated artifacts

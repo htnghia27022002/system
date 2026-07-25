@@ -1,19 +1,9 @@
-import type { Metadata } from 'next'
+import { redirect } from 'next/navigation'
 
-import { WebhooksToolPage } from '@/features/tools'
-
-export const metadata: Metadata = {
-  title: 'Webhooks - Tools',
-  description:
-    'Webhooks tool workspace shell. Inspect deliveries and debug integrations from System Tools.',
-  openGraph: {
-    title: 'Webhooks - Tools',
-    description:
-      'Webhooks tool workspace shell. Inspect deliveries and debug integrations from System Tools.',
-    type: 'website',
-  },
-}
-
-export default function WebhooksPage() {
-  return <WebhooksToolPage />
+/**
+ * Owner Webhooks UI lives under admin RBAC.
+ * Public capture remains `/tools/webhooks/{uuid}` (nginx / Next rewrite → BE).
+ */
+export default function WebhooksOwnerRedirectPage() {
+  redirect('/admin/tools/webhooks')
 }

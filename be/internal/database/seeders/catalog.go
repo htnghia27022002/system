@@ -64,6 +64,20 @@ func DefaultPermissions() []PermissionDef {
 			Group:       "permissions",
 			Description: "View the permissions catalog",
 		},
+		{
+			ID:          "10000001-0000-4000-8000-000000000017",
+			Key:         rbac.Key("webhooks", rbac.ActionView),
+			Name:        "View webhooks",
+			Group:       "webhooks",
+			Description: "View webhook inbox and captured requests",
+		},
+		{
+			ID:          "10000001-0000-4000-8000-000000000018",
+			Key:         rbac.Key("webhooks", rbac.ActionModify),
+			Name:        "Modify webhooks",
+			Group:       "webhooks",
+			Description: "Regenerate webhook URL and soft-delete captured requests",
+		},
 	}
 }
 

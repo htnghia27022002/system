@@ -7,6 +7,6 @@
  */
 export const heroCharacterConfig = {
   /** Prefer procedural while iterating look; GLB mirrors the same builder. */
-  mode: 'procedural' as 'procedural' | 'gltf',
+  mode: 'gltf' as 'procedural' | 'gltf',
   gltfUrl: '/models/hero-character.glb',
 } as const

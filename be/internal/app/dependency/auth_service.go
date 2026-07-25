@@ -1,6 +1,7 @@
 package dependency
 
 import (
+	"be/internal/services/media"
 	authsvc "be/internal/services/auth"
 )
 
@@ -10,7 +11,7 @@ type AuthServices struct {
 	OAuth *authsvc.OAuthService
 }
 
-func NewAuthServices(infra *Infra) *AuthServices {
+func NewAuthServices(infra *Infra, mediaSvc *media.Service) *AuthServices {
 	authRepo := newAuthRepository(infra.DB)
 	userRepo := newUserRepository(infra.DB)
 	roleRepo := newRoleRepository(infra.DB)
@@ -21,6 +22,7 @@ func NewAuthServices(infra *Infra) *AuthServices {
 		roleRepo,
 		infra.JWT,
 		infra.Config.JWTRefreshTTL,
+		mediaSvc,
 	)
 
 	return &AuthServices{

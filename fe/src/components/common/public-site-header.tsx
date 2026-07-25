@@ -31,7 +31,7 @@ type PublicSiteHeaderProps = {
 
 /**
  * Shared public chrome: brand, Navigate (Home/Tools), auth, LocaleSelect, ThemeToggle.
- * Mounted on `/`, `/tools`, and `/tools/webhooks`.
+ * Mounted on `/` and `/tools` (owner Webhooks UI is under `/admin/tools/webhooks`).
  */
 export function PublicSiteHeader({
   variant = 'tools',
@@ -40,12 +40,16 @@ export function PublicSiteHeader({
 }: PublicSiteHeaderProps) {
   const { t } = useTranslation('common')
   const accessToken = useAuthStore((state) => state.accessToken)
+  const hasHydrated = useAuthStore((state) => state.hasHydrated)
   const signOutMutation = useSignOut()
   const [mobileOpen, setMobileOpen] = useState(false)
 
   const closeMobile = () => setMobileOpen(false)
 
-  const authControls = accessToken ? (
+  // Match SSR until auth rehydrates from localStorage (avoids Sign in ↔ Admin flash/mismatch).
+  const showAuthed = hasHydrated && Boolean(accessToken)
+
+  const authControls = showAuthed ? (
     <>
       <Button variant="ghost" size="sm" asChild>
         <Link href="/admin">{t('nav.admin')}</Link>
@@ -70,7 +74,7 @@ export function PublicSiteHeader({
     </>
   )
 
-  const mobileAuth = accessToken ? (
+  const mobileAuth = showAuthed ? (
     <>
       <Button variant="ghost" className="justify-start" asChild onClick={closeMobile}>
         <Link href="/admin">{t('nav.admin')}</Link>

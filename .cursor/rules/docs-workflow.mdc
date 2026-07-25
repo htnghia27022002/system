@@ -1,5 +1,5 @@
 ---
-description: Feature workflow order spec → tasks → plan → implement → verify → test. Flat files in docs/features/.
+description: Feature workflow order spec → tasks → plan (+ contracts) → implement → verify → test.
 globs:
   - docs/**/*
   - .specify/**/*
@@ -25,17 +25,17 @@ Chat in any language; **docs/features/** output **English only** (`english-only-
 ## Phase order (do not skip)
 
 1. **spec.md** — `@ba` `/speckit-specify`
-2. **tasks.md** — `@technical-architect` `/speckit-tasks` (from spec)
-3. **plan.md** — `@technical-architect` `/speckit-plan`
+2. **tasks.md** — `@technical-architect` `/speckit-tasks`
+3. **plan.md** + **contracts/** — `@technical-architect` `/speckit-plan`
 4. **implement + verify** — `@be` `@fe` `/speckit-implement` → `be-tasks-verify.md` / `fe-tasks-verify.md`
 5. **test** — `@qa` `/speckit-checklist`, `make test`
 
-## Flat feature folder
+## Feature folder
 
 ```text
-spec.md → tasks.md → plan.md → (code) → be-tasks-verify.md / fe-tasks-verify.md → qa-checklist.md
+spec.md → tasks.md → plan.md + contracts/{database,endpoints,permissions}.md → (code) → *-tasks-verify.md → qa-checklist.md
 ```
 
-No role subfolders. No `be-implement.md` / `fe-implement.md`.
+No role subfolders. Nested **`contracts/`** (database, endpoints, permissions). See `feature-contracts.mdc` and `feature-permissions.mdc`.
 
 Prompts: [`docs/workflow/agent-prompts.md`](../../docs/workflow/agent-prompts.md)

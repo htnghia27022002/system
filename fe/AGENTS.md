@@ -17,7 +17,8 @@ When relocating the frontend, move the entire `fe/` directory. Update only exter
 ## 1) Source of Truth
 
 - Use `README.md` in this folder as the architecture baseline.
-- Use `src/styles/index.css` (`:root` / `.dark` CSS variables) as the visual theme baseline for all UI work.
+- Use **[`DESIGN.md`](./DESIGN.md)** for all visual / UI design rules (theme tokens, page spacing, mobile, clickable table links, component consistency).
+- Theme tokens live in `src/styles/index.css` (`:root` / `.dark`) — see `DESIGN.md`.
 
 ## 2) Stack
 
@@ -110,6 +111,18 @@ All guards are Client Components in `src/features/auth/` (or `access-control/`):
 | `AdminGuard` | `app/admin/layout.tsx` | Redirects non-admin to `/` |
 | `PermissionGuard` | Inside each admin `page.tsx` | Redirects without permission to `/admin` |
 
+### 7.1) New feature permissions + admin menu (mandatory)
+
+When adding an admin page or sidebar entry:
+
+1. Extend `PermissionKeys` / `PermissionResource` in `src/features/access-control/permission-keys.ts`.
+2. Wrap the page with `PermissionGuard` using the **view** key.
+3. Add the nav item in `src/components/common/app-sidebar.tsx` with `permission: PermissionKeys.<resource>.view` and **filter with `hasPermission`** — never show the link without the key.
+4. Gate mutate actions with `PermissionGate` + **modify** key.
+5. Align with `docs/features/.../contracts/permissions.md`.
+
+See `.cursor/rules/feature-permissions.mdc`.
+
 ## 8) File Placement Rules
 
 | What | Where |
@@ -125,7 +138,7 @@ All guards are Client Components in `src/features/auth/` (or `access-control/`):
 | Zustand stores | `src/store/` |
 | API client / interceptors | `src/services/` |
 | Env config | `src/config/env.ts` |
-| i18n JSON | `src/locales/` |
+| i18n JSON | `src/locales/` (`en/` English; `vi/` UTF-8 Vietnamese **with diacritics** — see `.cursor/rules/locale-vi-utf8.mdc`) |
 | Global styles | `src/styles/index.css` |
 | Tests | Colocated `*.test.ts` / `*.test.tsx` |
 
@@ -165,4 +178,4 @@ All guards are Client Components in `src/features/auth/` (or `access-control/`):
 3. Does a new public `app/page.tsx` export `metadata`?
 4. Are feature boundaries respected?
 5. Is content written in English?
-6. Was a shadcn component used before writing custom markup?
+6. Does UI follow [`DESIGN.md`](./DESIGN.md)? (theme tokens, matching page padding, mobile, clickable cells as links, shadcn first)

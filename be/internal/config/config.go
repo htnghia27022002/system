@@ -34,6 +34,9 @@ type Config struct {
 	Cache    CacheConfig
 
 	Elasticsearch ElasticsearchConfig
+
+	// UploadDir is the local filesystem root for uploaded media (avatars). Owned by be/.env.
+	UploadDir string
 }
 
 type ElasticsearchConfig struct {
@@ -168,6 +171,8 @@ func Load() Config {
 			"http://localhost:9200",
 		),
 	}
+
+	cfg.UploadDir = firstNonEmpty(os.Getenv("UPLOAD_DIR"), "data/uploads")
 
 	if cfg.DBPass == "" {
 		cfg.DBPass = "postgres"

@@ -17,9 +17,7 @@ export const toolsFeatureContent = {
   backToTools: 'Back to Tools',
   webhooks: {
     title: 'Webhooks',
-    subtitle: 'Inspect deliveries and debug integrations from one workspace.',
-    placeholderTitle: 'Workspace coming online',
-    placeholderBody:
-      'This page proves the nested /tools/{id} pattern. Full webhook runtime features ship in a later phase.',
+    subtitle:
+      'Get a personal public URL, capture inbound HTTP requests, and inspect headers, query, form, and body.',
   },
 } as const

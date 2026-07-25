@@ -3,6 +3,9 @@ package user
 import (
 	"context"
 	"fmt"
+	"mime/multipart"
+	"strings"
+	"time"
 
 	apperrors "be/internal/common/errors"
 	"be/pkg/hash"
@@ -11,6 +14,7 @@ import (
 	usermodel "be/internal/models/user"
 	searchpkg "be/internal/search"
 	"be/internal/repository/interfaces"
+	"be/internal/services/media"
 )
 
 type OutboxEnqueuer interface {
@@ -20,11 +24,18 @@ type OutboxEnqueuer interface {
 
 type Service struct {
 	repo   interfaces.UserRepository
+	auth   interfaces.AuthRepository
 	outbox OutboxEnqueuer
+	media  *media.Service
 }
 
-func NewService(repo interfaces.UserRepository, outbox OutboxEnqueuer) *Service {
-	return &Service{repo: repo, outbox: outbox}
+func NewService(
+	repo interfaces.UserRepository,
+	auth interfaces.AuthRepository,
+	outbox OutboxEnqueuer,
+	mediaSvc *media.Service,
+) *Service {
+	return &Service{repo: repo, auth: auth, outbox: outbox, media: mediaSvc}
 }
 
 func (s *Service) Create(ctx context.Context, req userdto.CreateUserRequest) (*usermodel.User, error) {
@@ -41,6 +52,11 @@ func (s *Service) Create(ctx context.Context, req userdto.CreateUserRequest) (*u
 		return nil, err
 	}
 
+	normalized, err := userdto.ValidatePersonalFields(req.Phone, req.General, req.Birthday, req.Address, req.SocialLinks)
+	if err != nil {
+		return nil, err
+	}
+
 	status := usermodel.StatusActive
 	if req.Status != "" {
 		status = usermodel.Status(req.Status)
@@ -49,10 +65,16 @@ func (s *Service) Create(ctx context.Context, req userdto.CreateUserRequest) (*u
 	user := &usermodel.User{
 		Email:        req.Email,
 		PasswordHash: hashed,
-		FullName:     req.Name,
+		FullName:     strings.TrimSpace(req.Name),
 		RoleID:       req.RoleID,
 		Status:       status,
+		SocialLinks:  []usermodel.SocialLink{},
 	}
+	normalized.Apply(user)
+	if req.AvatarURL != nil {
+		user.AvatarURL = strings.TrimSpace(*req.AvatarURL)
+	}
+
 	if err := s.repo.Create(ctx, user); err != nil {
 		return nil, err
 	}
@@ -76,6 +98,7 @@ func (s *Service) List(ctx context.Context, form userdto.ListUsersQuery) ([]user
 		OrderBy("created_at DESC").
 		WhereEqual("role_id", form.RoleID).
 		WhereEqual("id", form.ID).
+		WhereEqual("status", form.Status).
 		WhereLikeAny([]string{"email", "full_name"}, form.Search)
 
 	users, total, err := s.repo.List(ctx, q)
@@ -94,6 +117,11 @@ func (s *Service) Update(ctx context.Context, id string, req userdto.UpdateUserR
 		return nil, apperrors.ErrNotFound
 	}
 
+	normalized, err := userdto.ValidatePersonalFields(req.Phone, req.General, req.Birthday, req.Address, req.SocialLinks)
+	if err != nil {
+		return nil, err
+	}
+
 	if req.Email != nil && *req.Email != user.Email {
 		existing, err := s.repo.GetByEmail(ctx, *req.Email)
 		if err != nil {
@@ -105,7 +133,7 @@ func (s *Service) Update(ctx context.Context, id string, req userdto.UpdateUserR
 		user.Email = *req.Email
 	}
 	if req.Name != nil {
-		user.FullName = *req.Name
+		user.FullName = strings.TrimSpace(*req.Name)
 	}
 	if req.RoleID != nil {
 		user.RoleID = *req.RoleID
@@ -123,9 +151,44 @@ func (s *Service) Update(ctx context.Context, id string, req userdto.UpdateUserR
 		}
 		user.PasswordHash = hashed
 	}
+	normalized.Apply(user)
+	if req.AvatarURL != nil {
+		user.AvatarURL = strings.TrimSpace(*req.AvatarURL)
+	}
 
 	if err := s.repo.Update(ctx, user); err != nil {
 		return nil, err
+	}
+	s.enqueueUpsert(ctx, searchpkg.EntityUser, user.ID)
+	return user, nil
+}
+
+func (s *Service) UploadAvatar(ctx context.Context, id string, file multipart.File, header *multipart.FileHeader) (*usermodel.User, error) {
+	if s.media == nil {
+		return nil, fmt.Errorf("%w: media storage is not configured", apperrors.ErrBadRequest)
+	}
+
+	user, err := s.repo.GetByID(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	if user == nil {
+		return nil, apperrors.ErrNotFound
+	}
+
+	publicPath, err := s.media.SaveAvatar(file, header)
+	if err != nil {
+		return nil, err
+	}
+
+	prev := user.AvatarURL
+	user.AvatarURL = publicPath
+	if err := s.repo.Update(ctx, user); err != nil {
+		s.media.DeleteByPublicPath(publicPath)
+		return nil, err
+	}
+	if prev != "" && prev != publicPath {
+		s.media.DeleteByPublicPath(prev)
 	}
 	s.enqueueUpsert(ctx, searchpkg.EntityUser, user.ID)
 	return user, nil
@@ -163,12 +226,64 @@ func (s *Service) enqueueDelete(ctx context.Context, entityType, entityID string
 	_ = s.outbox.EnqueueDelete(ctx, entityType, entityID)
 }
 
-func ToResponse(user *usermodel.User) userdto.UserResponse {
-	return userdto.UserResponse{
-		ID:     user.ID,
-		Email:  user.Email,
-		Name:   user.FullName,
-		RoleID: user.RoleID,
-		Status: string(user.Status),
+func ToResponse(user *usermodel.User, oauthProviders ...string) userdto.UserResponse {
+	links := user.SocialLinks
+	if links == nil {
+		links = []usermodel.SocialLink{}
 	}
+	providers := oauthProviders
+	if providers == nil {
+		providers = []string{}
+	}
+	return userdto.UserResponse{
+		ID:             user.ID,
+		Email:          user.Email,
+		Name:           user.FullName,
+		RoleID:         user.RoleID,
+		Status:         string(user.Status),
+		Phone:          user.Phone,
+		AvatarURL:      user.AvatarURL,
+		General:        user.General,
+		Birthday:       userdto.FormatBirthday(user.Birthday),
+		Address:        user.Address,
+		SocialLinks:    userdto.SocialLinksToDTO(links),
+		OAuthProviders: providers,
+		CreatedAt:      user.CreatedAt.UTC().Format(time.RFC3339),
+	}
+}
+
+// ResponsesForUsers builds UserResponse rows and batch-loads OAuth providers.
+func (s *Service) ResponsesForUsers(ctx context.Context, users []usermodel.User) ([]userdto.UserResponse, error) {
+	providersByUser := map[string][]string{}
+	if s.auth != nil && len(users) > 0 {
+		ids := make([]string, 0, len(users))
+		for i := range users {
+			ids = append(ids, users[i].ID)
+		}
+		var err error
+		providersByUser, err = s.auth.ListProvidersByUserIDs(ctx, ids)
+		if err != nil {
+			return nil, err
+		}
+	}
+	items := make([]userdto.UserResponse, 0, len(users))
+	for i := range users {
+		items = append(items, ToResponse(&users[i], providersByUser[users[i].ID]...))
+	}
+	return items, nil
+}
+
+// ResponseForUser builds one UserResponse including linked OAuth providers.
+func (s *Service) ResponseForUser(ctx context.Context, user *usermodel.User) (userdto.UserResponse, error) {
+	if user == nil {
+		return userdto.UserResponse{}, apperrors.ErrNotFound
+	}
+	items, err := s.ResponsesForUsers(ctx, []usermodel.User{*user})
+	if err != nil {
+		return userdto.UserResponse{}, err
+	}
+	if len(items) == 0 {
+		return ToResponse(user), nil
+	}
+	return items[0], nil
 }

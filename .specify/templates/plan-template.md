@@ -51,10 +51,16 @@ docs/features/[###-feature]/
 ├── spec.md              # BA (/speckit-specify)
 ├── plan.md              # Speckit plan (/speckit-plan)
 ├── tasks.md             # Task list (/speckit-tasks)
+├── contracts/
+│   ├── database.md      # Persistence contract (architect)
+│   ├── endpoints.md     # HTTP API contract (architect)
+│   └── permissions.md   # RBAC keys + admin menu (architect)
 ├── be-tasks-verify.md   # BE task completion + verify (@be)
 ├── fe-tasks-verify.md   # FE task completion + verify (@fe)
 └── qa-checklist.md      # QA test cases
 ```
+
+> During `/speckit-plan`, always create `contracts/database.md`, `contracts/endpoints.md`, and `contracts/permissions.md` (use N/A inside a file when appropriate). Templates: `docs/templates/contracts/`. Rules: `.cursor/rules/feature-contracts.mdc`, `.cursor/rules/feature-permissions.mdc`.
 
 ### Source Code (repository root)
 <!--

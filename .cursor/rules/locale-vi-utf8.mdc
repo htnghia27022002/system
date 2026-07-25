@@ -1,0 +1,30 @@
+---
+description: Vietnamese locale files must use UTF-8 with full diacritics.
+globs:
+  - fe/src/locales/vi/**
+  - fe/src/locales/**/vi/**
+alwaysApply: false
+---
+
+# Vietnamese locales (UTF-8 + diacritics)
+
+When creating or editing **Vietnamese** UI copy under `fe/src/locales/vi/` (and any future `**/locales/vi/**`):
+
+## Required
+
+1. **Encoding:** files MUST be saved as **UTF-8** (no BOM).
+2. **Diacritics:** use full Vietnamese accents — e.g. `Người dùng`, `Đăng nhập`, `Quản trị` — **not** ASCII-stripped forms like `Nguoi dung`, `Dang nhap`, `Quan tri`.
+3. Keep **i18n keys** and `{{placeholders}}` identical to the English locale companion (`fe/src/locales/en/...`).
+4. Keep product/brand/technical tokens unchanged when intentional: `OAuth`, `Email`, `URL`, `Webhooks`, `Dashboard`, `Slug`, HTTP method names, etc.
+5. Prefer natural Vietnamese UI phrasing; do not mix tone-stripped and accented text in the same file.
+
+## Do not
+
+- Write Vietnamese without dấu for “safety” or terminal compatibility.
+- Replace accents with approximate ASCII when editing existing `vi` strings.
+- Put Vietnamese UI strings in English locale files (`fe/src/locales/en/`).
+
+## Related
+
+- Source / docs / feature specs stay English: `.cursor/rules/english-only-file-edits.mdc`
+- Exception for `fe/src/locales/vi/` is intentional and required for product UX

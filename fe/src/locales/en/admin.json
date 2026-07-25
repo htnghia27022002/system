@@ -13,8 +13,9 @@
     "themeLight": "Light",
     "themeDark": "Dark",
     "themeSystem": "System",
-    "switchToVi": "Switch to Vietnamese",
-    "switchToEn": "Switch to English"
+    "language": "Language",
+    "localeEn": "English",
+    "localeVi": "Vietnamese"
   },
   "nav": {
     "platform": "Platform",
@@ -24,6 +25,8 @@
     "users": "Users",
     "roles": "Roles",
     "permissions": "Permissions",
+    "tools": "Tools",
+    "webhooks": "Webhooks",
     "search": "Search"
   },
   "search": {
@@ -80,18 +83,42 @@
       "emptyDescription": "Create a user account to get started.",
       "filterPlaceholder": "Search users…",
       "error": "Could not load users.",
+      "filters": {
+        "role": "Role",
+        "status": "Status",
+        "allRoles": "All roles",
+        "allStatuses": "All statuses"
+      },
       "sections": {
         "account": "Account details",
+        "personal": "Personal information",
         "access": "Access"
       },
       "fields": {
         "name": "Name",
         "email": "Email",
+        "oauth": "OAuth",
+        "index": "#",
+        "createdAt": "Created at",
         "password": "Password",
         "passwordOptional": "leave blank to keep current",
         "passwordOptionalHint": "Leave blank to keep the current password.",
         "role": "Role",
-        "status": "Status"
+        "status": "Status",
+        "phone": "Phone",
+        "general": "General",
+        "birthday": "Birthday",
+        "address": "Address",
+        "avatarHint": "Optional. JPEG, PNG, or WebP up to 2 MB."
+      },
+      "actions": {
+        "changeAvatar": "Change avatar"
+      },
+      "toasts": {
+        "avatarUpdated": "Avatar updated"
+      },
+      "errors": {
+        "avatarUpload": "Could not upload avatar"
       },
       "status": {
         "active": "Active",
@@ -152,6 +179,61 @@
       "activeSessions": "Active sessions",
       "revenue": "Revenue",
       "ordersToday": "Orders today"
+    }
+  },
+  "profile": {
+    "title": "Account settings",
+    "description": "Manage your personal information, avatar, and password.",
+    "sections": {
+      "avatar": "Avatar",
+      "personalInfo": "Personal information",
+      "identity": "Identity",
+      "personal": "Details",
+      "password": "Change password"
+    },
+    "fields": {
+      "name": "Full name",
+      "email": "Email",
+      "emailHint": "Email cannot be changed here.",
+      "phone": "Phone",
+      "general": "General",
+      "birthday": "Birthday",
+      "address": "Address",
+      "socialLinks": "Social links",
+      "socialLinksHint": "Up to 5 links. URL required; label optional.",
+      "socialLabel": "Label",
+      "socialLabelPlaceholder": "e.g. GitHub",
+      "socialUrl": "URL",
+      "currentPassword": "Current password",
+      "newPassword": "New password",
+      "confirmPassword": "Confirm new password"
+    },
+    "avatar": {
+      "hint": "JPEG, PNG, or WebP. Maximum 2 MB."
+    },
+    "actions": {
+      "saveProfile": "Save profile",
+      "changeAvatar": "Change avatar",
+      "changePassword": "Update password",
+      "addLink": "Add link",
+      "removeLink": "Remove link"
+    },
+    "empty": {
+      "socialLinks": "No social links yet."
+    },
+    "password": {
+      "unavailable": "Password change is unavailable for this account because it has no password credential (for example, sign-in with a provider only)."
+    },
+    "toasts": {
+      "profileSaved": "Profile saved",
+      "avatarUpdated": "Avatar updated",
+      "passwordChanged": "Password updated"
+    },
+    "errors": {
+      "loadFailed": "Could not load your profile.",
+      "saveFailed": "Could not save profile",
+      "avatarUpload": "Could not upload avatar",
+      "passwordFailed": "Could not change password"
     }
   }
 }

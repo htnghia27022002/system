@@ -58,6 +58,18 @@ const SEED_PERMISSIONS: Permission[] = [
     group: 'permissions',
     description: 'View the permissions catalog',
   },
+  {
+    key: 'webhooks:view',
+    name: 'View webhooks',
+    group: 'webhooks',
+    description: 'Open the webhooks inbox and list captured requests',
+  },
+  {
+    key: 'webhooks:modify',
+    name: 'Modify webhooks',
+    group: 'webhooks',
+    description: 'Regenerate the public URL and soft-delete captured requests',
+  },
 ]
 
 const ALL_PERMISSION_KEYS = SEED_PERMISSIONS.map((p) => p.key)
@@ -85,6 +97,8 @@ const SEED_USERS: ManagedUser[] = [
     password: 'admin1234',
     roleId: 'role-admin',
     status: 'active',
+    oauthProviders: [],
+    createdAt: '2026-01-01T00:00:00.000Z',
   },
   {
     id: 'demo-user',
@@ -93,6 +107,8 @@ const SEED_USERS: ManagedUser[] = [
     password: 'password123',
     roleId: 'role-user',
     status: 'active',
+    oauthProviders: ['google'],
+    createdAt: '2026-01-02T00:00:00.000Z',
   },
 ]
 
@@ -476,6 +492,10 @@ export const mockAccessControlApi = {
         users = users.filter((u) => u.id === params.id)
       }
 
+      if (params.status) {
+        users = users.filter((u) => u.status === params.status)
+      }
+
       if (params.search?.trim()) {
         const q = params.search.trim().toLowerCase()
         users = users.filter(
@@ -518,6 +538,14 @@ export const mockAccessControlApi = {
         password: input.password,
         roleId: input.roleId,
         status: input.status ?? 'active',
+        phone: input.phone ?? '',
+        general: input.general ?? '',
+        birthday: input.birthday ?? null,
+        address: input.address ?? '',
+        socialLinks: input.socialLinks ?? [],
+        avatarUrl: '',
+        oauthProviders: [],
+        createdAt: new Date().toISOString(),
       }
       writeUsers([...users, user])
       return user
@@ -589,6 +617,12 @@ export const mockAccessControlApi = {
             : current.password,
         roleId: nextRoleId,
         status: input.status ?? current.status,
+        phone: input.phone ?? current.phone ?? '',
+        general: input.general ?? current.general ?? '',
+        birthday:
+          input.birthday !== undefined ? input.birthday : (current.birthday ?? null),
+        address: input.address ?? current.address ?? '',
+        socialLinks: input.socialLinks ?? current.socialLinks ?? [],
       }
       const next = [...users]
       next[index] = updated
@@ -623,6 +657,22 @@ export const mockAccessControlApi = {
       }
 
       writeUsers(users.filter((u) => u.id !== id))
+    })
+  },
+
+  async uploadUserAvatar(id: string, file: File): Promise<ManagedUser> {
+    return withDelay(() => {
+      const users = readUsers()
+      const index = users.findIndex((u) => u.id === id)
+      if (index < 0) throw new MockAccessControlError('User not found', 404)
+      const updated: ManagedUser = {
+        ...users[index],
+        avatarUrl: URL.createObjectURL(file),
+      }
+      const next = [...users]
+      next[index] = updated
+      writeUsers(next)
+      return updated
     })
   },
 

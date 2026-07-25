@@ -1,6 +1,7 @@
 'use client'
 
 import dynamic from 'next/dynamic'
+import { useEffect, useState } from 'react'
 
 import { cn } from '@/lib/utils'
 
@@ -21,28 +22,35 @@ type HeroCharacterStageProps = {
 }
 
 /**
- * Hero 3D stage — large, fluid size across breakpoints (no tiny capped frame).
+ * Hero 3D stage. Waits for client mount before loading the canvas so
+ * `dynamic(..., { ssr: false })` does not hydrate-mismatch the loading shell.
  */
 export function HeroCharacterStage({ className }: HeroCharacterStageProps) {
   const reducedMotion = useReducedMotion()
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  const showCanvas = mounted && !reducedMotion
 
   return (
     <div
       className={cn(
         'relative mx-auto w-full overflow-hidden rounded-2xl border border-border/70 bg-background/30 shadow-sm',
-        // Mobile: wide + tall enough; desktop: fill column with a solid viewport-based height
-        'aspect-[4/5] max-w-md min-h-[20rem]',
-        'sm:max-w-lg sm:min-h-[24rem]',
-        'md:max-w-xl md:min-h-[28rem]',
-        'lg:aspect-auto lg:max-w-none lg:h-[min(38rem,72vh)] lg:min-h-[32rem]',
-        'xl:h-[min(44rem,76vh)]',
+        'aspect-[4/5] max-w-sm min-h-[18rem]',
+        'sm:max-w-md sm:min-h-[20rem]',
+        'md:max-w-lg md:min-h-[22rem]',
+        'lg:aspect-auto lg:max-w-none lg:h-[min(28rem,58vh)] lg:min-h-[24rem]',
+        'xl:h-[min(32rem,60vh)]',
         className,
       )}
     >
-      {reducedMotion ? (
-        <HeroCharacterPlaceholder className="absolute inset-0" />
-      ) : (
+      {showCanvas ? (
         <HeroCharacterCanvas className="absolute inset-0 h-full w-full" />
+      ) : (
+        <HeroCharacterPlaceholder className="absolute inset-0" />
       )}
     </div>
   )

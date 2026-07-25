@@ -95,6 +95,72 @@ func (h *AuthHandler) Me(c *gin.Context) {
 	response.JSON(c, http.StatusOK, result)
 }
 
+func (h *AuthHandler) UpdateProfile(c *gin.Context) {
+	userID := middleware.GetUserID(c)
+	if userID == "" {
+		response.HandleError(c, apperrors.ErrUnauthorized)
+		return
+	}
+
+	var req authdto.UpdateProfileRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		response.Error(c, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	result, err := h.auth.UpdateProfile(c.Request.Context(), userID, req)
+	if err != nil {
+		response.HandleError(c, err)
+		return
+	}
+	response.JSON(c, http.StatusOK, result)
+}
+
+func (h *AuthHandler) ChangePassword(c *gin.Context) {
+	userID := middleware.GetUserID(c)
+	if userID == "" {
+		response.HandleError(c, apperrors.ErrUnauthorized)
+		return
+	}
+
+	var req authdto.ChangePasswordRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		response.Error(c, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	if err := h.auth.ChangePassword(c.Request.Context(), userID, req.CurrentPassword, req.NewPassword); err != nil {
+		response.HandleError(c, err)
+		return
+	}
+	response.JSON(c, http.StatusOK, authdto.MessageResponse{Message: "password updated"})
+}
+
+func (h *AuthHandler) UploadAvatar(c *gin.Context) {
+	userID := middleware.GetUserID(c)
+	if userID == "" {
+		response.HandleError(c, apperrors.ErrUnauthorized)
+		return
+	}
+
+	file, header, err := c.Request.FormFile("file")
+	if err != nil {
+		file, header, err = c.Request.FormFile("avatar")
+	}
+	if err != nil {
+		response.Error(c, http.StatusBadRequest, "avatar file is required (field: file or avatar)")
+		return
+	}
+	defer file.Close()
+
+	result, err := h.auth.UploadAvatar(c.Request.Context(), userID, file, header)
+	if err != nil {
+		response.HandleError(c, err)
+		return
+	}
+	response.JSON(c, http.StatusOK, result)
+}
+
 func (h *AuthHandler) OAuthStart(c *gin.Context) {
 	provider := c.Param("provider")
 	redirectURI := c.Query("redirect_uri")

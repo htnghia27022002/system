@@ -33,8 +33,10 @@
 ## Phase 3 — Design
 
 ```text
-@technical-architect Design full stack for docs/features/002-auth/ → plan.md
+@technical-architect Design full stack for docs/features/002-auth/ → plan.md + contracts/
 ```
+
+Creates `plan.md`, `contracts/database.md`, `contracts/endpoints.md`, and `contracts/permissions.md` (RBAC keys + admin menu).
 
 ---
 

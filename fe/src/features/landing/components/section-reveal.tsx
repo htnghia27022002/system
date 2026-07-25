@@ -1,7 +1,7 @@
 'use client'
 
 import { motion, type Variants } from 'framer-motion'
-import type { ReactNode } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 
 import { useReducedMotion } from '../hooks/use-reduced-motion'
 
@@ -16,11 +16,16 @@ const variants: Variants = {
   visible: { opacity: 1, y: 0 },
 }
 
-/** Light enter animation — skips when reduced motion is preferred. */
+/** Light enter animation — plain div until mounted to avoid hydration mismatch. */
 export function SectionReveal({ children, className, delay = 0 }: SectionRevealProps) {
   const reducedMotion = useReducedMotion()
+  const [mounted, setMounted] = useState(false)
 
-  if (reducedMotion) {
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  if (!mounted || reducedMotion) {
     return <div className={className}>{children}</div>
   }
 

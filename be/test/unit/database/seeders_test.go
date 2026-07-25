@@ -11,8 +11,8 @@ func TestDefaultPermissionsUseViewModifyKeys(t *testing.T) {
 	t.Parallel()
 
 	perms := seeders.DefaultPermissions()
-	if len(perms) != 6 {
-		t.Fatalf("expected 6 permissions, got %d", len(perms))
+	if len(perms) != 8 {
+		t.Fatalf("expected 8 permissions, got %d", len(perms))
 	}
 
 	keys := map[string]bool{}
@@ -27,6 +27,8 @@ func TestDefaultPermissionsUseViewModifyKeys(t *testing.T) {
 		rbac.Key("roles", rbac.ActionView),
 		rbac.Key("roles", rbac.ActionModify),
 		rbac.Key("permissions", rbac.ActionView),
+		rbac.Key("webhooks", rbac.ActionView),
+		rbac.Key("webhooks", rbac.ActionModify),
 	}
 
 	for _, key := range want {

@@ -14,6 +14,11 @@ export type Role = {
 
 export type ManagedUserStatus = 'active' | 'inactive'
 
+export type SocialLink = {
+  label?: string
+  url: string
+}
+
 export type ManagedUser = {
   id: string
   email: string
@@ -21,6 +26,15 @@ export type ManagedUser = {
   roleId: string
   status: ManagedUserStatus
   password: string
+  phone?: string
+  avatarUrl?: string
+  general?: string
+  birthday?: string | null
+  address?: string
+  socialLinks?: SocialLink[]
+  /** Linked OAuth provider ids, e.g. `google`. */
+  oauthProviders?: string[]
+  createdAt?: string
 }
 
 export type ListUsersParams = {
@@ -29,6 +43,7 @@ export type ListUsersParams = {
   search?: string
   roleId?: string
   id?: string
+  status?: ManagedUserStatus
 }
 
 export type ListRolesParams = {
@@ -59,6 +74,11 @@ export type CreateUserInput = {
   password: string
   roleId: string
   status?: ManagedUserStatus
+  phone?: string
+  general?: string
+  birthday?: string | null
+  address?: string
+  socialLinks?: SocialLink[]
 }
 
 export type UpdateUserInput = {
@@ -67,6 +87,11 @@ export type UpdateUserInput = {
   password?: string
   roleId?: string
   status?: ManagedUserStatus
+  phone?: string
+  general?: string
+  birthday?: string | null
+  address?: string
+  socialLinks?: SocialLink[]
 }
 
 export type CreateRoleInput = {

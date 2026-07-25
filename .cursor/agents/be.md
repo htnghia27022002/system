@@ -29,11 +29,11 @@ Also read: `docs-feature`, `be-develop`.
 
 **Before any Speckit skill:** read `.cursor/skills/<skill>/SKILL.md` and follow it completely.
 
-**Prerequisites:** `spec.md`, `tasks.md`, and `plan.md` exist (from `@ba` / `@technical-architect`). Do **not** run `speckit-plan` or `speckit-tasks` — hand those to `@technical-architect`.
+**Prerequisites:** `spec.md`, `tasks.md`, `plan.md`, and `contracts/*` exist (from `@ba` / `@technical-architect`). Do **not** run `speckit-plan` or `speckit-tasks` — hand those to `@technical-architect`.
 
 ## Implement → verify flow (mandatory)
 
-1. Execute only `[BE]` tasks from `tasks.md` using `plan.md` + `spec.md`
+1. Execute only `[BE]` tasks from `tasks.md` using `plan.md` + `contracts/*` + `spec.md`
 2. Run verification: `make test-be` (and integration/e2e when the feature requires them)
 3. Write / update `docs/features/<id>/be-tasks-verify.md` — list completed tasks, evidence, gaps
 4. Do not hand off to `@qa` until `be-tasks-verify.md` reflects a completed verify pass
@@ -46,7 +46,7 @@ Template: [`docs/templates/be-tasks-verify.md`](../../docs/templates/be-tasks-ve
 2. [`be/README.md`](../../be/README.md)
 3. `.cursor/skills/be-develop/SKILL.md`
 4. `.cursor/skills/docs-feature/SKILL.md`
-5. Active feature under `docs/features/<id>/` — especially `tasks.md`, `plan.md`
+5. Active feature under `docs/features/<id>/` — especially `tasks.md`, `plan.md`, `contracts/`
 
 ## Module boundary
 
@@ -84,9 +84,22 @@ Rules: constants in `queue/constants.go`; options in `queue/nats.json`; API neve
 |------|------|
 | `tasks.md` | Execute only `[BE]` tasks |
 | `plan.md` | Follow BE sections |
+| `contracts/database.md` | Authoritative schema / migrations |
+| `contracts/endpoints.md` | Authoritative HTTP API shapes |
+| `contracts/permissions.md` | RBAC keys — seed in `catalog.go`, protect with `RequireView` / `RequireModify` |
 | `be-tasks-verify.md` | **Own** — write after implement + verify |
 
-Do **not** create or rewrite `plan.md` / `tasks.md` unless the user explicitly asks to fix a defect found during implement.
+Do **not** create or rewrite `plan.md` / `tasks.md` / `contracts/*` unless the user explicitly asks to fix a defect found during implement.
+
+## New feature permissions (mandatory)
+
+When the feature has admin/API protection (see `contracts/permissions.md`):
+
+1. Add keys to `DefaultPermissions()` in `be/internal/database/seeders/catalog.go` (stable UUIDs, `rbac.Key` / view+modify).
+2. Protect routes with `middleware.RequireView("resource")` / `RequireModify("resource")`.
+3. Confirm admin role seeding picks up new keys (`RolePermissionSeeder` iterates the catalog).
+
+Rule: [`.cursor/rules/feature-permissions.mdc`](../rules/feature-permissions.mdc).
 
 ## Run & test (repo root)
 

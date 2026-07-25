@@ -9,6 +9,13 @@ import { PencilIcon } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { DropdownMenuItem } from '@/components/ui/dropdown-menu'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { StatusBadge } from '@/components/ui/status-badge'
 import { DataTable, DataTableColumnHeader, DataTableSkeleton } from '@/components/common/data-table'
 import { USER_STATUS_MAP } from '../enum-maps'
@@ -30,6 +37,7 @@ import { MobileRecordCard } from './mobile-record-card'
 import { PermissionGate } from './permission-gate'
 import { ServerListSearch } from './server-list-search'
 import { UserFormDialog } from './user-form-dialog'
+import { UserOAuthProviders } from './user-oauth-providers'
 import { PermissionKeys } from '../permission-keys'
 import { useListQueryParams } from '../hooks/use-list-query-params'
 import { usePermissions } from '../hooks/use-permissions'
@@ -46,7 +54,7 @@ export function UsersTable() {
     <Suspense
       fallback={
         <div className="flex flex-col gap-4 p-4">
-          <DataTableSkeleton columns={5} />
+          <DataTableSkeleton columns={8} />
         </div>
       }
     >
@@ -56,15 +64,22 @@ export function UsersTable() {
 }
 
 function UsersTableContent() {
-  const { t } = useTranslation('admin')
-  const { values, setParams } = useListQueryParams(['search', 'roleId', 'id'] as const)
+  const { t, i18n } = useTranslation('admin')
+  const { values, setParams } = useListQueryParams([
+    'search',
+    'roleId',
+    'status',
+    'id',
+  ] as const)
   const page = Number(values.page) || 1
+  const pageSize = 50
 
   const usersQuery = useUsersList({
     page,
-    pageSize: 50,
+    pageSize,
     search: values.search || undefined,
     roleId: values.roleId || undefined,
+    status: (values.status as ManagedUser['status']) || undefined,
     id: values.id || undefined,
   })
   const rolesQuery = useAllRolesList()
@@ -83,6 +98,19 @@ function UsersTableContent() {
     [roles],
   )
 
+  const formatCreatedAt = (iso?: string) => {
+    if (!iso) return '—'
+    const d = new Date(iso)
+    if (Number.isNaN(d.getTime())) return iso
+    return d.toLocaleString(i18n.language, {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    })
+  }
+
   const openCreate = () => {
     setDialogMode('create')
     setEditingUser(undefined)
@@ -96,9 +124,23 @@ function UsersTableContent() {
   }
 
   const handleCreate = (values: CreateUserFormValues) => {
-    createUser.mutate(values, {
-      onSuccess: () => setDialogOpen(false),
-    })
+    createUser.mutate(
+      {
+        name: values.name,
+        email: values.email,
+        password: values.password,
+        roleId: values.roleId,
+        status: values.status,
+        phone: values.phone,
+        general: values.general,
+        birthday: values.birthday?.trim() ? values.birthday : null,
+        address: values.address,
+        socialLinks: values.socialLinks,
+      },
+      {
+        onSuccess: () => setDialogOpen(false),
+      },
+    )
   }
 
   const handleUpdate = (values: UpdateUserFormValues) => {
@@ -108,6 +150,11 @@ function UsersTableContent() {
       email: values.email,
       roleId: values.roleId,
       status: values.status,
+      phone: values.phone,
+      general: values.general,
+      birthday: values.birthday?.trim() ? values.birthday : null,
+      address: values.address,
+      socialLinks: values.socialLinks,
       ...(values.password ? { password: values.password } : {}),
     }
     updateUser.mutate(
@@ -138,6 +185,21 @@ function UsersTableContent() {
   const columns = useMemo<ColumnDef<ManagedUser>[]>(
     () => [
       {
+        id: 'index',
+        size: 56,
+        enableSorting: false,
+        header: () => (
+          <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            {t('access.users.fields.index')}
+          </span>
+        ),
+        cell: ({ row }) => (
+          <span className="tabular-nums text-muted-foreground">
+            {(page - 1) * pageSize + row.index + 1}
+          </span>
+        ),
+      },
+      {
         accessorKey: 'name',
         header: ({ column }) => (
           <DataTableColumnHeader
@@ -166,6 +228,20 @@ function UsersTableContent() {
             column={column}
             title={t('access.users.fields.email')}
           />
+        ),
+      },
+      {
+        id: 'oauth',
+        accessorFn: (row) => (row.oauthProviders ?? []).join(','),
+        enableSorting: false,
+        header: ({ column }) => (
+          <DataTableColumnHeader
+            column={column}
+            title={t('access.users.fields.oauth')}
+          />
+        ),
+        cell: ({ row }) => (
+          <UserOAuthProviders providers={row.original.oauthProviders} />
         ),
       },
       {
@@ -207,6 +283,20 @@ function UsersTableContent() {
         },
       },
       {
+        accessorKey: 'createdAt',
+        header: ({ column }) => (
+          <DataTableColumnHeader
+            column={column}
+            title={t('access.users.fields.createdAt')}
+          />
+        ),
+        cell: ({ row }) => (
+          <span className="text-muted-foreground tabular-nums">
+            {formatCreatedAt(row.original.createdAt)}
+          </span>
+        ),
+      },
+      {
         id: 'actions',
         size: 48,
         enableSorting: false,
@@ -214,7 +304,7 @@ function UsersTableContent() {
       },
     ],
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [t, roleById, canManageUsers],
+    [t, i18n.language, roleById, canManageUsers, page, pageSize],
   )
 
   if (usersQuery.isLoading || rolesQuery.isLoading) {
@@ -224,7 +314,7 @@ function UsersTableContent() {
           title={t('access.users.title')}
           description={t('access.users.description')}
         />
-        <DataTableSkeleton columns={5} />
+        <DataTableSkeleton columns={8} />
       </div>
     )
   }
@@ -278,14 +368,63 @@ function UsersTableContent() {
           defaultValue: 'Create a user account to get started.',
         })}
         toolbar={
-          <ServerListSearch
-            value={values.search}
-            placeholder={t('access.users.filterPlaceholder', {
-              defaultValue: 'Search users…',
-            })}
-            onSearch={(next) => setParams({ search: next || undefined })}
-            onClear={() => setParams({ search: undefined })}
-          />
+          <div className="flex w-full flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
+            <ServerListSearch
+              value={values.search}
+              placeholder={t('access.users.filterPlaceholder', {
+                defaultValue: 'Search users…',
+              })}
+              onSearch={(next) => setParams({ search: next || undefined })}
+              onClear={() => setParams({ search: undefined })}
+            />
+            <Select
+              value={values.roleId || 'all'}
+              onValueChange={(value) =>
+                setParams({ roleId: value === 'all' ? undefined : value })
+              }
+            >
+              <SelectTrigger
+                className="w-full sm:w-[11rem]"
+                aria-label={t('access.users.filters.role')}
+              >
+                <SelectValue placeholder={t('access.users.filters.role')} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">
+                  {t('access.users.filters.allRoles')}
+                </SelectItem>
+                {roles.map((role) => (
+                  <SelectItem key={role.id} value={role.id}>
+                    {role.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Select
+              value={values.status || 'all'}
+              onValueChange={(value) =>
+                setParams({ status: value === 'all' ? undefined : value })
+              }
+            >
+              <SelectTrigger
+                className="w-full sm:w-[10rem]"
+                aria-label={t('access.users.filters.status')}
+              >
+                <SelectValue placeholder={t('access.users.filters.status')} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">
+                  {t('access.users.filters.allStatuses')}
+                </SelectItem>
+                <SelectItem value="active">
+                  {t('access.users.status.active')}
+                </SelectItem>
+                <SelectItem value="inactive">
+                  {t('access.users.status.inactive')}
+                </SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         }
         renderMobileCard={(user) => {
           const role = roleById.get(user.roleId)
@@ -301,6 +440,10 @@ function UsersTableContent() {
                   ),
                 },
                 {
+                  label: t('access.users.fields.oauth'),
+                  value: <UserOAuthProviders providers={user.oauthProviders} />,
+                },
+                {
                   label: t('access.users.fields.role'),
                   value: role ? (
                     <Badge variant="secondary">{role.name}</Badge>
@@ -308,19 +451,23 @@ function UsersTableContent() {
                     '—'
                   ),
                 },
-                  {
-                    label: t('access.users.fields.status'),
-                    value: (() => {
-                      const cfg = USER_STATUS_MAP[user.status]
-                      return (
-                        <StatusBadge
-                          variant={cfg.variant}
-                          pulse={cfg.pulse}
-                          label={t(`access.users.status.${user.status}`)}
-                        />
-                      )
-                    })(),
-                  },
+                {
+                  label: t('access.users.fields.status'),
+                  value: (() => {
+                    const cfg = USER_STATUS_MAP[user.status]
+                    return (
+                      <StatusBadge
+                        variant={cfg.variant}
+                        pulse={cfg.pulse}
+                        label={t(`access.users.status.${user.status}`)}
+                      />
+                    )
+                  })(),
+                },
+                {
+                  label: t('access.users.fields.createdAt'),
+                  value: formatCreatedAt(user.createdAt),
+                },
               ]}
             />
           )

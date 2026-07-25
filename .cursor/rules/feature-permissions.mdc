@@ -1,0 +1,66 @@
+---
+description: New features must define RBAC permissions; FE gates admin menu and routes by permission.
+globs:
+  - docs/features/**/*
+  - be/internal/database/seeders/**
+  - be/public/routes/**
+  - be/internal/middleware/**
+  - fe/src/features/access-control/**
+  - fe/src/components/common/app-sidebar.tsx
+  - .cursor/agents/**
+alwaysApply: false
+---
+
+# Feature permissions (RBAC)
+
+When adding a **new feature** that exposes protected admin/API surfaces, **generate permissions** and gate UI/API with them. Do not ship a new admin page or menu item without a matching permission key.
+
+## Key format
+
+Use the existing **view / modify** model only:
+
+| Action | Key | Middleware / FE |
+|--------|-----|-----------------|
+| Read / list / open page | `{resource}:view` | BE `RequireView("resource")` · FE `PermissionKeys.{resource}.view` |
+| Create / update / delete | `{resource}:modify` | BE `RequireModify("resource")` · FE `PermissionKeys.{resource}.modify` |
+
+Helpers: BE `be/internal/common/rbac` (`rbac.Key`, `rbac.ActionView`, `rbac.ActionModify`); FE `fe/src/features/access-control/permission-keys.ts`.
+
+## Who does what
+
+| Role | Must do |
+|------|---------|
+| `@technical-architect` | Document keys in `contracts/permissions.md` (resource, `:view` / `:modify`, which routes/menu). Add `[BE]` / `[FE]` tasks for catalog + menu gate. |
+| `@be` | Add rows to `DefaultPermissions()` in `be/internal/database/seeders/catalog.go` (stable UUIDs). Protect routes with `RequireView` / `RequireModify`. Admin role gets new keys via `RolePermissionSeeder` (iterates catalog). |
+| `@fe` | Extend `PermissionKeys` + `PermissionResource`. Gate admin routes with `PermissionGuard`. **Show sidebar/menu items only when `hasPermission(...)`** (see `app-sidebar.tsx`). Gate mutate actions with `PermissionGate`. Update mock catalog if used. |
+
+## Admin menu (mandatory for FE)
+
+Any new item in `fe/src/components/common/app-sidebar.tsx` (or equivalent admin nav) **MUST**:
+
+1. Set `permission: PermissionKeys.<resource>.view` (or the documented view key).
+2. Be filtered with `hasPermission` so users without the key never see the link.
+3. Match a page wrapped in `PermissionGuard` with the same key.
+
+Do **not** add always-visible admin menu entries for permission-protected features.
+
+## When N/A is allowed
+
+Keep `contracts/permissions.md` and mark **N/A** only when the feature has:
+
+- No JWT-protected admin or Tools API, **and**
+- No admin sidebar/menu entry, **and**
+- No `PermissionGuard` page
+
+Examples: purely public marketing UI, public webhook **capture** URL only.
+
+**Do not** mark N/A for owner Tools UIs — put them under `/admin/...`, seed `{resource}:view` / `{resource}:modify`, and gate menu + pages with those keys.
+
+## Checklist (implement)
+
+- [ ] `contracts/permissions.md` lists keys (or N/A)
+- [ ] BE: `catalog.go` `DefaultPermissions()` updated
+- [ ] BE: routes use `RequireView` / `RequireModify`
+- [ ] FE: `PermissionKeys` updated
+- [ ] FE: sidebar filtered by `hasPermission`
+- [ ] FE: page `PermissionGuard` + modify `PermissionGate` where needed

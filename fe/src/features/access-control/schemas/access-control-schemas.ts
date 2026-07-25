@@ -1,27 +1,41 @@
 import { z } from 'zod'
 
+import { personalFieldsSchema } from '@/features/user-profile'
+
 export const userStatusSchema = z.enum(['active', 'inactive'])
 
-export const createUserSchema = z.object({
-  name: z.string().min(1, 'Name is required'),
-  email: z.email({ message: 'Enter a valid email address' }),
-  password: z.string().min(8, 'Password must be at least 8 characters'),
-  roleId: z.string().min(1, 'Role is required'),
-  status: userStatusSchema,
+const personalUserFields = personalFieldsSchema.pick({
+  phone: true,
+  general: true,
+  birthday: true,
+  address: true,
+  socialLinks: true,
 })
 
-export const updateUserSchema = z.object({
-  name: z.string().min(1, 'Name is required'),
-  email: z.email({ message: 'Enter a valid email address' }),
-  password: z
-    .union([
-      z.literal(''),
-      z.string().min(8, 'Password must be at least 8 characters'),
-    ])
-    .optional(),
-  roleId: z.string().min(1, 'Role is required'),
-  status: userStatusSchema,
-})
+export const createUserSchema = z
+  .object({
+    name: z.string().min(1, 'Name is required'),
+    email: z.email({ message: 'Enter a valid email address' }),
+    password: z.string().min(8, 'Password must be at least 8 characters'),
+    roleId: z.string().min(1, 'Role is required'),
+    status: userStatusSchema,
+  })
+  .merge(personalUserFields)
+
+export const updateUserSchema = z
+  .object({
+    name: z.string().min(1, 'Name is required'),
+    email: z.email({ message: 'Enter a valid email address' }),
+    password: z
+      .union([
+        z.literal(''),
+        z.string().min(8, 'Password must be at least 8 characters'),
+      ])
+      .optional(),
+    roleId: z.string().min(1, 'Role is required'),
+    status: userStatusSchema,
+  })
+  .merge(personalUserFields)
 
 export const createRoleSchema = z.object({
   name: z.string().min(1, 'Name is required'),

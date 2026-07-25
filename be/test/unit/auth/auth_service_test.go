@@ -45,7 +45,7 @@ func TestLoginIssuesTokensWithRoleClaims(t *testing.T) {
 
 	cfg := testutil.UnitConfig()
 	jwtManager := jwtmanager.NewManager(cfg)
-	svc := authsvc.NewService(authRepo, &testutil.MockUserRepo{}, roleRepo, jwtManager, 24*time.Hour)
+	svc := authsvc.NewService(authRepo, &testutil.MockUserRepo{}, roleRepo, jwtManager, 24*time.Hour, nil)
 
 	result, err := svc.Login(context.Background(), "admin@example.com", "admin1234")
 	if err != nil {

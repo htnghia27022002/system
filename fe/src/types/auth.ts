@@ -5,6 +5,11 @@ export type AuthTokens = {
   refreshToken: string
 }
 
+export type SocialLink = {
+  label?: string
+  url: string
+}
+
 export type AuthUser = {
   id: string
   email: string
@@ -12,6 +17,13 @@ export type AuthUser = {
   role: UserRole
   roleId: string
   permissions: string[]
+  phone?: string
+  avatarUrl?: string
+  general?: string
+  birthday?: string | null
+  address?: string
+  socialLinks?: SocialLink[]
+  hasPassword?: boolean
 }
 
 export type JwtPayload = {

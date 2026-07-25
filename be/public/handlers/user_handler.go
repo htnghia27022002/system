@@ -31,7 +31,12 @@ func (h *UserHandler) Create(c *gin.Context) {
 		response.HandleError(c, err)
 		return
 	}
-	response.JSON(c, http.StatusCreated, usersvc.ToResponse(user))
+	item, err := h.svc.ResponseForUser(c.Request.Context(), user)
+	if err != nil {
+		response.HandleError(c, err)
+		return
+	}
+	response.JSON(c, http.StatusCreated, item)
 }
 
 func (h *UserHandler) Get(c *gin.Context) {
@@ -40,7 +45,12 @@ func (h *UserHandler) Get(c *gin.Context) {
 		response.HandleError(c, err)
 		return
 	}
-	response.JSON(c, http.StatusOK, usersvc.ToResponse(user))
+	item, err := h.svc.ResponseForUser(c.Request.Context(), user)
+	if err != nil {
+		response.HandleError(c, err)
+		return
+	}
+	response.JSON(c, http.StatusOK, item)
 }
 
 func (h *UserHandler) List(c *gin.Context) {
@@ -56,9 +66,10 @@ func (h *UserHandler) List(c *gin.Context) {
 		return
 	}
 
-	items := make([]userdto.UserResponse, 0, len(users))
-	for i := range users {
-		items = append(items, usersvc.ToResponse(&users[i]))
+	items, err := h.svc.ResponsesForUsers(c.Request.Context(), users)
+	if err != nil {
+		response.HandleError(c, err)
+		return
 	}
 	response.JSON(c, http.StatusOK, userdto.PaginatedUsersResponse{
 		Items:    items,
@@ -80,7 +91,36 @@ func (h *UserHandler) Update(c *gin.Context) {
 		response.HandleError(c, err)
 		return
 	}
-	response.JSON(c, http.StatusOK, usersvc.ToResponse(user))
+	item, err := h.svc.ResponseForUser(c.Request.Context(), user)
+	if err != nil {
+		response.HandleError(c, err)
+		return
+	}
+	response.JSON(c, http.StatusOK, item)
+}
+
+func (h *UserHandler) UploadAvatar(c *gin.Context) {
+	file, header, err := c.Request.FormFile("file")
+	if err != nil {
+		file, header, err = c.Request.FormFile("avatar")
+	}
+	if err != nil {
+		response.Error(c, http.StatusBadRequest, "avatar file is required (field: file or avatar)")
+		return
+	}
+	defer file.Close()
+
+	user, err := h.svc.UploadAvatar(c.Request.Context(), c.Param("id"), file, header)
+	if err != nil {
+		response.HandleError(c, err)
+		return
+	}
+	item, err := h.svc.ResponseForUser(c.Request.Context(), user)
+	if err != nil {
+		response.HandleError(c, err)
+		return
+	}
+	response.JSON(c, http.StatusOK, item)
 }
 
 func (h *UserHandler) Delete(c *gin.Context) {
