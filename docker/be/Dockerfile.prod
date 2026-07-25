@@ -21,6 +21,7 @@ RUN apk add --no-cache ca-certificates
 COPY --from=builder /app/server .
 COPY --from=builder /app/queue .
 COPY --from=builder /app/config.yaml .
+# SQL migrations are embedded in the Go binaries (be/migrations via go:embed).
 
 EXPOSE 8080
 

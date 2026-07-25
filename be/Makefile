@@ -3,9 +3,9 @@
 run:
 	go run .
 
-# Build main API binary (be/main.go) → app
+# Build main API binary (be/main.go) → app (migrations embedded in binary)
 build:
-	CGO_ENABLED=0 go build -o app main.go
+	CGO_ENABLED=0 go build -o app .
 
 test: test-unit
 

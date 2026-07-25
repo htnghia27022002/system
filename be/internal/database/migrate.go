@@ -11,8 +11,10 @@ import (
 	"github.com/golang-migrate/migrate/v4"
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
+	"github.com/golang-migrate/migrate/v4/source/iofs"
 
 	"be/internal/config"
+	"be/migrations"
 )
 
 // MigrationURL builds a postgres URL for golang-migrate.
@@ -32,14 +34,6 @@ func MigrationURL(cfg config.Config) string {
 	q.Set("sslmode", cfg.DBSSLMode)
 	u.RawQuery = q.Encode()
 	return u.String()
-}
-
-func migrationsSourceURL() (string, error) {
-	dir, err := findMigrationsDir()
-	if err != nil {
-		return "", err
-	}
-	return "file://" + filepath.ToSlash(dir), nil
 }
 
 func findMigrationsDir() (string, error) {
@@ -70,14 +64,26 @@ func findMigrationsDir() (string, error) {
 }
 
 func newMigrator(cfg config.Config) (*migrate.Migrate, error) {
-	sourceURL, err := migrationsSourceURL()
-	if err != nil {
-		return nil, err
+	dbURL := MigrationURL(cfg)
+
+	// Prefer on-disk migrations when present (local/dev override via MIGRATIONS_PATH).
+	if dir, err := findMigrationsDir(); err == nil {
+		sourceURL := "file://" + filepath.ToSlash(dir)
+		m, err := migrate.New(sourceURL, dbURL)
+		if err != nil {
+			return nil, fmt.Errorf("create migrator (file): %w", err)
+		}
+		return m, nil
 	}
 
-	m, err := migrate.New(sourceURL, MigrationURL(cfg))
+	// Deployed binary: use embedded SQL (no migrations/ folder required).
+	source, err := iofs.New(migrations.FS, ".")
 	if err != nil {
-		return nil, fmt.Errorf("create migrator: %w", err)
+		return nil, fmt.Errorf("create migrator source (embed): %w", err)
+	}
+	m, err := migrate.NewWithSourceInstance("iofs", source, dbURL)
+	if err != nil {
+		return nil, fmt.Errorf("create migrator (embed): %w", err)
 	}
 	return m, nil
 }

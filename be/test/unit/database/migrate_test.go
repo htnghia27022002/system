@@ -5,6 +5,7 @@ import (
 
 	"be/internal/config"
 	"be/internal/database"
+	"be/migrations"
 )
 
 func TestMigrationURL(t *testing.T) {
@@ -36,6 +37,18 @@ func TestMigrationURLUsesDBURL(t *testing.T) {
 	})
 	if got != raw {
 		t.Fatalf("MigrationURL() = %q, want %q", got, raw)
+	}
+}
+
+func TestEmbeddedMigrationsFS(t *testing.T) {
+	t.Parallel()
+
+	entries, err := migrations.FS.ReadDir(".")
+	if err != nil {
+		t.Fatalf("read embedded migrations: %v", err)
+	}
+	if len(entries) < 2 {
+		t.Fatalf("expected embedded .sql files, got %d entries", len(entries))
 	}
 }
 
