@@ -12,6 +12,7 @@ import (
 
 type Config struct {
 	Port      string
+	DBURL     string // when set (DB_URL), preferred over discrete DB_* fields
 	DBHost    string
 	DBPort    string
 	DBName    string
@@ -101,6 +102,7 @@ func Load() Config {
 
 	cfg := Config{
 		Port:      firstNonEmpty(os.Getenv("PORT"), fc.Server.Port, "8080"),
+		DBURL:     strings.TrimSpace(os.Getenv("DB_URL")),
 		DBHost:    firstNonEmpty(os.Getenv("DB_HOST"), fc.Database.Host, "localhost"),
 		DBPort:    firstNonEmpty(os.Getenv("DB_PORT"), fc.Database.Port, "5432"),
 		DBName:    firstNonEmpty(os.Getenv("DB_NAME"), fc.Database.Name, "myapp_pg"),
@@ -174,7 +176,8 @@ func Load() Config {
 
 	cfg.UploadDir = firstNonEmpty(os.Getenv("UPLOAD_DIR"), "data/uploads")
 
-	if cfg.DBPass == "" {
+	// Discrete DB_* password default only when not using a full connection URL.
+	if cfg.DBURL == "" && cfg.DBPass == "" {
 		cfg.DBPass = "postgres"
 	}
 	if cfg.JWTSecret == "" {

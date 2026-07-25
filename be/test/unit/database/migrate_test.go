@@ -26,6 +26,19 @@ func TestMigrationURL(t *testing.T) {
 	}
 }
 
+func TestMigrationURLUsesDBURL(t *testing.T) {
+	t.Parallel()
+
+	raw := "postgresql://u:p@db.example:5432/postgres?sslmode=require"
+	got := database.MigrationURL(config.Config{
+		DBURL:  raw,
+		DBHost: "ignored",
+	})
+	if got != raw {
+		t.Fatalf("MigrationURL() = %q, want %q", got, raw)
+	}
+}
+
 func TestParseForceVersion(t *testing.T) {
 	t.Parallel()
 

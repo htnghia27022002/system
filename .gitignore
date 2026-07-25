@@ -9,6 +9,10 @@ docker/data/*
 # BE local avatar uploads (UPLOAD_DIR default data/uploads)
 be/data/uploads/
 
+# BE build output
+be/app
+be/bin/
+
 **/.env
 **/.env.local
 **/.env.development.local

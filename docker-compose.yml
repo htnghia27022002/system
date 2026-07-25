@@ -160,7 +160,7 @@ services:
   # Set GO_APP_IMAGE in root .env (e.g. youruser/go-app:1.0.0). Publish with: make build
   go-app:
     profiles: [prod]
-    image: ${GO_APP_IMAGE:?Set GO_APP_IMAGE in .env (e.g. youruser/go-app:1.0.0)}
+    image: ${GO_APP_IMAGE:-youruser/go-app:latest}
     pull_policy: always
     restart: unless-stopped
     env_file:
@@ -175,7 +175,7 @@ services:
 
   go-queue:
     profiles: [prod]
-    image: ${GO_APP_IMAGE:?Set GO_APP_IMAGE in .env (e.g. youruser/go-app:1.0.0)}
+    image: ${GO_APP_IMAGE:-youruser/go-app:latest}
     pull_policy: always
     restart: unless-stopped
     command: ["./queue"]

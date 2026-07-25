@@ -69,6 +69,22 @@ oauth:
 	}
 }
 
+func TestLoadDBURLPreferred(t *testing.T) {
+	clearDeployEnv(t)
+	t.Setenv("CONFIG_FILE", filepath.Join(t.TempDir(), "missing.yaml"))
+	t.Setenv("DB_URL", "postgresql://u:p@db.example:5432/postgres?sslmode=require")
+	t.Setenv("DB_HOST", "should-be-ignored-for-connect")
+	t.Setenv("DB_PASSWORD", "")
+
+	cfg := config.Load()
+	if cfg.DBURL != "postgresql://u:p@db.example:5432/postgres?sslmode=require" {
+		t.Fatalf("DB_URL: got %q", cfg.DBURL)
+	}
+	if cfg.DBPass != "" {
+		t.Fatalf("DBPass should stay empty when DB_URL is set: got %q", cfg.DBPass)
+	}
+}
+
 func TestLoadMissingYAMLUsesDefaults(t *testing.T) {
 	clearDeployEnv(t)
 	t.Setenv("CONFIG_FILE", filepath.Join(t.TempDir(), "missing.yaml"))
@@ -88,7 +104,7 @@ func TestLoadMissingYAMLUsesDefaults(t *testing.T) {
 func clearDeployEnv(t *testing.T) {
 	t.Helper()
 	for _, key := range []string{
-		"PORT", "DB_HOST", "DB_PORT", "DB_NAME", "DB_USER", "DB_SSLMODE",
+		"PORT", "DB_URL", "DB_HOST", "DB_PORT", "DB_NAME", "DB_USER", "DB_SSLMODE",
 		"JWT_ACCESS_TTL", "JWT_REFRESH_TTL", "CORS_ORIGINS", "REDIS_URL",
 		"OAUTH_REDIRECT_URL", "OAUTH_ALLOWED_PROVIDERS",
 	} {

@@ -1,7 +1,11 @@
-.PHONY: run test test-unit test-integration test-e2e test-all lint tidy migrate-up migrate-down migrate-version migrate-create seed seed-class
+.PHONY: run build test test-unit test-integration test-e2e test-all lint tidy migrate-up migrate-down migrate-version migrate-create seed seed-class
 
 run:
 	go run .
+
+# Build main API binary (be/main.go) → app
+build:
+	CGO_ENABLED=0 go build -o app main.go
 
 test: test-unit
 

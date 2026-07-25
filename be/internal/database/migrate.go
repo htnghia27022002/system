@@ -16,7 +16,11 @@ import (
 )
 
 // MigrationURL builds a postgres URL for golang-migrate.
+// When cfg.DBURL is set (from DB_URL), it is used as-is.
 func MigrationURL(cfg config.Config) string {
+	if cfg.DBURL != "" {
+		return cfg.DBURL
+	}
 	user := url.UserPassword(cfg.DBUser, cfg.DBPass)
 	u := url.URL{
 		Scheme: "postgres",
