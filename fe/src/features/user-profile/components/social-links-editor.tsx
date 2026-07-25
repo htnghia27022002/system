@@ -2,10 +2,7 @@
 
 import { PlusIcon, Trash2Icon } from 'lucide-react'
 import type {
-  Control,
-  FieldArrayWithId,
   FieldErrors,
-  UseFieldArrayAppend,
   UseFieldArrayRemove,
   UseFormRegister,
 } from 'react-hook-form'
@@ -16,28 +13,29 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 
+type SocialLinkRow = { id: string; label?: string; url: string }
+
 type SocialLinksFormShape = {
   socialLinks: Array<{ label?: string; url: string }>
 }
 
-type SocialLinksEditorProps<T extends SocialLinksFormShape> = {
-  fields: FieldArrayWithId<T, 'socialLinks', 'id'>[]
-  register: UseFormRegister<T>
-  errors: FieldErrors<T>
-  append: UseFieldArrayAppend<T, 'socialLinks'>
+type SocialLinksEditorProps = {
+  fields: SocialLinkRow[]
+  register: UseFormRegister<SocialLinksFormShape>
+  errors: FieldErrors<SocialLinksFormShape>
+  append: (value: { label?: string; url: string }) => void
   remove: UseFieldArrayRemove
-  control?: Control<T>
   max?: number
 }
 
-export function SocialLinksEditor<T extends SocialLinksFormShape>({
+export function SocialLinksEditor({
   fields,
   register,
   errors,
   append,
   remove,
   max = 5,
-}: SocialLinksEditorProps<T>) {
+}: SocialLinksEditorProps) {
   const { t } = useTranslation('admin')
   const linkErrors = errors.socialLinks
 
@@ -55,7 +53,7 @@ export function SocialLinksEditor<T extends SocialLinksFormShape>({
           variant="outline"
           size="sm"
           disabled={fields.length >= max}
-          onClick={() => append({ label: '', url: '' } as never)}
+          onClick={() => append({ label: '', url: '' })}
         >
           <PlusIcon className="size-4" />
           {t('profile.actions.addLink')}
@@ -89,7 +87,7 @@ export function SocialLinksEditor<T extends SocialLinksFormShape>({
                     id={`social-label-${field.id}`}
                     placeholder={t('profile.fields.socialLabelPlaceholder')}
                     aria-invalid={Boolean(entryError?.label)}
-                    {...register(`socialLinks.${index}.label` as never)}
+                    {...register(`socialLinks.${index}.label`)}
                   />
                   <InputError message={entryError?.label?.message as string} />
                 </div>
@@ -102,7 +100,7 @@ export function SocialLinksEditor<T extends SocialLinksFormShape>({
                     type="url"
                     placeholder="https://"
                     aria-invalid={Boolean(entryError?.url)}
-                    {...register(`socialLinks.${index}.url` as never)}
+                    {...register(`socialLinks.${index}.url`)}
                   />
                   <InputError message={entryError?.url?.message as string} />
                 </div>

@@ -48,10 +48,11 @@ export const personalFieldsSchema = z.object({
     .max(500, 'Address must be at most 500 characters')
     .optional()
     .or(z.literal('')),
+  // Required array (default [] in form defaultValues). Avoid .default([]) —
+  // that makes input optional and breaks zodResolver + react-hook-form types.
   socialLinks: z
     .array(socialLinkSchema)
-    .max(5, 'You can add at most 5 social links')
-    .default([]),
+    .max(5, 'You can add at most 5 social links'),
 })
 
 export type PersonalFieldsFormValues = z.infer<typeof personalFieldsSchema>

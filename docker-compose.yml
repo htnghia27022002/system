@@ -1,11 +1,16 @@
 name: system
 
-# be/.env  → be, queue, be-prod (+ postgres creds via ${DB_*})
-# fe/.env  → fe, fe-prod build args (make prod loads --env-file fe/.env)
-# .env     → root infra only (NGINX_HTTP_PORT) — auto-loaded by compose
+# be/.env  → be, queue, go-app, go-queue (+ postgres creds via ${DB_*} in dev)
+# fe/.env  → fe (dev only)
+# .env     → NGINX_HTTP_PORT + GO_APP_IMAGE (Docker Hub tag) — auto-loaded by compose
+#
+# Profiles:
+#   dev  — make up / make up-d  (full stack + hot reload)
+#   prod — make prod            (pull GO_APP_IMAGE + nginx + nats + redis; no Go source build)
 
 services:
   postgres:
+    profiles: [dev]
     image: postgres:16-alpine
     restart: unless-stopped
     environment:
@@ -25,6 +30,7 @@ services:
       - system_net
 
   redis:
+    profiles: [dev, prod]
     image: redis:7-alpine
     restart: unless-stopped
     volumes:
@@ -38,6 +44,7 @@ services:
       - system_net
 
   elasticsearch:
+    profiles: [dev]
     image: docker.elastic.co/elasticsearch/elasticsearch:8.15.0
     restart: unless-stopped
     environment:
@@ -55,6 +62,7 @@ services:
       - system_net
 
   nats:
+    profiles: [dev, prod]
     image: nats:2.10-alpine
     restart: unless-stopped
     command: ["-js", "-m", "8222"]
@@ -69,6 +77,7 @@ services:
       - system_net
 
   be:
+    profiles: [dev]
     build:
       context: .
       dockerfile: docker/be/Dockerfile.dev
@@ -90,6 +99,7 @@ services:
       - system_net
 
   queue:
+    profiles: [dev]
     build:
       context: .
       dockerfile: docker/be/Dockerfile.dev
@@ -110,6 +120,7 @@ services:
       - system_net
 
   fe:
+    profiles: [dev]
     build:
       context: .
       dockerfile: docker/fe/Dockerfile.dev
@@ -131,6 +142,7 @@ services:
       - system_net
 
   nginx:
+    profiles: [dev]
     image: nginx:1.27-alpine
     restart: unless-stopped
     ports:
@@ -144,39 +156,38 @@ services:
     networks:
       - system_net
 
-  be-prod:
+  # Prod Go services pull a pre-built image (Docker Hub). No source build on the server.
+  # Set GO_APP_IMAGE in root .env (e.g. youruser/go-app:1.0.0). Publish with: make build
+  go-app:
     profiles: [prod]
-    build:
-      context: .
-      dockerfile: docker/be/Dockerfile.prod
+    image: ${GO_APP_IMAGE:?Set GO_APP_IMAGE in .env (e.g. youruser/go-app:1.0.0)}
+    pull_policy: always
     restart: unless-stopped
     env_file:
       - ./be/.env
     depends_on:
-      postgres:
-        condition: service_healthy
       redis:
+        condition: service_healthy
+      nats:
         condition: service_healthy
     networks:
       - system_net
 
-  fe-prod:
+  go-queue:
     profiles: [prod]
-    build:
-      context: .
-      dockerfile: docker/fe/Dockerfile.prod
-      args:
-        NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL}
-        NEXT_PUBLIC_APP_NAME: ${NEXT_PUBLIC_APP_NAME}
-        NEXT_PUBLIC_USE_MOCK_API: ${NEXT_PUBLIC_USE_MOCK_API}
-        NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL}
+    image: ${GO_APP_IMAGE:?Set GO_APP_IMAGE in .env (e.g. youruser/go-app:1.0.0)}
+    pull_policy: always
     restart: unless-stopped
+    command: ["./queue"]
     env_file:
-      - ./fe/.env
-    environment:
-      NODE_ENV: production
+      - ./be/.env
     depends_on:
-      - be-prod
+      go-app:
+        condition: service_started
+      redis:
+        condition: service_healthy
+      nats:
+        condition: service_healthy
     networks:
       - system_net
 
@@ -190,8 +201,7 @@ services:
       - ./docker/nginx/nginx.prod.conf:/etc/nginx/conf.d/default.conf:ro
       - ./docker/nginx/config:/etc/nginx/config:ro
     depends_on:
-      - be-prod
-      - fe-prod
+      - go-app
     networks:
       - system_net
 
