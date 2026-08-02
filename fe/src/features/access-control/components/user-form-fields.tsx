@@ -109,8 +109,8 @@ export function UserFormFields({
   }
 
   return (
-    <div className="space-y-6">
-      <fieldset className="space-y-4">
+    <div className="min-w-0 space-y-6">
+      <fieldset className="min-w-0 space-y-4">
         <legend className="text-sm font-medium text-foreground">
           {t('access.users.sections.account')}
         </legend>
@@ -123,7 +123,7 @@ export function UserFormFields({
                 {getInitials(userName)}
               </AvatarFallback>
             </Avatar>
-            <div className="space-y-2">
+            <div className="min-w-0 space-y-2">
               <p className="text-xs text-muted-foreground">
                 {t('access.users.fields.avatarHint')}
               </p>
@@ -150,8 +150,8 @@ export function UserFormFields({
           </div>
         ) : null}
 
-        <div className="grid gap-4 sm:grid-cols-2">
-          <div className="grid gap-2">
+        <div className="grid min-w-0 gap-4 sm:grid-cols-2">
+          <div className="grid min-w-0 gap-2">
             <Label htmlFor="user-name">{t('access.users.fields.name')}</Label>
             <Input
               id="user-name"
@@ -161,7 +161,7 @@ export function UserFormFields({
             <InputError message={errors.name?.message} />
           </div>
 
-          <div className="grid gap-2">
+          <div className="grid min-w-0 gap-2">
             <Label htmlFor="user-email">{t('access.users.fields.email')}</Label>
             <Input
               id="user-email"
@@ -174,7 +174,7 @@ export function UserFormFields({
           </div>
         </div>
 
-        <div className="grid gap-2">
+        <div className="grid min-w-0 gap-2">
           <Label htmlFor="user-password">{t('access.users.fields.password')}</Label>
           {isEdit ? (
             <p className="text-xs text-muted-foreground">
@@ -192,12 +192,12 @@ export function UserFormFields({
         </div>
       </fieldset>
 
-      <fieldset className="space-y-4">
+      <fieldset className="min-w-0 space-y-4">
         <legend className="text-sm font-medium text-foreground">
           {t('access.users.sections.personal')}
         </legend>
-        <div className="grid gap-4 sm:grid-cols-2">
-          <div className="grid gap-2">
+        <div className="grid min-w-0 gap-4 sm:grid-cols-2">
+          <div className="grid min-w-0 gap-2">
             <Label htmlFor="user-phone">{t('access.users.fields.phone')}</Label>
             <Input
               id="user-phone"
@@ -206,7 +206,7 @@ export function UserFormFields({
             />
             <InputError message={errors.phone?.message} />
           </div>
-          <div className="grid gap-2">
+          <div className="grid min-w-0 gap-2">
             <Label htmlFor="user-birthday">
               {t('access.users.fields.birthday')}
             </Label>
@@ -219,7 +219,7 @@ export function UserFormFields({
             <InputError message={errors.birthday?.message} />
           </div>
         </div>
-        <div className="grid gap-2">
+        <div className="grid min-w-0 gap-2">
           <Label htmlFor="user-general">{t('access.users.fields.general')}</Label>
           <Textarea
             id="user-general"
@@ -229,7 +229,7 @@ export function UserFormFields({
           />
           <InputError message={errors.general?.message} />
         </div>
-        <div className="grid gap-2">
+        <div className="grid min-w-0 gap-2">
           <Label htmlFor="user-address">{t('access.users.fields.address')}</Label>
           <Textarea
             id="user-address"
@@ -248,19 +248,19 @@ export function UserFormFields({
         />
       </fieldset>
 
-      <fieldset className="space-y-4">
+      <fieldset className="min-w-0 space-y-4">
         <legend className="text-sm font-medium text-foreground">
           {t('access.users.sections.access')}
         </legend>
 
-        <div className="grid gap-4 sm:grid-cols-2">
-          <div className="grid gap-2">
+        <div className="grid min-w-0 gap-4 sm:grid-cols-2">
+          <div className="grid min-w-0 gap-2">
             <Label>{t('access.users.fields.role')}</Label>
             <Select
               value={roleId}
               onValueChange={(value) => setValue('roleId', value)}
             >
-              <SelectTrigger className="w-full">
+              <SelectTrigger className="w-full min-w-0">
                 <SelectValue placeholder={t('access.users.fields.role')} />
               </SelectTrigger>
               <SelectContent>
@@ -274,7 +274,7 @@ export function UserFormFields({
             <InputError message={errors.roleId?.message} />
           </div>
 
-          <div className="grid gap-2">
+          <div className="grid min-w-0 gap-2">
             <Label>{t('access.users.fields.status')}</Label>
             <Select
               value={status}
@@ -282,7 +282,7 @@ export function UserFormFields({
                 setValue('status', value as 'active' | 'inactive')
               }
             >
-              <SelectTrigger className="w-full">
+              <SelectTrigger className="w-full min-w-0">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>

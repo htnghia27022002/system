@@ -124,10 +124,10 @@ export function PermissionPicker({
     rowKeys(group).filter((k) => selected.has(k)).length
 
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex min-w-0 max-w-full flex-col gap-3">
       {/* Header row */}
-      <div className="flex items-center justify-between gap-2">
-        <div className="flex flex-col gap-0.5">
+      <div className="flex min-w-0 items-start justify-between gap-2">
+        <div className="flex min-w-0 flex-1 flex-col gap-0.5">
           <Label className="text-sm font-medium">
             {t('access.roles.fields.permissions')}
           </Label>
@@ -139,12 +139,12 @@ export function PermissionPicker({
           </span>
         </div>
 
-        <div className="flex items-center gap-1">
+        <div className="flex shrink-0 items-center gap-1">
           <Button
             type="button"
             variant="ghost"
             size="sm"
-            className="h-7 text-xs"
+            className="h-7 px-2 text-xs"
             onClick={() => onChange([...allKeys])}
             disabled={selected.size === allKeys.length}
           >
@@ -155,7 +155,7 @@ export function PermissionPicker({
             type="button"
             variant="ghost"
             size="sm"
-            className="h-7 text-xs"
+            className="h-7 px-2 text-xs"
             onClick={() => onChange([])}
             disabled={selected.size === 0}
           >
@@ -164,16 +164,16 @@ export function PermissionPicker({
         </div>
       </div>
 
-      {/* Matrix table */}
-      <div className="overflow-x-auto rounded-lg border">
-        <table className="w-full border-collapse">
+      {/* Matrix table — scroll horizontally on narrow viewports without expanding the sheet */}
+      <div className="min-w-0 max-w-full overflow-x-auto overscroll-x-contain rounded-lg border [-webkit-overflow-scrolling:touch]">
+        <table className="w-max min-w-full border-collapse sm:w-full">
           {/* ---- thead: action column headers ---- */}
           <thead>
             <tr className="border-b bg-muted/50">
               {/* top-left: ALL checkbox */}
               <th
                 scope="col"
-                className="sticky left-0 z-10 min-w-[160px] bg-muted/50 px-4 py-3 text-align"
+                className="sticky left-0 z-10 min-w-[7.5rem] bg-muted/50 px-3 py-3 text-left sm:min-w-[160px] sm:px-4"
               >
                 <div className="flex items-center gap-2.5">
                   <Checkbox
@@ -198,7 +198,7 @@ export function PermissionPicker({
                   <th
                     key={action}
                     scope="col"
-                    className="w-36 px-4 py-3"
+                    className="w-20 px-2 py-3 sm:w-36 sm:px-4"
                   >
                     <div className="flex flex-col items-center gap-2">
                       <Checkbox
@@ -221,7 +221,7 @@ export function PermissionPicker({
               {/* count column */}
               <th
                 scope="col"
-                className="w-20 px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider text-muted-foreground"
+                className="w-16 px-2 py-3 text-center text-xs font-semibold uppercase tracking-wider text-muted-foreground sm:w-20 sm:px-4"
               >
                 {t('access.roles.countHeader', { defaultValue: 'Count' })}
               </th>
@@ -247,7 +247,7 @@ export function PermissionPicker({
                   <th
                     scope="row"
                     className={cn(
-                      'sticky left-0 z-10 px-4 py-3',
+                      'sticky left-0 z-10 px-3 py-3 sm:px-4',
                       i % 2 === 0 ? 'bg-background' : 'bg-muted/20',
                     )}
                   >
@@ -274,7 +274,7 @@ export function PermissionPicker({
                       return (
                         <td
                           key={action}
-                          className="px-4 py-3 text-base text-muted-foreground/25"
+                          className="px-2 py-3 text-base text-muted-foreground/25 sm:px-4"
                           aria-label="Not available"
                         >
                           <div className="flex justify-center">—</div>
@@ -286,7 +286,7 @@ export function PermissionPicker({
                       <td
                         key={action}
                         className={cn(
-                          'px-4 py-3 transition-colors',
+                          'px-2 py-3 transition-colors sm:px-4',
                           checked && 'bg-primary/5',
                         )}
                       >
@@ -308,7 +308,7 @@ export function PermissionPicker({
                   })}
 
                   {/* row count */}
-                  <td className="px-4 py-3 text-right">
+                  <td className="px-2 py-3 text-right sm:px-4">
                     <span
                       className={cn(
                         'text-sm tabular-nums',

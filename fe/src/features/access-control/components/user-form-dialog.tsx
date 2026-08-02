@@ -181,17 +181,17 @@ export function UserFormDialog({
       <Sheet open={open} onOpenChange={onOpenChange}>
         <SheetContent
           side="bottom"
-          className="flex max-h-[min(92dvh,100%)] flex-col gap-0 rounded-t-xl p-0"
+          className="flex max-h-[min(92dvh,100%)] w-full max-w-none flex-col gap-0 overflow-x-hidden rounded-t-xl p-0"
         >
-          <SheetHeader className="shrink-0 border-b px-4 py-4 text-left">
+          <SheetHeader className="shrink-0 border-b px-4 py-4 pr-12 text-left">
             <SheetTitle>{title}</SheetTitle>
           </SheetHeader>
           <form
-            className="flex min-h-0 flex-1 flex-col"
+            className="flex min-h-0 min-w-0 flex-1 flex-col"
             onSubmit={onSubmit}
             noValidate
           >
-            <div className="min-h-0 flex-1 overflow-y-auto px-4 py-4">
+            <div className="min-h-0 min-w-0 flex-1 overflow-x-hidden overflow-y-auto px-4 py-4">
               {inputs}
             </div>
             <div className="shrink-0 border-t bg-muted/30 px-4 py-4">

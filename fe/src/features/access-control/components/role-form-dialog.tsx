@@ -97,14 +97,20 @@ export function RoleFormDialog({
         side={isMobile ? 'bottom' : 'right'}
         className={
           isMobile
-            ? 'flex max-h-[min(92dvh,100%)] w-full flex-col gap-0 rounded-t-xl p-0'
+            ? 'flex max-h-[min(92dvh,100%)] w-full max-w-none flex-col gap-0 overflow-x-hidden rounded-t-xl p-0'
             // The shadcn default applies data-[side=right]:sm:max-w-sm (384px) which has
             // higher specificity than plain sm:max-w-* utilities. Use ! to override both
             // the w-3/4 default and the sm:max-w-sm cap so the matrix can breathe.
             : 'flex h-full flex-col gap-0 p-0 !w-[min(860px,95vw)] !max-w-none'
         }
       >
-        <SheetHeader className="shrink-0 border-b px-6 py-4">
+        <SheetHeader
+          className={
+            isMobile
+              ? 'shrink-0 border-b px-4 py-4 pr-12 text-left'
+              : 'shrink-0 border-b px-6 py-4'
+          }
+        >
           <SheetTitle>
             {isEdit
               ? t('access.roles.editTitle')
@@ -116,7 +122,7 @@ export function RoleFormDialog({
         </SheetHeader>
 
         <form
-          className="flex min-h-0 flex-1 flex-col"
+          className="flex min-h-0 min-w-0 flex-1 flex-col"
           onSubmit={handleSubmit((values) => {
             if (isEdit) {
               onUpdate(values)
@@ -126,10 +132,16 @@ export function RoleFormDialog({
           })}
           noValidate
         >
-          <div className="min-h-0 flex-1 overflow-y-auto px-6 py-4">
-            <div className="grid gap-6">
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div className="grid gap-2">
+          <div
+            className={
+              isMobile
+                ? 'min-h-0 min-w-0 flex-1 overflow-x-hidden overflow-y-auto px-4 py-4'
+                : 'min-h-0 min-w-0 flex-1 overflow-y-auto px-6 py-4'
+            }
+          >
+            <div className="grid min-w-0 gap-6">
+              <div className="grid min-w-0 gap-4 sm:grid-cols-2">
+                <div className="grid min-w-0 gap-2">
                   <Label htmlFor="role-name">
                     {t('access.roles.fields.name')}
                   </Label>
@@ -141,7 +153,7 @@ export function RoleFormDialog({
                   <InputError message={errors.name?.message} />
                 </div>
 
-                <div className="grid gap-2">
+                <div className="grid min-w-0 gap-2">
                   <Label htmlFor="role-slug">
                     {t('access.roles.fields.slug')}
                   </Label>

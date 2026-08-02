@@ -129,8 +129,8 @@ export function ProfileForm({ user, onSaved }: ProfileFormProps) {
         <legend className="text-sm font-medium text-foreground">
           {t('profile.sections.personal')}
         </legend>
-        <div className="grid gap-4 sm:grid-cols-2">
-          <div className="grid gap-2">
+        <div className="grid min-w-0 gap-4 sm:grid-cols-2">
+          <div className="grid min-w-0 gap-2">
             <Label htmlFor="profile-phone">{t('profile.fields.phone')}</Label>
             <Input
               id="profile-phone"
@@ -139,7 +139,7 @@ export function ProfileForm({ user, onSaved }: ProfileFormProps) {
             />
             <InputError message={errors.phone?.message} />
           </div>
-          <div className="grid gap-2">
+          <div className="grid min-w-0 gap-2">
             <Label htmlFor="profile-birthday">
               {t('profile.fields.birthday')}
             </Label>
