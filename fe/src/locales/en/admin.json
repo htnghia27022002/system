@@ -2,10 +2,18 @@
   "shell": {
     "badge": "Back office",
     "title": "Admin",
-    "openMenu": "Open navigation menu",
+    "openMenu": "Open menu",
     "collapseMenu": "Collapse sidebar",
     "expandMenu": "Expand sidebar",
-    "publicHome": "Public home"
+    "publicHome": "Public home",
+    "menuTitle": "Menu",
+    "menuTab": "Menu",
+    "bottomNav": "Primary navigation",
+    "yourShortcuts": "Your shortcuts",
+    "allShortcuts": "All shortcuts",
+    "pinHint": "Pin up to {{count}} to the bottom bar",
+    "pinShortcut": "Pin {{name}} to bottom bar",
+    "unpinShortcut": "Unpin {{name}} from bottom bar"
   },
   "userMenu": {
     "settings": "Account settings",

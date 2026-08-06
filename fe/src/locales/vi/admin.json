@@ -2,10 +2,18 @@
   "shell": {
     "badge": "Back office",
     "title": "Quản trị",
-    "openMenu": "Mở menu điều hướng",
+    "openMenu": "Mở menu",
     "collapseMenu": "Thu gọn menu",
     "expandMenu": "Mở rộng menu",
-    "publicHome": "Trang chủ công khai"
+    "publicHome": "Trang chủ công khai",
+    "menuTitle": "Menu",
+    "menuTab": "Menu",
+    "bottomNav": "Điều hướng chính",
+    "yourShortcuts": "Lối tắt của bạn",
+    "allShortcuts": "Tất cả lối tắt",
+    "pinHint": "Ghim tối đa {{count}} mục xuống thanh dưới",
+    "pinShortcut": "Ghim {{name}} vào thanh dưới",
+    "unpinShortcut": "Bỏ ghim {{name}} khỏi thanh dưới"
   },
   "userMenu": {
     "settings": "Cài đặt tài khoản",

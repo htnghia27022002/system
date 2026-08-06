@@ -5,13 +5,13 @@ import { usePathname } from 'next/navigation'
 import { useTranslation } from 'react-i18next'
 import { useMemo } from 'react'
 
+import { AdminMobileNav } from '@/components/common/admin-mobile-nav'
 import { AppContent } from '@/components/common/app-content'
 import { AppShell } from '@/components/common/app-shell'
 import { AppSidebar } from '@/components/common/app-sidebar'
 import { AppSidebarHeader } from '@/components/common/app-sidebar-header'
 import { NavLoadingBar } from '@/components/common/nav-loading-bar'
 import { TooltipProvider } from '@/components/ui/tooltip'
-import { AdminSearchBar } from '@/features/admin-search'
 import type { BreadcrumbItem } from '@/types/navigation'
 
 const BREADCRUMB_MAP: Record<
@@ -54,13 +54,14 @@ export function AdminLayout({ children }: AdminLayoutProps) {
     <TooltipProvider delayDuration={0}>
       <AppShell variant="sidebar">
         <AppSidebar />
-        <AppContent variant="sidebar" className="overflow-x-hidden">
+        <AdminMobileNav />
+        <AppContent
+          variant="sidebar"
+          className="overflow-x-hidden pb-20 md:pb-0"
+        >
           <div className="relative">
             <NavLoadingBar />
-            <AppSidebarHeader
-              breadcrumbs={breadcrumbs}
-              // actions={<AdminSearchBar />}
-            />
+            <AppSidebarHeader breadcrumbs={breadcrumbs} />
           </div>
           {children}
         </AppContent>

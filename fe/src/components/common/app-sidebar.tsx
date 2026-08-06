@@ -1,13 +1,11 @@
 'use client'
 
 import Link from 'next/link'
-import { LayoutGridIcon, ShieldCheckIcon, WrenchIcon } from 'lucide-react'
-import { useMemo } from 'react'
-import { useTranslation } from 'react-i18next'
 
 import { AdminAppLogo } from '@/components/common/admin-app-logo'
 import { NavMain } from '@/components/common/nav-main'
 import { NavUser } from '@/components/common/nav-user'
+import { useAdminNavItems } from '@/components/common/use-admin-nav-items'
 import {
   Sidebar,
   SidebarContent,
@@ -16,67 +14,18 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  useSidebar,
 } from '@/components/ui/sidebar'
-import { usePermissions, PermissionKeys } from '@/features/access-control'
-import type { NavItem } from '@/types/navigation'
 
 export function AppSidebar() {
-  const { t } = useTranslation('admin')
-  const { hasPermission } = usePermissions()
+  const { isMobile } = useSidebar()
+  const mainNavItems = useAdminNavItems()
 
-  const mainNavItems: NavItem[] = useMemo(() => {
-    const accessControlItems: NavItem[] = [
-      {
-        title: t('nav.users'),
-        href: '/admin/users',
-        permission: PermissionKeys.users.view,
-      },
-      {
-        title: t('nav.roles'),
-        href: '/admin/roles',
-        permission: PermissionKeys.roles.view,
-      },
-    ].filter((item) => !item.permission || hasPermission(item.permission))
-
-    const toolsItems: NavItem[] = [
-      {
-        title: t('nav.webhooks'),
-        href: '/admin/tools/webhooks',
-        permission: PermissionKeys.webhooks.view,
-      },
-    ].filter((item) => !item.permission || hasPermission(item.permission))
-
-    const items: NavItem[] = [
-      {
-        title: t('nav.dashboard'),
-        href: '/admin',
-        icon: LayoutGridIcon,
-        permission: PermissionKeys.dashboard.view,
-      },
-    ]
-
-    if (toolsItems.length > 0) {
-      items.push({
-        title: t('nav.tools'),
-        href: toolsItems[0].href,
-        icon: WrenchIcon,
-        items: toolsItems,
-      })
-    }
-
-    if (accessControlItems.length > 0) {
-      items.push({
-        title: t('nav.accessControl'),
-        href: accessControlItems[0].href,
-        icon: ShieldCheckIcon,
-        items: accessControlItems,
-      })
-    }
-
-    return items.filter(
-      (item) => !item.permission || hasPermission(item.permission),
-    )
-  }, [hasPermission, t])
+  // Mobile uses AdminMobileNav (dedicated touch drawer) instead of the
+  // cramped desktop sidebar-in-sheet pattern from shadcn Sidebar.
+  if (isMobile) {
+    return null
+  }
 
   return (
     <Sidebar collapsible="icon" variant="inset">
