@@ -62,6 +62,11 @@
 
 /* Light mode - balanced admin palette */
 :root {
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-right: env(safe-area-inset-right, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-left: env(safe-area-inset-left, 0px);
+
   --background:  oklch(0.995 0.002 255);
   --foreground: oklch(0.242 0.034 257.67);
 
@@ -156,6 +161,11 @@
 @layer base {
   * {
     @apply border-border outline-ring/50;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  html {
+    overscroll-behavior: none;
   }
 
   body {
@@ -163,11 +173,33 @@
     min-height: 100dvh;
     -webkit-font-smoothing: antialiased;
     font-family: var(--font-sans);
+    overscroll-behavior-y: contain;
+    touch-action: manipulation;
     @apply bg-background text-foreground;
+  }
+
+  a,
+  button,
+  [role='button'] {
+    touch-action: manipulation;
   }
 }
 
 @layer utilities {
+  .safe-area-x {
+    padding-left: var(--safe-left);
+    padding-right: var(--safe-right);
+  }
+
+  .safe-area-bottom {
+    padding-bottom: var(--safe-bottom);
+  }
+
+  .scroll-touch {
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-y: contain;
+  }
   /* Full-bleed hero grid — no radial mask (partial grid looked broken). */
   .landing-grid-bg {
     background-image:

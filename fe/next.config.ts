@@ -1,4 +1,5 @@
 import type { NextConfig } from 'next'
+import withSerwistInit from '@serwist/next'
 
 /**
  * UUID-shaped public capture paths proxy to BE so local/split FE (no nginx)
@@ -18,6 +19,12 @@ function webhookCaptureDestination(): string {
   ).replace(/\/$/, '')
   return `${apiBase}/webhooks/capture/:uuid`
 }
+
+const withSerwist = withSerwistInit({
+  swSrc: 'src/app/sw.ts',
+  swDest: 'public/sw.js',
+  disable: process.env.NODE_ENV === 'development',
+})
 
 const nextConfig: NextConfig = {
   eslint: {
@@ -49,4 +56,4 @@ const nextConfig: NextConfig = {
   },
 }
 
-export default nextConfig
+export default withSerwist(nextConfig)
