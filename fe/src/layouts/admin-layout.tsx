@@ -16,13 +16,22 @@ import type { BreadcrumbItem } from '@/types/navigation'
 
 const BREADCRUMB_MAP: Record<
   string,
-  { label: string; parent?: string }
+  { label: string; parent?: { label: string; href?: string } }
 > = {
   '/admin': { label: 'nav.dashboard' },
   '/admin/search': { label: 'nav.search' },
-  '/admin/users': { label: 'nav.users', parent: 'nav.accessControl' },
-  '/admin/roles': { label: 'nav.roles', parent: 'nav.accessControl' },
-  '/admin/tools/webhooks': { label: 'nav.webhooks', parent: 'nav.tools' },
+  '/admin/users': {
+    label: 'nav.users',
+    parent: { label: 'nav.accessControl', href: '/admin/users' },
+  },
+  '/admin/roles': {
+    label: 'nav.roles',
+    parent: { label: 'nav.accessControl', href: '/admin/users' },
+  },
+  '/admin/tools/webhooks': {
+    label: 'nav.webhooks',
+    parent: { label: 'nav.tools' },
+  },
 }
 
 type AdminLayoutProps = {
@@ -43,7 +52,10 @@ export function AdminLayout({ children }: AdminLayoutProps) {
     ]
 
     if (entry.parent) {
-      trail.push({ title: t(entry.parent) })
+      trail.push({
+        title: t(entry.parent.label),
+        href: entry.parent.href,
+      })
     }
 
     trail.push({ title: t(entry.label) })

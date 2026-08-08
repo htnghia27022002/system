@@ -31,12 +31,14 @@ export function Breadcrumbs({ breadcrumbs }: BreadcrumbsProps) {
           return (
             <Fragment key={`${item.title}-${index}`}>
               <BreadcrumbItem>
-                {isLast || !item.href ? (
+                {isLast ? (
                   <BreadcrumbPage>{item.title}</BreadcrumbPage>
-                ) : (
-                  <BreadcrumbLink asChild>
+                ) : item.href ? (
+                  <BreadcrumbLink asChild className="text-primary hover:text-primary/90">
                     <Link href={item.href}>{item.title}</Link>
                   </BreadcrumbLink>
+                ) : (
+                  <span className="text-sm text-muted-foreground">{item.title}</span>
                 )}
               </BreadcrumbItem>
               {!isLast ? <BreadcrumbSeparator /> : null}

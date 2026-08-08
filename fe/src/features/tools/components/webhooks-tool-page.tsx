@@ -21,12 +21,10 @@ export function WebhooksToolPage() {
     t('tools.webhooks.subtitle', { defaultValue: copy.subtitle })
 
   return (
-    <div className="flex flex-col gap-4 p-4">
-      <header className="max-w-3xl">
-        <h1 className="font-heading text-xl font-semibold tracking-tight sm:text-2xl">
-          {title}
-        </h1>
-        <p className="mt-0.5 text-sm text-muted-foreground">{subtitle}</p>
+    <div className="flex flex-1 flex-col gap-4 p-4">
+      <header className="space-y-1">
+        <h1 className="text-2xl font-semibold tracking-tight">{title}</h1>
+        <p className="text-sm text-muted-foreground">{subtitle}</p>
       </header>
 
       <WebhooksInbox />
