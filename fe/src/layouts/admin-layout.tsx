@@ -69,7 +69,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
         <AdminMobileNav />
         <AppContent
           variant="sidebar"
-          className="overflow-x-hidden pb-20 md:pb-0"
+          className="overflow-x-hidden pb-[calc(3rem+env(safe-area-inset-bottom,0px))] md:pb-0"
         >
           <div className="relative">
             <NavLoadingBar />

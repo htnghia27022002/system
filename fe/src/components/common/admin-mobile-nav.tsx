@@ -30,7 +30,8 @@ import { cn } from '@/lib/utils'
 import { useAuthStore } from '@/store/auth-store'
 import type { NavItem } from '@/types/navigation'
 
-const BOTTOM_NAV_HEIGHT = '4rem'
+/** Inner tab row height; total bar = this + safe-area-inset-bottom. */
+const BOTTOM_NAV_ROW_HEIGHT = '3rem'
 
 function BottomTab({
   href,
@@ -53,20 +54,21 @@ function BottomTab({
       onClick={onNavigate}
       aria-current={active ? 'page' : undefined}
       className={cn(
-        'flex min-w-0 flex-1 flex-col items-center justify-center gap-0.5 px-1 py-1 text-[10px] font-medium',
+        'relative flex min-w-0 flex-1 flex-col items-center justify-center gap-0.5 px-1 py-0.5 text-[10px] font-medium leading-none',
         active ? 'text-foreground' : 'text-muted-foreground',
       )}
     >
       <TabIcon
-        className={cn('size-5 shrink-0', active && 'text-primary')}
+        className={cn('size-[1.125rem] shrink-0', active && 'text-primary')}
         aria-hidden
       />
       <span className="max-w-full truncate">{title}</span>
       {active ? (
-        <span className="mt-0.5 h-0.5 w-4 rounded-full bg-primary" aria-hidden />
-      ) : (
-        <span className="mt-0.5 h-0.5 w-4" aria-hidden />
-      )}
+        <span
+          className="absolute inset-x-0 bottom-1 mx-auto h-0.5 w-4 rounded-full bg-primary"
+          aria-hidden
+        />
+      ) : null}
     </Link>
   )
 }
@@ -199,7 +201,9 @@ export function AdminMobileNav() {
       {menuOpen ? (
         <div
           className="safe-area-top fixed inset-x-0 top-0 z-40 flex flex-col bg-background md:hidden"
-          style={{ bottom: BOTTOM_NAV_HEIGHT }}
+          style={{
+            bottom: `calc(${BOTTOM_NAV_ROW_HEIGHT} + env(safe-area-inset-bottom, 0px))`,
+          }}
           role="dialog"
           aria-modal="true"
           aria-label={t('shell.menuTitle')}
@@ -298,10 +302,9 @@ export function AdminMobileNav() {
 
       <nav
         className="fixed inset-x-0 bottom-0 z-50 border-t bg-background/95 pb-[env(safe-area-inset-bottom)] backdrop-blur-md md:hidden"
-        style={{ minHeight: BOTTOM_NAV_HEIGHT }}
         aria-label={t('shell.bottomNav')}
       >
-        <div className="flex h-16 items-stretch">
+        <div className="flex h-12 items-stretch">
           <BottomTab
             href={homeLeaf.href}
             title={homeLeaf.title}
@@ -324,7 +327,7 @@ export function AdminMobileNav() {
           <button
             type="button"
             className={cn(
-              'flex min-w-0 flex-1 flex-col items-center justify-center gap-0.5 px-1 py-1 text-[10px] font-medium',
+              'relative flex min-w-0 flex-1 flex-col items-center justify-center gap-0.5 px-1 py-0.5 text-[10px] font-medium leading-none',
               menuOpen ? 'text-foreground' : 'text-muted-foreground',
             )}
             aria-label={t('shell.openMenu')}
@@ -332,18 +335,16 @@ export function AdminMobileNav() {
             onClick={() => setMenuOpen((open) => !open)}
           >
             <MenuIcon
-              className={cn('size-5 shrink-0', menuOpen && 'text-primary')}
+              className={cn('size-[1.125rem] shrink-0', menuOpen && 'text-primary')}
               aria-hidden
             />
             <span className="max-w-full truncate">{t('shell.menuTab')}</span>
             {menuOpen ? (
               <span
-                className="mt-0.5 h-0.5 w-4 rounded-full bg-primary"
+                className="absolute inset-x-0 bottom-1 mx-auto h-0.5 w-4 rounded-full bg-primary"
                 aria-hidden
               />
-            ) : (
-              <span className="mt-0.5 h-0.5 w-4" aria-hidden />
-            )}
+            ) : null}
           </button>
         </div>
       </nav>
