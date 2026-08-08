@@ -14,7 +14,7 @@ export function HeroSection() {
   return (
     <SectionBase
       id="hero"
-      className="landing-section-hero overflow-hidden pt-24 sm:pt-28"
+      className="landing-section-hero site-header-offset overflow-hidden"
       contentClassName="max-w-6xl lg:max-w-7xl"
       backdrop={
         <>

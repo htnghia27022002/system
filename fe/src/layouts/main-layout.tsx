@@ -22,7 +22,7 @@ export function MainLayout({ children }: MainLayoutProps) {
 
   return (
     <div className="min-h-[100dvh] bg-background">
-      <header className="relative border-b">
+      <header className="safe-area-top safe-area-x relative border-b">
         <NavLoadingBar />
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4">
           <Link href="/" className="text-sm font-semibold">

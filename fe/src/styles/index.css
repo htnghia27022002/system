@@ -186,6 +186,10 @@
 }
 
 @layer utilities {
+  .safe-area-top {
+    padding-top: var(--safe-top);
+  }
+
   .safe-area-x {
     padding-left: var(--safe-left);
     padding-right: var(--safe-right);
@@ -195,10 +199,25 @@
     padding-bottom: var(--safe-bottom);
   }
 
+  /* Offset page content below fixed public header (h-16 + notch inset). */
+  .site-header-offset {
+    padding-top: calc(4rem + var(--safe-top) + 2rem);
+  }
+
+  @media (min-width: 640px) {
+    .site-header-offset {
+      padding-top: calc(4rem + var(--safe-top) + 3rem);
+    }
+  }
+
   .scroll-touch {
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
     overscroll-behavior-y: contain;
+  }
+
+  [data-sonner-toaster][data-y-position='top'] {
+    top: calc(var(--safe-top) + 1rem) !important;
   }
   /* Full-bleed hero grid — no radial mask (partial grid looked broken). */
   .landing-grid-bg {

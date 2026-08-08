@@ -105,7 +105,7 @@ export function PublicSiteHeader({
   return (
     <header
       className={cn(
-        'z-50 border-b border-border/60 bg-background/90 backdrop-blur-xl',
+        'safe-area-top safe-area-x z-50 border-b border-border/60 bg-background/90 backdrop-blur-xl',
         variant === 'landing' ? 'fixed inset-x-0 top-0' : 'sticky top-0',
         className,
       )}

@@ -198,7 +198,7 @@ export function AdminMobileNav() {
     <>
       {menuOpen ? (
         <div
-          className="fixed inset-x-0 top-0 z-40 flex flex-col bg-background md:hidden"
+          className="safe-area-top fixed inset-x-0 top-0 z-40 flex flex-col bg-background md:hidden"
           style={{ bottom: BOTTOM_NAV_HEIGHT }}
           role="dialog"
           aria-modal="true"
