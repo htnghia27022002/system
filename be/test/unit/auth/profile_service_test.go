@@ -9,7 +9,6 @@ import (
 	"testing"
 	"time"
 
-	"be/pkg/hash"
 	apperrors "be/internal/common/errors"
 	jwtmanager "be/internal/common/jwt"
 	authdto "be/internal/dto/auth"
@@ -19,6 +18,7 @@ import (
 	usermodel "be/internal/models/user"
 	authsvc "be/internal/services/auth"
 	"be/internal/services/media"
+	"be/pkg/hash"
 	"be/test/testutil"
 )
 
@@ -40,14 +40,14 @@ func TestMeIncludesProfileFieldsAndHasPassword(t *testing.T) {
 		SocialLinks:  []usermodel.SocialLink{},
 	}
 	authRepo := &testutil.MockAuthRepo{
-		Users:         map[string]*usermodel.User{"user-1": user},
 		RefreshTokens: map[string]*authmodel.RefreshToken{},
 	}
+	userRepo := &testutil.MemoryUserRepo{Users: map[string]*usermodel.User{"user-1": user}}
 	roleRepo := &testutil.MockRoleRepo{
 		Roles:       map[string]*rolemodel.Role{roleID: {ID: roleID, Slug: "admin", Name: "Admin"}},
 		Permissions: map[string][]string{roleID: {}},
 	}
-	svc := authsvc.NewService(authRepo, &testutil.MockUserRepo{}, roleRepo, jwtmanager.NewManager(testutil.UnitConfig()), time.Hour, nil)
+	svc := authsvc.NewService(authRepo, userRepo, roleRepo, jwtmanager.NewManager(testutil.UnitConfig()), time.Hour, nil)
 
 	me, err := svc.Me(context.Background(), "user-1")
 	if err != nil {
@@ -74,14 +74,14 @@ func TestMeHasPasswordFalseWhenEmptyHash(t *testing.T) {
 		Status:   usermodel.StatusActive,
 	}
 	authRepo := &testutil.MockAuthRepo{
-		Users:         map[string]*usermodel.User{"oauth-1": user},
 		RefreshTokens: map[string]*authmodel.RefreshToken{},
 	}
+	userRepo := &testutil.MemoryUserRepo{Users: map[string]*usermodel.User{"oauth-1": user}}
 	roleRepo := &testutil.MockRoleRepo{
 		Roles:       map[string]*rolemodel.Role{roleID: {ID: roleID, Slug: "user", Name: "User"}},
 		Permissions: map[string][]string{roleID: {}},
 	}
-	svc := authsvc.NewService(authRepo, &testutil.MockUserRepo{}, roleRepo, jwtmanager.NewManager(testutil.UnitConfig()), time.Hour, nil)
+	svc := authsvc.NewService(authRepo, userRepo, roleRepo, jwtmanager.NewManager(testutil.UnitConfig()), time.Hour, nil)
 
 	me, err := svc.Me(context.Background(), "oauth-1")
 	if err != nil {
@@ -107,7 +107,7 @@ func TestUpdateProfilePersistsPersonalFields(t *testing.T) {
 		Roles:       map[string]*rolemodel.Role{roleID: {ID: roleID, Slug: "admin", Name: "Admin"}},
 		Permissions: map[string][]string{roleID: {}},
 	}
-	svc := authsvc.NewService(&testutil.MockAuthRepo{Users: map[string]*usermodel.User{}}, userRepo, roleRepo, jwtmanager.NewManager(testutil.UnitConfig()), time.Hour, nil)
+	svc := authsvc.NewService(&testutil.MockAuthRepo{}, userRepo, roleRepo, jwtmanager.NewManager(testutil.UnitConfig()), time.Hour, nil)
 
 	phone := "+84123"
 	general := "Bio"

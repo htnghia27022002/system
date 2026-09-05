@@ -2,59 +2,49 @@ package repository
 
 import (
 	"context"
-	"errors"
-
-	"gorm.io/gorm"
 
 	webhookmodel "be/internal/models/webhook"
 	"be/internal/repository/interfaces"
+	"be/pkg/postgres"
+	"be/pkg/query"
+	"be/pkg/repo"
 )
 
 type WebhookInboxRepository struct {
-	db *gorm.DB
+	*repo.Repository[webhookmodel.Inbox]
 }
 
 var _ interfaces.WebhookInboxRepository = (*WebhookInboxRepository)(nil)
 
-func NewWebhookInboxRepository(db *gorm.DB) *WebhookInboxRepository {
-	return &WebhookInboxRepository{db: db}
+func NewWebhookInboxRepository(db *postgres.Postgres) *WebhookInboxRepository {
+	return &WebhookInboxRepository{
+		Repository: repo.New[webhookmodel.Inbox](db, repo.Opts{
+			Table: "webhook_inboxes",
+			PK:    "id",
+		}),
+	}
 }
 
 func (r *WebhookInboxRepository) GetByUserID(ctx context.Context, userID string) (*webhookmodel.Inbox, error) {
-	var inbox webhookmodel.Inbox
-	if err := r.db.WithContext(ctx).Where("user_id = ?", userID).First(&inbox).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, nil
-		}
-		return nil, err
-	}
-	return &inbox, nil
+	return r.FindOne(ctx, query.New(1, 1).WhereEqual("user_id", userID))
 }
 
 func (r *WebhookInboxRepository) GetByPublicUUID(ctx context.Context, publicUUID string) (*webhookmodel.Inbox, error) {
-	var inbox webhookmodel.Inbox
-	if err := r.db.WithContext(ctx).Where("public_uuid = ?", publicUUID).First(&inbox).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, nil
-		}
-		return nil, err
-	}
-	return &inbox, nil
+	return r.FindOne(ctx, query.New(1, 1).WhereEqual("public_uuid", publicUUID))
 }
 
 func (r *WebhookInboxRepository) Create(ctx context.Context, inbox *webhookmodel.Inbox) error {
-	return r.db.WithContext(ctx).Create(inbox).Error
+	return r.Insert(ctx, inbox)
 }
 
 func (r *WebhookInboxRepository) Update(ctx context.Context, inbox *webhookmodel.Inbox) error {
-	return r.db.WithContext(ctx).Save(inbox).Error
+	return r.Repository.Update(ctx, inbox)
 }
 
 func (r *WebhookInboxRepository) UpdateCounters(ctx context.Context, inboxID string, lifetimeReceived, activeCount int) error {
-	return r.db.WithContext(ctx).Model(&webhookmodel.Inbox{}).
-		Where("id = ?", inboxID).
-		Updates(map[string]any{
-			"lifetime_received": lifetimeReceived,
-			"active_count":      activeCount,
-		}).Error
+	_, err := r.UpdateMap(ctx, inboxID, map[string]any{
+		"lifetime_received": lifetimeReceived,
+		"active_count":      activeCount,
+	})
+	return err
 }

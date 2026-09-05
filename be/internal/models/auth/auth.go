@@ -3,32 +3,33 @@ package auth
 import "time"
 
 type RefreshToken struct {
-	ID         string     `json:"id" gorm:"type:uuid;primaryKey;default:gen_random_uuid()"`
-	UserID     string     `json:"userId" gorm:"column:user_id;type:uuid;not null;index"`
-	TokenHash  string     `json:"-" gorm:"column:token_hash;type:varchar(255);not null;uniqueIndex"`
-	ExpiresAt  time.Time  `json:"expiresAt" gorm:"column:expires_at;not null;index"`
-	RevokedAt  *time.Time `json:"revokedAt,omitempty" gorm:"column:revoked_at"`
-	CreatedAt  time.Time  `json:"createdAt" gorm:"autoCreateTime"`
-	UpdatedAt  time.Time  `json:"updatedAt" gorm:"autoUpdateTime"`
-	IPAddress  string     `json:"-" gorm:"column:ip_address;type:varchar(64)"`
-	UserAgent  string     `json:"-" gorm:"column:user_agent;type:text"`
-	DeviceID   string     `json:"-" gorm:"column:device_id;type:varchar(255)"`
-	RawToken   string     `json:"-" gorm:"-"`
+	ID        string     `json:"id" db:"id"`
+	UserID    string     `json:"userId" db:"user_id"`
+	TokenHash string     `json:"-" db:"token_hash"`
+	ExpiresAt time.Time  `json:"expiresAt" db:"expires_at"`
+	RevokedAt *time.Time `json:"revokedAt,omitempty" db:"revoked_at"`
+	CreatedAt  time.Time  `json:"createdAt" db:"created_at"`
+	UpdatedAt  time.Time  `json:"updatedAt" db:"updated_at"`
+	LastUsedAt time.Time  `json:"lastUsedAt" db:"last_used_at"`
+	IPAddress  string     `json:"-" db:"ip_address"`
+	UserAgent  string     `json:"-" db:"user_agent"`
+	DeviceID   string     `json:"-" db:"device_id"`
+	RawToken   string     `json:"-" db:"-"`
 }
 
 type OAuthAccount struct {
-	ID             string     `json:"id" gorm:"type:uuid;primaryKey;default:gen_random_uuid()"`
-	UserID         string     `json:"userId" gorm:"column:user_id;type:uuid;not null;index"`
-	Provider       string     `json:"provider" gorm:"type:varchar(50);not null;uniqueIndex:idx_oauth_provider_user"`
-	ProviderUserID string     `json:"providerUserId" gorm:"column:provider_user_id;type:varchar(255);not null;uniqueIndex:idx_oauth_provider_user"`
-	ProviderEmail  string     `json:"providerEmail,omitempty" gorm:"column:provider_email;type:varchar(255)"`
-	AccessToken    string     `json:"-" gorm:"column:access_token;type:text"`
-	RefreshToken   string     `json:"-" gorm:"column:refresh_token;type:text"`
-	ExpiresAt      *time.Time `json:"expiresAt,omitempty" gorm:"column:expires_at"`
-	Scope          string     `json:"scope,omitempty" gorm:"type:text"`
-	TokenType      string     `json:"tokenType,omitempty" gorm:"column:token_type;type:varchar(50)"`
-	CreatedAt      time.Time  `json:"createdAt" gorm:"autoCreateTime"`
-	UpdatedAt      time.Time  `json:"updatedAt" gorm:"autoUpdateTime"`
+	ID             string     `json:"id" db:"id"`
+	UserID         string     `json:"userId" db:"user_id"`
+	Provider       string     `json:"provider" db:"provider"`
+	ProviderUserID string     `json:"providerUserId" db:"provider_user_id"`
+	ProviderEmail  string     `json:"providerEmail,omitempty" db:"provider_email"`
+	AccessToken    string     `json:"-" db:"access_token"`
+	RefreshToken   string     `json:"-" db:"refresh_token"`
+	ExpiresAt      *time.Time `json:"expiresAt,omitempty" db:"expires_at"`
+	Scope          string     `json:"scope,omitempty" db:"scope"`
+	TokenType      string     `json:"tokenType,omitempty" db:"token_type"`
+	CreatedAt      time.Time  `json:"createdAt" db:"created_at"`
+	UpdatedAt      time.Time  `json:"updatedAt" db:"updated_at"`
 }
 
 func (OAuthAccount) TableName() string {

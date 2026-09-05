@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { AdminAppLogo } from '@/components/common/admin-app-logo'
 import { NavMain } from '@/components/common/nav-main'
 import { NavUser } from '@/components/common/nav-user'
-import { useAdminNavItems } from '@/components/common/use-admin-nav-items'
+import { useAdminNavItems } from '@/features/access-control'
 import {
   Sidebar,
   SidebarContent,

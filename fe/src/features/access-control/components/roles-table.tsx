@@ -59,10 +59,11 @@ function RolesTableContent() {
     'id',
   ] as const)
   const page = Number(values.page) || 1
+  const pageSize = Number(values.pageSize) || 10
 
   const rolesQuery = useRolesList({
     page,
-    pageSize: 50,
+    pageSize,
     search: values.search || undefined,
     permissionKey: values.permissionKey || undefined,
     id: values.id || undefined,
@@ -257,6 +258,14 @@ function RolesTableContent() {
         data={roles}
         getRowId={(row) => row.id}
         localPagination={false}
+        serverPaging={{
+          page,
+          pageSize,
+          total: rolesQuery.data?.total ?? 0,
+          onPageChange: (next) => setParams({ page: String(next) }),
+          onPageSizeChange: (next) =>
+            setParams({ pageSize: String(next), page: '1' }),
+        }}
         isRefreshing={isRefreshing}
         emptyTitle={emptyTitle}
         emptyDescription={emptyDescription}

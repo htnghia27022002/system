@@ -1,10 +1,6 @@
 package user
 
-import (
-	"time"
-
-	"gorm.io/gorm"
-)
+import "time"
 
 type Status string
 
@@ -21,19 +17,20 @@ type SocialLink struct {
 }
 
 type User struct {
-	ID           string         `json:"id" gorm:"type:uuid;primaryKey;default:gen_random_uuid()"`
-	Email        string         `json:"email" gorm:"type:varchar(255);not null;uniqueIndex"`
-	PasswordHash string         `json:"-" gorm:"column:password_hash;type:varchar(255)"`
-	FullName     string         `json:"fullName" gorm:"column:full_name;type:varchar(255);not null"`
-	Phone        string         `json:"phone" gorm:"type:varchar(50)"`
-	AvatarURL    string         `json:"avatarUrl" gorm:"column:avatar_url;type:text"`
-	General      string         `json:"general" gorm:"type:text"`
-	Birthday     *time.Time     `json:"birthday,omitempty" gorm:"type:date"`
-	Address      string         `json:"address" gorm:"type:varchar(500)"`
-	SocialLinks  []SocialLink   `json:"socialLinks" gorm:"column:social_links;type:jsonb;serializer:json;not null;default:'[]'"`
-	RoleID       string         `json:"roleId" gorm:"column:role_id;type:uuid;index"`
-	Status       Status         `json:"status" gorm:"type:varchar(20);not null;default:active;index"`
-	CreatedAt    time.Time      `json:"createdAt" gorm:"autoCreateTime"`
-	UpdatedAt    time.Time      `json:"updatedAt" gorm:"autoUpdateTime"`
-	DeletedAt    gorm.DeletedAt `json:"-" gorm:"index"`
+	ID           string       `json:"id" db:"id"`
+	Email        string       `json:"email" db:"email"`
+	PasswordHash string       `json:"-" db:"password_hash"`
+	FullName     string       `json:"fullName" db:"full_name"`
+	Phone        string       `json:"phone" db:"phone"`
+	AvatarURL    string       `json:"avatarUrl" db:"avatar_url"`
+	General      string       `json:"general" db:"general"`
+	Birthday     *time.Time   `json:"birthday,omitempty" db:"birthday"`
+	Address      string       `json:"address" db:"address"`
+	SocialLinks  []SocialLink `json:"socialLinks" db:"social_links"`
+	RoleID       string       `json:"roleId" db:"role_id"`
+	IsSuperAdmin bool         `json:"superAdmin" db:"is_super_admin"`
+	Status       Status       `json:"status" db:"status"`
+	CreatedAt    time.Time    `json:"createdAt" db:"created_at"`
+	UpdatedAt    time.Time    `json:"updatedAt" db:"updated_at"`
+	DeletedAt    *time.Time   `json:"-" db:"deleted_at"`
 }

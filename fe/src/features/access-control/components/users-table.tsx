@@ -72,7 +72,7 @@ function UsersTableContent() {
     'id',
   ] as const)
   const page = Number(values.page) || 1
-  const pageSize = 50
+  const pageSize = Number(values.pageSize) || 10
 
   const usersQuery = useUsersList({
     page,
@@ -83,7 +83,7 @@ function UsersTableContent() {
     id: values.id || undefined,
   })
   const rolesQuery = useAllRolesList()
-  const { canModify } = usePermissions()
+  const { canModify, isSuperAdmin } = usePermissions()
   const { createUser, updateUser, deleteUser } = useUserMutations()
   const canManageUsers = canModify('users')
 
@@ -136,6 +136,7 @@ function UsersTableContent() {
         birthday: values.birthday?.trim() ? values.birthday : null,
         address: values.address,
         socialLinks: values.socialLinks,
+        ...(isSuperAdmin ? { superAdmin: Boolean(values.superAdmin) } : {}),
       },
       {
         onSuccess: () => setDialogOpen(false),
@@ -156,6 +157,7 @@ function UsersTableContent() {
       address: values.address,
       socialLinks: values.socialLinks,
       ...(values.password ? { password: values.password } : {}),
+      ...(isSuperAdmin ? { superAdmin: Boolean(values.superAdmin) } : {}),
     }
     updateUser.mutate(
       { id: editingUser.id, input },
@@ -253,12 +255,19 @@ function UsersTableContent() {
             title={t('access.users.fields.role')}
           />
         ),
-        cell: ({ getValue }) => {
+        cell: ({ row, getValue }) => {
           const name = getValue<string>()
-          return name ? (
-            <Badge variant="secondary">{name}</Badge>
-          ) : (
-            <span className="text-muted-foreground">—</span>
+          return (
+            <span className="inline-flex flex-wrap items-center gap-1">
+              {name ? (
+                <Badge variant="secondary">{name}</Badge>
+              ) : (
+                <span className="text-muted-foreground">—</span>
+              )}
+              {row.original.superAdmin ? (
+                <Badge>{t('access.users.badge.superAdmin')}</Badge>
+              ) : null}
+            </span>
           )
         },
       },
@@ -314,7 +323,7 @@ function UsersTableContent() {
           title={t('access.users.title')}
           description={t('access.users.description')}
         />
-        <DataTableSkeleton columns={8} />
+          <DataTableSkeleton columns={8} />
       </div>
     )
   }
@@ -362,6 +371,14 @@ function UsersTableContent() {
         data={users}
         getRowId={(row) => row.id}
         localPagination={false}
+        serverPaging={{
+          page,
+          pageSize,
+          total: usersQuery.data?.total ?? 0,
+          onPageChange: (next) => setParams({ page: String(next) }),
+          onPageSizeChange: (next) =>
+            setParams({ pageSize: String(next), page: '1' }),
+        }}
         isRefreshing={isRefreshing}
         emptyTitle={t('access.users.emptyTitle', { defaultValue: 'No users yet' })}
         emptyDescription={t('access.users.emptyDescription', {
@@ -445,10 +462,17 @@ function UsersTableContent() {
                 },
                 {
                   label: t('access.users.fields.role'),
-                  value: role ? (
-                    <Badge variant="secondary">{role.name}</Badge>
-                  ) : (
-                    '—'
+                  value: (
+                    <span className="inline-flex flex-wrap items-center justify-end gap-1">
+                      {role ? (
+                        <Badge variant="secondary">{role.name}</Badge>
+                      ) : (
+                        '—'
+                      )}
+                      {user.superAdmin ? (
+                        <Badge>{t('access.users.badge.superAdmin')}</Badge>
+                      ) : null}
+                    </span>
                   ),
                 },
                 {

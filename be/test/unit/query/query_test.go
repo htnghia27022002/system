@@ -49,9 +49,42 @@ func TestPageParamsPagination(t *testing.T) {
 	}
 }
 
-func TestLikeSearchTerm(t *testing.T) {
-	q := query.New(1, 10).WhereLikeAny([]string{"email"}, "admin")
-	if q.LikeSearchTerm() != "admin" {
-		t.Fatalf("LikeSearchTerm() = %q, want admin", q.LikeSearchTerm())
+func TestCompileWhereEqualAndLikeOr(t *testing.T) {
+	q := query.New(1, 10).
+		WhereEqual("role_id", "role-1").
+		WhereLikeAny([]string{"email", "full_name"}, "admin")
+
+	sql, args, err := query.CompileWhere(q)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if sql == "" {
+		t.Fatal("expected SQL")
+	}
+	if len(args) != 3 {
+		t.Fatalf("args = %d, want 3; sql=%s args=%v", len(args), sql, args)
+	}
+}
+
+func TestCompileWhereEmpty(t *testing.T) {
+	sql, args, err := query.CompileWhere(query.New(1, 10))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if sql != "" || args != nil {
+		t.Fatalf("expected empty where, got sql=%q args=%v", sql, args)
+	}
+}
+
+func TestNewPageNormalizesNilItems(t *testing.T) {
+	page := query.NewPage[string](nil, 3, 0, 200)
+	if page.Items == nil {
+		t.Fatal("items must be empty slice, not nil")
+	}
+	if len(page.Items) != 0 {
+		t.Fatalf("items len = %d", len(page.Items))
+	}
+	if page.Total != 3 || page.Page != 1 || page.PageSize != query.MaxPageSize {
+		t.Fatalf("unexpected page meta: %+v", page)
 	}
 }

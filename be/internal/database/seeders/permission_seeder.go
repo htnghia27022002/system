@@ -3,10 +3,7 @@ package seeders
 import (
 	"context"
 
-	"gorm.io/gorm"
-	"gorm.io/gorm/clause"
-
-	permissionmodel "be/internal/models/permission"
+	"be/pkg/postgres"
 )
 
 // PermissionSeeder seeds the permissions catalog.
@@ -20,19 +17,18 @@ func (s *PermissionSeeder) Name() string {
 	return "PermissionSeeder"
 }
 
-func (s *PermissionSeeder) Run(ctx context.Context, db *gorm.DB) error {
+func (s *PermissionSeeder) Run(ctx context.Context, db *postgres.Postgres) error {
 	for _, item := range DefaultPermissions() {
-		row := permissionmodel.Permission{
-			ID:          item.ID,
-			Key:         item.Key,
-			Name:        item.Name,
-			Group:       item.Group,
-			Description: item.Description,
+		sql, args, err := db.Builder.
+			Insert(postgres.QuoteIdent("permissions")).
+			Columns("id", "key", "name", `"group"`, "description").
+			Values(item.ID, item.Key, item.Name, item.Group, item.Description).
+			Suffix("ON CONFLICT (key) DO NOTHING").
+			ToSql()
+		if err != nil {
+			return err
 		}
-		if err := db.WithContext(ctx).Clauses(clause.OnConflict{
-			Columns:   []clause.Column{{Name: "key"}},
-			DoNothing: true,
-		}).Create(&row).Error; err != nil {
+		if _, err := db.Querier(ctx).Exec(ctx, sql, args...); err != nil {
 			return err
 		}
 	}

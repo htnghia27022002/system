@@ -3,11 +3,9 @@ package seeders
 import (
 	"context"
 
-	"gorm.io/gorm"
-	"gorm.io/gorm/clause"
-
 	"be/pkg/hash"
 	usermodel "be/internal/models/user"
+	"be/pkg/postgres"
 )
 
 // UserSeeder seeds demo admin and member accounts.
@@ -21,7 +19,7 @@ func (s *UserSeeder) Name() string {
 	return "UserSeeder"
 }
 
-func (s *UserSeeder) Run(ctx context.Context, db *gorm.DB) error {
+func (s *UserSeeder) Run(ctx context.Context, db *postgres.Postgres) error {
 	adminHash, err := hash.HashPassword("admin1234")
 	if err != nil {
 		return err
@@ -31,30 +29,30 @@ func (s *UserSeeder) Run(ctx context.Context, db *gorm.DB) error {
 		return err
 	}
 
-	users := []usermodel.User{
-		{
-			ID:           AdminUserID,
-			Email:        "admin@example.com",
-			PasswordHash: adminHash,
-			FullName:     "Admin User",
-			RoleID:       RoleAdminID,
-			Status:       usermodel.StatusActive,
-		},
-		{
-			ID:           DemoUserID,
-			Email:        "demo@example.com",
-			PasswordHash: demoHash,
-			FullName:     "Demo User",
-			RoleID:       RoleUserID,
-			Status:       usermodel.StatusActive,
-		},
+	users := []struct {
+		ID           string
+		Email        string
+		PasswordHash string
+		FullName     string
+		RoleID       string
+		Status       usermodel.Status
+		SuperAdmin   bool
+	}{
+		{AdminUserID, "admin@example.com", adminHash, "Admin User", RoleAdminID, usermodel.StatusActive, true},
+		{DemoUserID, "demo@example.com", demoHash, "Demo User", RoleUserID, usermodel.StatusActive, false},
 	}
 
 	for _, user := range users {
-		if err := db.WithContext(ctx).Clauses(clause.OnConflict{
-			Columns:   []clause.Column{{Name: "email"}},
-			DoNothing: true,
-		}).Create(&user).Error; err != nil {
+		sql, args, err := db.Builder.
+			Insert(postgres.QuoteIdent("users")).
+			Columns("id", "email", "password_hash", "full_name", "role_id", "status", "is_super_admin").
+			Values(user.ID, user.Email, user.PasswordHash, user.FullName, user.RoleID, string(user.Status), user.SuperAdmin).
+			Suffix("ON CONFLICT (email) DO NOTHING").
+			ToSql()
+		if err != nil {
+			return err
+		}
+		if _, err := db.Querier(ctx).Exec(ctx, sql, args...); err != nil {
 			return err
 		}
 	}

@@ -1,3 +1,5 @@
+'use client'
+
 import {
   ChevronLeftIcon,
   ChevronRightIcon,
@@ -5,6 +7,7 @@ import {
   ChevronsRightIcon,
 } from 'lucide-react'
 import type { Table } from '@tanstack/react-table'
+import { useTranslation } from 'react-i18next'
 
 import { Button } from '@/components/ui/button'
 import {
@@ -26,13 +29,14 @@ export function DataTablePagination<TData>({
   table,
   totalLabel,
 }: DataTablePaginationProps<TData>) {
+  const { t } = useTranslation('common')
   const { pageIndex, pageSize } = table.getState().pagination
   const total = table.getFilteredRowModel().rows.length
   const from = total === 0 ? 0 : pageIndex * pageSize + 1
   const to = Math.min((pageIndex + 1) * pageSize, total)
 
   const defaultLabel = (f: number, t: number, tot: number) =>
-    tot === 0 ? 'No results' : `${f}–${t} of ${tot}`
+    tot === 0 ? t('table.noResults') : t('table.range', { from: f, to: t, total: tot })
 
   const label = totalLabel
     ? totalLabel(from, to, total)
@@ -46,7 +50,7 @@ export function DataTablePagination<TData>({
 
       <div className="order-1 flex items-center gap-4 sm:order-2">
         <div className="flex items-center gap-2">
-          <span className="text-sm text-muted-foreground">Rows</span>
+          <span className="text-sm text-muted-foreground">{t('table.rows')}</span>
           <Select
             value={String(pageSize)}
             onValueChange={(value) => {
@@ -74,7 +78,7 @@ export function DataTablePagination<TData>({
             className="hidden size-8 sm:flex"
             onClick={() => table.setPageIndex(0)}
             disabled={!table.getCanPreviousPage()}
-            aria-label="First page"
+            aria-label={t('table.firstPage')}
           >
             <ChevronsLeftIcon className="size-4" />
           </Button>
@@ -84,15 +88,18 @@ export function DataTablePagination<TData>({
             className="size-8"
             onClick={() => table.previousPage()}
             disabled={!table.getCanPreviousPage()}
-            aria-label="Previous page"
+            aria-label={t('table.previousPage')}
           >
             <ChevronLeftIcon className="size-4" />
           </Button>
 
           <span className="min-w-[4.5rem] text-center text-sm">
             {table.getPageCount() <= 1
-              ? 'Page 1'
-              : `${pageIndex + 1} / ${table.getPageCount()}`}
+              ? t('table.pageOne')
+              : t('table.pageOf', {
+                  page: pageIndex + 1,
+                  pageCount: table.getPageCount(),
+                })}
           </span>
 
           <Button
@@ -101,7 +108,7 @@ export function DataTablePagination<TData>({
             className="size-8"
             onClick={() => table.nextPage()}
             disabled={!table.getCanNextPage()}
-            aria-label="Next page"
+            aria-label={t('table.nextPage')}
           >
             <ChevronRightIcon className="size-4" />
           </Button>
@@ -111,7 +118,7 @@ export function DataTablePagination<TData>({
             className="hidden size-8 sm:flex"
             onClick={() => table.setPageIndex(table.getPageCount() - 1)}
             disabled={!table.getCanNextPage()}
-            aria-label="Last page"
+            aria-label={t('table.lastPage')}
           >
             <ChevronsRightIcon className="size-4" />
           </Button>

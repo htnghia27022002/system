@@ -13,12 +13,15 @@ src/
     ui/                 ← shadcn/ui components
   config/               ← env.ts, i18n.ts
   features/             ← All domain logic + page components
-    auth/               ← LoginPage, RegisterPage, guards, forms, hooks
-    home/               ← HomePage
-    admin-dashboard/    ← AdminDashboardOverview, charts
-    access-control/     ← UsersTable, RolesTable, permission hooks
+    landing/            ← Public `/` (LandingPage)
+    tools/              ← Tools hub + webhooks
+    access-control/     ← UsersTable, RolesTable, permission hooks, admin nav
+    admin-dashboard/
+    admin-search/
+    user-profile/
+    auth/
   hooks/                ← Shared custom hooks
-  layouts/              ← MainLayout, AdminLayout (route layout shells)
+  layouts/              ← AdminLayout
   lib/                  ← utils.ts (cn)
   locales/              ← en/, vi/
   services/             ← api-client, auth-token-service, mock/
@@ -47,8 +50,8 @@ src/app/
   not-found.tsx             ← 404
   sitemap.ts / robots.ts    ← SEO
   (public)/
-    layout.tsx              ← MainLayout
-    page.tsx                ← / → features/home/HomePage
+    layout.tsx              ← passthrough
+    page.tsx                ← / → features/landing/LandingPage
   (auth)/
     layout.tsx              ← GuestGuard
     login/page.tsx          ← /login → features/auth/LoginPage

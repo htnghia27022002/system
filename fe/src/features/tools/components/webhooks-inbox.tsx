@@ -31,6 +31,7 @@ import {
 } from '@/components/ui/tooltip'
 import { PermissionGate, PermissionKeys } from '@/features/access-control'
 import { useDebouncedValue } from '@/hooks/use-debounced-value'
+import { copyToClipboard } from '@/utils/copy-to-clipboard'
 
 import {
   useWebhookInbox,
@@ -107,8 +108,9 @@ export function WebhooksInbox() {
 
   async function handleCopy() {
     if (!publicUrl) return
+
     try {
-      await navigator.clipboard.writeText(publicUrl)
+      await copyToClipboard(publicUrl)
       setCopied(true)
       toast.success(t('tools.webhooks.toasts.copied'))
       window.setTimeout(() => setCopied(false), 2000)

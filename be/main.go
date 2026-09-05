@@ -14,6 +14,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	defer db.Close()
 
 	redisURL := cfg.RedisURL
 	if cfg.Cache.Enabled && cfg.Cache.Driver == "redis" && cfg.Cache.RedisURL != "" {

@@ -116,3 +116,9 @@ Full detail: `.cursor/rules/fe-form-layout.mdc`.
 4. Clickable id/name/… cells use **link color** (`text-primary`) so they read as clickable.
 5. shadcn/registry checked before custom markup.
 6. Copy and docs in English (UI strings via i18n when the feature already uses it).
+
+---
+
+## 8) Product screens (admin / tools)
+
+Landing polish uses `design-taste-frontend`. **Admin and tool UIs** follow `.cursor/rules/fe-ux-product.mdc`: one accent color, grayscale structure, loading/empty/error on every list, server pager when the API is paginated, i18n for user-visible copy.

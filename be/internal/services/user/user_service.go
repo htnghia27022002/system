@@ -8,13 +8,13 @@ import (
 	"time"
 
 	apperrors "be/internal/common/errors"
-	"be/pkg/hash"
-	"be/pkg/query"
 	userdto "be/internal/dto/user"
 	usermodel "be/internal/models/user"
-	searchpkg "be/internal/search"
 	"be/internal/repository/interfaces"
+	searchpkg "be/internal/search"
 	"be/internal/services/media"
+	"be/pkg/hash"
+	"be/pkg/query"
 )
 
 type OutboxEnqueuer interface {
@@ -22,23 +22,33 @@ type OutboxEnqueuer interface {
 	EnqueueDelete(ctx context.Context, entityType, entityID string) error
 }
 
+// Actor is the signed-in operator performing an admin user mutation.
+type Actor struct {
+	ID         string
+	SuperAdmin bool
+}
+
 type Service struct {
 	repo   interfaces.UserRepository
 	auth   interfaces.AuthRepository
 	outbox OutboxEnqueuer
-	media  *media.Service
+	media  media.AvatarStorage
 }
 
 func NewService(
 	repo interfaces.UserRepository,
 	auth interfaces.AuthRepository,
 	outbox OutboxEnqueuer,
-	mediaSvc *media.Service,
+	mediaSvc media.AvatarStorage,
 ) *Service {
 	return &Service{repo: repo, auth: auth, outbox: outbox, media: mediaSvc}
 }
 
-func (s *Service) Create(ctx context.Context, req userdto.CreateUserRequest) (*usermodel.User, error) {
+func (s *Service) Create(ctx context.Context, req userdto.CreateUserRequest, actor Actor) (*usermodel.User, error) {
+	if err := s.guardSuperAdminWrite(actor, req.SuperAdmin); err != nil {
+		return nil, err
+	}
+
 	existing, err := s.repo.GetByEmail(ctx, req.Email)
 	if err != nil {
 		return nil, err
@@ -68,6 +78,7 @@ func (s *Service) Create(ctx context.Context, req userdto.CreateUserRequest) (*u
 		FullName:     strings.TrimSpace(req.Name),
 		RoleID:       req.RoleID,
 		Status:       status,
+		IsSuperAdmin: req.SuperAdmin != nil && *req.SuperAdmin,
 		SocialLinks:  []usermodel.SocialLink{},
 	}
 	normalized.Apply(user)
@@ -108,7 +119,11 @@ func (s *Service) List(ctx context.Context, form userdto.ListUsersQuery) ([]user
 	return users, total, q.Page, q.PageSize, nil
 }
 
-func (s *Service) Update(ctx context.Context, id string, req userdto.UpdateUserRequest, sessionUserID string) (*usermodel.User, error) {
+func (s *Service) Update(ctx context.Context, id string, req userdto.UpdateUserRequest, actor Actor) (*usermodel.User, error) {
+	if err := s.guardSuperAdminWrite(actor, req.SuperAdmin); err != nil {
+		return nil, err
+	}
+
 	user, err := s.repo.GetByID(ctx, id)
 	if err != nil {
 		return nil, err
@@ -139,8 +154,13 @@ func (s *Service) Update(ctx context.Context, id string, req userdto.UpdateUserR
 		user.RoleID = *req.RoleID
 	}
 	if req.Status != nil {
-		if id == sessionUserID && *req.Status == string(usermodel.StatusInactive) {
+		if id == actor.ID && *req.Status == string(usermodel.StatusInactive) {
 			return nil, fmt.Errorf("%w: cannot deactivate your own account", apperrors.ErrForbidden)
+		}
+		if user.IsSuperAdmin && *req.Status == string(usermodel.StatusInactive) {
+			if err := s.guardLastSuperAdmin(ctx); err != nil {
+				return nil, err
+			}
 		}
 		user.Status = usermodel.Status(*req.Status)
 	}
@@ -154,6 +174,14 @@ func (s *Service) Update(ctx context.Context, id string, req userdto.UpdateUserR
 	normalized.Apply(user)
 	if req.AvatarURL != nil {
 		user.AvatarURL = strings.TrimSpace(*req.AvatarURL)
+	}
+	if req.SuperAdmin != nil && *req.SuperAdmin != user.IsSuperAdmin {
+		if user.IsSuperAdmin && !*req.SuperAdmin {
+			if err := s.guardLastSuperAdmin(ctx); err != nil {
+				return nil, err
+			}
+		}
+		user.IsSuperAdmin = *req.SuperAdmin
 	}
 
 	if err := s.repo.Update(ctx, user); err != nil {
@@ -194,8 +222,8 @@ func (s *Service) UploadAvatar(ctx context.Context, id string, file multipart.Fi
 	return user, nil
 }
 
-func (s *Service) Delete(ctx context.Context, id, sessionUserID string) error {
-	if id == sessionUserID {
+func (s *Service) Delete(ctx context.Context, id string, actor Actor) error {
+	if id == actor.ID {
 		return fmt.Errorf("%w: cannot delete your own account", apperrors.ErrForbidden)
 	}
 	user, err := s.repo.GetByID(ctx, id)
@@ -205,10 +233,33 @@ func (s *Service) Delete(ctx context.Context, id, sessionUserID string) error {
 	if user == nil {
 		return apperrors.ErrNotFound
 	}
+	if user.IsSuperAdmin {
+		if err := s.guardLastSuperAdmin(ctx); err != nil {
+			return err
+		}
+	}
 	if err := s.repo.Delete(ctx, id); err != nil {
 		return err
 	}
 	s.enqueueDelete(ctx, searchpkg.EntityUser, id)
+	return nil
+}
+
+func (s *Service) guardSuperAdminWrite(actor Actor, flag *bool) error {
+	if flag != nil && !actor.SuperAdmin {
+		return fmt.Errorf("%w: only a super admin can change the super admin flag", apperrors.ErrForbidden)
+	}
+	return nil
+}
+
+func (s *Service) guardLastSuperAdmin(ctx context.Context) error {
+	count, err := s.repo.CountSuperAdmins(ctx)
+	if err != nil {
+		return err
+	}
+	if count <= 1 {
+		return fmt.Errorf("%w: cannot remove the last super admin", apperrors.ErrForbidden)
+	}
 	return nil
 }
 
@@ -240,6 +291,7 @@ func ToResponse(user *usermodel.User, oauthProviders ...string) userdto.UserResp
 		Email:          user.Email,
 		Name:           user.FullName,
 		RoleID:         user.RoleID,
+		SuperAdmin:     user.IsSuperAdmin,
 		Status:         string(user.Status),
 		Phone:          user.Phone,
 		AvatarURL:      user.AvatarURL,

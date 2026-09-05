@@ -18,7 +18,7 @@ P2 (live push, custom responses, export, rich binary viewers, team inboxes) is d
 
 **Language/Version**: Go 1.22 (BE); TypeScript strict on Next.js 15 App Router + React 19 (FE)
 
-**Primary Dependencies**: Gin, GORM, golang-migrate, PostgreSQL (BE); TanStack Query (or existing fetch patterns), shadcn/ui, react-i18next (FE); nginx reverse proxy (Docker)
+**Primary Dependencies**: Gin, pgx, squirrel, golang-migrate, PostgreSQL (BE); TanStack Query (or existing fetch patterns), shadcn/ui, react-i18next (FE); nginx reverse proxy (Docker)
 
 **Storage**: PostgreSQL for `webhook_inboxes` + `webhook_requests` (JSON for headers/query/form; body as constrained text/bytea)
 

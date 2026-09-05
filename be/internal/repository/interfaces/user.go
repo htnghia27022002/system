@@ -3,8 +3,8 @@ package interfaces
 import (
 	"context"
 
-	"be/pkg/query"
 	usermodel "be/internal/models/user"
+	"be/pkg/query"
 )
 
 type UserRepository interface {
@@ -15,4 +15,5 @@ type UserRepository interface {
 	ListAll(ctx context.Context) ([]usermodel.User, error)
 	Update(ctx context.Context, user *usermodel.User) error
 	Delete(ctx context.Context, id string) error
+	CountSuperAdmins(ctx context.Context) (int64, error)
 }

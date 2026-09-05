@@ -1,8 +1,8 @@
 package dependency
 
 import (
-	"be/internal/services/media"
 	authsvc "be/internal/services/auth"
+	"be/internal/services/media"
 )
 
 // AuthServices groups authentication-related services.
@@ -27,6 +27,6 @@ func NewAuthServices(infra *Infra, mediaSvc *media.Service) *AuthServices {
 
 	return &AuthServices{
 		Auth:  authService,
-		OAuth: authsvc.NewOAuthService(infra.Config, authRepo, roleRepo, authService),
+		OAuth: authsvc.NewOAuthService(infra.Config, authRepo, userRepo, roleRepo, authService),
 	}
 }

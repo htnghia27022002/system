@@ -4,10 +4,7 @@ import (
 	"context"
 
 	"be/internal/common/rbac"
-	rolemodel "be/internal/models/role"
-
-	"gorm.io/gorm"
-	"gorm.io/gorm/clause"
+	"be/pkg/postgres"
 )
 
 // RolePermissionSeeder assigns permissions to roles.
@@ -21,24 +18,27 @@ func (s *RolePermissionSeeder) Name() string {
 	return "RolePermissionSeeder"
 }
 
-func (s *RolePermissionSeeder) Run(ctx context.Context, db *gorm.DB) error {
-	for _, item := range DefaultPermissions() {
-		row := rolemodel.RolePermission{
-			RoleID:       RoleAdminID,
-			PermissionID: item.ID,
+func (s *RolePermissionSeeder) Run(ctx context.Context, db *postgres.Postgres) error {
+	insert := func(roleID, permissionID string) error {
+		sql, args, err := db.Builder.
+			Insert(postgres.QuoteIdent("role_permissions")).
+			Columns("role_id", "permission_id").
+			Values(roleID, permissionID).
+			Suffix("ON CONFLICT DO NOTHING").
+			ToSql()
+		if err != nil {
+			return err
 		}
-		if err := db.WithContext(ctx).Clauses(clause.OnConflict{DoNothing: true}).Create(&row).Error; err != nil {
+		_, err = db.Querier(ctx).Exec(ctx, sql, args...)
+		return err
+	}
+
+	for _, item := range DefaultPermissions() {
+		if err := insert(RoleAdminID, item.ID); err != nil {
 			return err
 		}
 	}
 
-	memberDashboard := rolemodel.RolePermission{
-		RoleID:       RoleUserID,
-		PermissionID: PermissionIDByKey(rbac.Key("dashboard", rbac.ActionView)),
-	}
-	if err := db.WithContext(ctx).Clauses(clause.OnConflict{DoNothing: true}).Create(&memberDashboard).Error; err != nil {
-		return err
-	}
-
-	return nil
+	return insert(RoleUserID, PermissionIDByKey(rbac.Key("dashboard", rbac.ActionView)))
 }
+

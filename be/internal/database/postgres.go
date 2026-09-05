@@ -1,19 +1,20 @@
 package database
 
 import (
+	"context"
+
 	"be/internal/config"
 	"be/pkg/postgres"
-
-	"gorm.io/gorm"
 )
 
-// Connect opens PostgreSQL via GORM using app config.
+// Connect opens PostgreSQL via pgx using app config.
 // When cfg.DBURL is set (from DB_URL), it is used; otherwise discrete DB_* fields.
-func Connect(cfg config.Config) (*gorm.DB, error) {
+func Connect(cfg config.Config) (*postgres.Postgres, error) {
+	ctx := context.Background()
 	if cfg.DBURL != "" {
-		return postgres.ConnectDSN(cfg.DBURL)
+		return postgres.ConnectDSN(ctx, cfg.DBURL)
 	}
-	return postgres.Connect(postgres.Options{
+	return postgres.Connect(ctx, postgres.Options{
 		Host:    cfg.DBHost,
 		Port:    cfg.DBPort,
 		User:    cfg.DBUser,

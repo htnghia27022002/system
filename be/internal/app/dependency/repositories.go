@@ -3,30 +3,29 @@ package dependency
 import (
 	"be/internal/repository"
 	"be/internal/repository/interfaces"
-
-	"gorm.io/gorm"
+	"be/pkg/postgres"
 )
 
-func newAuthRepository(db *gorm.DB) interfaces.AuthRepository {
+func newAuthRepository(db *postgres.Postgres) interfaces.AuthRepository {
 	return repository.NewAuthRepository(db)
 }
 
-func newUserRepository(db *gorm.DB) interfaces.UserRepository {
+func newUserRepository(db *postgres.Postgres) interfaces.UserRepository {
 	return repository.NewUserRepository(db)
 }
 
-func newRoleRepository(db *gorm.DB) interfaces.RoleRepository {
+func newRoleRepository(db *postgres.Postgres) interfaces.RoleRepository {
 	return repository.NewRoleRepository(db)
 }
 
-func newPermissionRepository(db *gorm.DB) interfaces.PermissionRepository {
+func newPermissionRepository(db *postgres.Postgres) interfaces.PermissionRepository {
 	return repository.NewPermissionRepository(db)
 }
 
-func newWebhookInboxRepository(db *gorm.DB) interfaces.WebhookInboxRepository {
+func newWebhookInboxRepository(db *postgres.Postgres) interfaces.WebhookInboxRepository {
 	return repository.NewWebhookInboxRepository(db)
 }
 
-func newWebhookRequestRepository(db *gorm.DB) interfaces.WebhookRequestRepository {
+func newWebhookRequestRepository(db *postgres.Postgres) interfaces.WebhookRequestRepository {
 	return repository.NewWebhookRequestRepository(db)
 }

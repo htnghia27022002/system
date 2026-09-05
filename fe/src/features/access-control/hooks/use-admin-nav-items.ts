@@ -10,7 +10,8 @@ import {
 import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import { usePermissions, PermissionKeys } from '@/features/access-control'
+import { PermissionKeys } from '../permission-keys'
+import { usePermissions } from './use-permissions'
 import type { NavItem } from '@/types/navigation'
 
 export const ADMIN_HOME_HREF = '/admin'

@@ -1,0 +1,45 @@
+---
+description: Feature-module layout for fe/ — Bulletproof React public API, kebab-case, TanStack Query, split admin tables.
+globs: fe/**/*
+alwaysApply: false
+---
+
+# FE feature modules
+
+Canonical layout (only create folders you need), from [bulletproof-react](https://github.com/alan2207/bulletproof-react) (~36k stars):
+
+```text
+src/features/<name>/
+  index.ts              # public API only
+  types.ts
+  services/             # HTTP
+  hooks/                # useQuery / useMutation
+  components/           # kebab-case.tsx
+  schemas/
+```
+
+## Naming (match shadcn + bulletproof)
+
+- Files: `kebab-case.tsx` / `use-users.ts` — **not** `UsersTable.tsx`
+- Folders: `kebab-case`
+- Import other features **only** via `@/features/<name>` barrels
+
+## Admin list (required split)
+
+Do not grow a 400+ line table. Split like webhooks list/detail:
+
+- `*-table.tsx` — hooks + layout (~80–120 lines)
+- `*-table-columns.tsx` — column defs
+- `*-form-dialog.tsx` + `*-form-fields.tsx` — RHF; **no API calls in fields**
+
+Use shared `DataTable`. Pass `serverPaging` when the API is paginated. Do not set `localPagination={false}` without pager controls.
+
+## Server state
+
+- Reads/writes: TanStack Query in `hooks/` (query key factory per feature)
+- Do **not** load server data with `useEffect` + `useState`
+- Client-only UI state (dialog open) stays in the table component
+
+## Kernel exception
+
+`@/features/access-control` (RBAC) and `@/features/auth` barrels may be imported from admin chrome (`components/common`, `layouts`). One-way only. No deep paths.

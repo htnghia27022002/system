@@ -26,6 +26,10 @@ import { cn } from '@/lib/utils'
 
 import { DataTableEmpty } from './data-table-empty'
 import { DataTablePagination } from './data-table-pagination'
+import {
+  DataTableServerPagination,
+  type DataTableServerPaging,
+} from './data-table-server-pagination'
 
 type DataTableProps<TData, TValue = unknown> = {
   columns: ColumnDef<TData, TValue>[]
@@ -51,6 +55,9 @@ type DataTableProps<TData, TValue = unknown> = {
   /** When false, render all rows from server without client pagination */
   localPagination?: boolean
 
+  /** Server-driven pager. Use with localPagination={false} when the API is paginated. */
+  serverPaging?: DataTableServerPaging
+
   emptyTitle?: string
   emptyDescription?: string
   emptyAction?: ReactNode
@@ -72,6 +79,7 @@ export function DataTable<TData, TValue = unknown>({
   toolbar,
   defaultPageSize = 10,
   localPagination = true,
+  serverPaging,
   emptyTitle,
   emptyDescription,
   emptyAction,
@@ -103,8 +111,9 @@ export function DataTable<TData, TValue = unknown>({
   const rows = table.getRowModel().rows
   const hasFilter = Boolean(filterKey)
   const hasToolbar = hasFilter || Boolean(toolbar)
-  const showPagination =
+  const showLocalPagination =
     localPagination &&
+    !serverPaging &&
     (table.getPageCount() > 1 ||
       table.getState().pagination.pageSize < data.length)
 
@@ -245,13 +254,19 @@ export function DataTable<TData, TValue = unknown>({
             </div>
           </div>
 
-          {showPagination ? <DataTablePagination table={table} /> : null}
+          {showLocalPagination ? <DataTablePagination table={table} /> : null}
+          {serverPaging ? <DataTableServerPagination paging={serverPaging} /> : null}
         </div>
 
         {/* Mobile pagination */}
-        {rows.length > 0 && showPagination ? (
+        {rows.length > 0 && showLocalPagination ? (
           <div className={cn('mt-2 md:hidden', isRefreshing && 'opacity-60')}>
             <DataTablePagination table={table} />
+          </div>
+        ) : null}
+        {serverPaging ? (
+          <div className={cn('mt-2 md:hidden', isRefreshing && 'opacity-60')}>
+            <DataTableServerPagination paging={serverPaging} />
           </div>
         ) : null}
       </div>

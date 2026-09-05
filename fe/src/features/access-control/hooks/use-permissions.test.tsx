@@ -14,11 +14,14 @@ vi.mock('@/store/auth-store', () => ({
           PermissionKeys.users.view,
           PermissionKeys.users.modify,
         ],
+        superAdmin: false,
       },
       sessionSynced: true,
     }),
   selectPermissions: (state: { user?: { permissions?: string[] } }) =>
     state.user?.permissions ?? [],
+  selectIsSuperAdmin: (state: { user?: { superAdmin?: boolean } }) =>
+    Boolean(state.user?.superAdmin),
 }))
 
 describe('usePermissions', () => {
@@ -29,5 +32,6 @@ describe('usePermissions', () => {
     expect(result.current.hasPermission(PermissionKeys.roles.modify)).toBe(false)
     expect(result.current.canModify('users')).toBe(true)
     expect(result.current.canView('roles')).toBe(false)
+    expect(result.current.isSuperAdmin).toBe(false)
   })
 })

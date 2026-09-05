@@ -1,0 +1,70 @@
+---
+description: How to ship a feature through @ba → @qa with the least rework. From the 006-account-sessions canary (2026-09-04).
+globs:
+  - docs/features/**/*
+  - be/**/*
+  - fe/**/*
+alwaysApply: false
+---
+
+# Feature delivery (senior, extend-first)
+
+When the user asks for a new feature (any language), run this loop. Do **not** skip phases. Do **not** dump extra Cursor-rule catalogs into the repo.
+
+## Orchestrator
+
+One chat drives agents in order. User says `@ba …` then you continue through architect → BE → FE → QA unless they stop you.
+
+```text
+@ba spec.md
+  → @technical-architect tasks.md (from spec only)
+  → @technical-architect plan.md + contracts/{database,endpoints,permissions}.md
+  → @be code + make test-be + be-tasks-verify.md
+  → @fe code + make test-fe + fe-tasks-verify.md
+  → @qa qa-checklist.md + make test + Independent Tests
+```
+
+- English in every file under `docs/features/` and source. Vietnamese only in `fe/src/locales/vi/**` (UTF-8 diacritics).
+- `setup-tasks.sh` may fail because this repo writes **tasks before plan**. Still write `tasks.md` from `spec.md`, then `speckit-plan`.
+- Never `@be` / `@fe` before `plan.md` and all three contract files exist (N/A allowed *inside* a file).
+- Never `@qa` before `be-tasks-verify.md` / `fe-tasks-verify.md` for roles that coded.
+
+## Extend vs new domain
+
+Prefer **extending an existing bounded context** (auth, access-control, tools, profile) over a new top-level package.
+
+| Kind | BE | FE | Permissions |
+|------|----|----|-------------|
+| Self-service account | `/api/auth/*` + JWT | Existing page section (e.g. fourth Card on `/admin/profile`) | `permissions.md` = **N/A** (signed-in only). No catalog keys, no sidebar. |
+| Admin module | `/api/admin/*` + `RequireView`/`RequireModify` | Feature module + sidebar `hasPermission` + `PermissionGuard` | `{resource}:view` / `{resource}:modify` |
+
+006 canary = row 1 (refresh-token sessions on Profile). Do not invent `sessions:view` for owner-only.
+
+## BE (keep layers)
+
+`routes → handlers → services → repository`. Reuse `be/pkg/repo`. Tokens stay on **AuthRepository** (ISP).
+
+- GitNexus **before** editing kernel symbols (`AuthRepository`, `issueTokenPair`, admin chrome). HIGH/CRITICAL → additive fields/methods only; keep existing JSON keys.
+- Set timestamps on insert (`CreatedAt` / `UpdatedAt` / `last_used_at`). `Insert` skips zero times and `RETURNING` is PK-only; list `COALESCE(..., 1970-01-01)` will show epoch if you leave `CreatedAt` zero. **Do not** remove that COALESCE globally (NULL `time.Time` scan → 500 on login).
+- Dev BE is `go run .` bind-mounted: **restart `be` after code changes** before Independent Tests, or you hit a stale process (404 new routes, empty users after integration truncate).
+- Tests from **repo root**: `make test-be`. Do not `cd be && make test` on WSL.
+
+## FE (keep feature modules)
+
+- kebab-case under `fe/src/features/<name>/`; thin `app/` pages; TanStack Query in `hooks/` (no `useEffect` for server data).
+- Import other features via barrels. Store/profile must **not** import `authApi` from `@/features/auth` (circular). Kernel exception: `components/common` may import `@/features/auth` and `@/features/access-control` one-way.
+- Persist session/device ids in `auth-token-service` (localStorage). Never put refresh tokens or secrets in URLs.
+- Admin Sign out must call `useSignOut` (server revoke), not local-only `signOut()`.
+- i18n EN + VI; loading / empty / error; `fe/DESIGN.md` tokens.
+
+## QA
+
+- Independent Tests from spec (curl live `/api` is enough if browser MCP tools are missing).
+- After BE changes: restart compose `be`, then login + list. Record skip vs fail honestly in `qa-checklist.md`.
+- Do not rewrite contracts for an implementation bug.
+
+## What not to do
+
+- Feature-Sliced Design, Kratos `biz/data/service` split, or a second design-token layer.
+- New route when a Card on an existing settings page is enough.
+- Copying awesome-cursorrules / v0 packs into this repo.

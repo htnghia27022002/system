@@ -15,7 +15,7 @@ func RegisterWebhookRoutes(r *gin.RouterGroup, c *app.Container) {
 		webhooks.Any("/capture/:uuid", c.WebhookHandler.Capture)
 
 		owner := webhooks.Group("")
-		owner.Use(middleware.Auth(c.JWT, c.RoleRepo))
+		owner.Use(middleware.Auth(c.JWT, c.RoleRepo, c.UserRepo))
 		{
 			owner.GET("/inbox", middleware.RequireView("webhooks"), c.WebhookHandler.GetInbox)
 			owner.POST("/inbox/regenerate", middleware.RequireModify("webhooks"), c.WebhookHandler.Regenerate)

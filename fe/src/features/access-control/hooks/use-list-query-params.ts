@@ -20,6 +20,10 @@ export function useListQueryParams(keys: readonly string[]) {
     }
     const page = Number(searchParams.get('page') ?? '1')
     out.page = String(Number.isFinite(page) && page > 0 ? page : 1)
+    const pageSize = Number(searchParams.get('pageSize') ?? '10')
+    const safePageSize =
+      Number.isFinite(pageSize) && pageSize > 0 ? Math.min(pageSize, 100) : 10
+    out.pageSize = String(safePageSize)
     return out
   }, [keys, searchParams])
 

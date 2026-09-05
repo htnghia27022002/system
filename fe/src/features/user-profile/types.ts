@@ -15,3 +15,17 @@ export type ChangePasswordInput = {
   currentPassword: string
   newPassword: string
 }
+
+export type AccountSession = {
+  id: string
+  createdAt: string
+  expiresAt: string
+  lastUsedAt: string
+  ipAddress: string | null
+  userAgent: string | null
+  current: boolean
+}
+
+export type AccountSessionList = {
+  items: AccountSession[]
+}

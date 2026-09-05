@@ -80,7 +80,7 @@
     },
     "users": {
       "title": "Người dùng",
-      "description": "Quản lý tài khoản, vai trò và trạng thái.",
+      "description": "Quản lý tài khoản, vai trò, trạng thái và Super admin.",
       "createTitle": "Tạo người dùng",
       "editTitle": "Sửa người dùng",
       "createAction": "Tạo người dùng",
@@ -93,6 +93,14 @@
         "status": "Trạng thái",
         "allRoles": "Tất cả vai trò",
         "allStatuses": "Tất cả trạng thái"
+      },
+      "tabs": {
+        "profile": "Hồ sơ",
+        "password": "Mật khẩu",
+        "account": "Tài khoản"
+      },
+      "badge": {
+        "superAdmin": "Super admin"
       },
       "sections": {
         "account": "Thông tin tài khoản",
@@ -109,6 +117,8 @@
         "passwordOptional": "để trống nếu giữ mật khẩu cũ",
         "passwordOptionalHint": "Để trống nếu muốn giữ mật khẩu hiện tại.",
         "role": "Vai trò",
+        "superAdmin": "Super admin",
+        "superAdminHint": "Bỏ qua kiểm tra vai trò và quyền. Chỉ Super admin mới đổi được cờ này.",
         "status": "Trạng thái",
         "phone": "Số điện thoại",
         "general": "Giới thiệu",
@@ -117,7 +127,9 @@
         "avatarHint": "Tùy chọn. JPEG, PNG hoặc WebP tối đa 2 MB."
       },
       "actions": {
-        "changeAvatar": "Đổi ảnh đại diện"
+        "changeAvatar": "Đổi ảnh đại diện",
+        "showPassword": "Hiện mật khẩu",
+        "hidePassword": "Ẩn mật khẩu"
       },
       "toasts": {
         "avatarUpdated": "Đã cập nhật ảnh đại diện"
@@ -183,13 +195,19 @@
   },
   "profile": {
     "title": "Cài đặt tài khoản",
-    "description": "Quản lý thông tin cá nhân, ảnh đại diện và mật khẩu.",
+    "description": "Quản lý thông tin cá nhân, ảnh đại diện, mật khẩu và các phiên đăng nhập đang hoạt động.",
     "sections": {
       "avatar": "Ảnh đại diện",
       "personalInfo": "Thông tin cá nhân",
       "identity": "Định danh",
       "personal": "Chi tiết",
-      "password": "Đổi mật khẩu"
+      "password": "Đổi mật khẩu",
+      "sessions": "Phiên đăng nhập"
+    },
+    "tabs": {
+      "profile": "Hồ sơ",
+      "password": "Mật khẩu",
+      "sessions": "Phiên đăng nhập"
     },
     "fields": {
       "name": "Họ tên",
@@ -216,24 +234,65 @@
       "changeAvatar": "Đổi ảnh đại diện",
       "changePassword": "Cập nhật mật khẩu",
       "addLink": "Thêm liên kết",
-      "removeLink": "Xóa liên kết"
+      "removeLink": "Xóa liên kết",
+      "generatePassword": "Tạo mật khẩu ngẫu nhiên",
+      "collapseSection": "Thu gọn {{section}}",
+      "expandSection": "Mở {{section}}"
     },
     "empty": {
       "socialLinks": "Chưa có liên kết mạng xã hội."
     },
     "password": {
-      "unavailable": "Không thể đổi mật khẩu vì tài khoản này không có mật khẩu (ví dụ đăng nhập bằng nhà cung cấp)."
+      "unavailable": "Không thể đổi mật khẩu vì tài khoản này không có mật khẩu (ví dụ đăng nhập bằng nhà cung cấp).",
+      "generateHint": "Tạo mật khẩu ngẫu nhiên 16 ký tự gồm chữ, số và ký hiệu. Hãy sao chép trước khi rời trang này."
     },
     "toasts": {
       "profileSaved": "Đã lưu hồ sơ",
       "avatarUpdated": "Đã cập nhật ảnh đại diện",
-      "passwordChanged": "Đã cập nhật mật khẩu"
+      "passwordChanged": "Đã cập nhật mật khẩu",
+      "passwordGenerated": "Đã tạo mật khẩu mới — hãy sao chép ngay"
     },
     "errors": {
       "loadFailed": "Không tải được hồ sơ.",
       "saveFailed": "Không thể lưu hồ sơ",
       "avatarUpload": "Không thể tải ảnh đại diện",
       "passwordFailed": "Không thể đổi mật khẩu"
+    },
+    "sessions": {
+      "description": "Các phiên đăng nhập đang hoạt động của tài khoản này. Thu hồi thiết bị khác tại đây; đăng xuất thiết bị này từ menu người dùng.",
+      "count": "{{count}} phiên đang hoạt động",
+      "current": "Thiết bị này",
+      "otherDevice": "Thiết bị khác",
+      "device": "Thiết bị",
+      "actions": "Thao tác",
+      "searchPlaceholder": "Lọc theo trình duyệt hoặc thiết bị…",
+      "started": "Bắt đầu",
+      "expires": "Hết hạn",
+      "lastActivity": "Hoạt động gần nhất",
+      "networkAddress": "Địa chỉ mạng",
+      "userAgent": "Trình duyệt / thiết bị",
+      "unknown": "Không rõ",
+      "empty": "Không có phiên đăng nhập đang hoạt động.",
+      "loadFailed": "Không tải được danh sách phiên.",
+      "retry": "Thử lại",
+      "revoke": "Thu hồi",
+      "revokeTitle": "Thu hồi phiên này?",
+      "revokeDescription": "Thiết bị đó sẽ bị đăng xuất. Bạn vẫn đăng nhập trên thiết bị này.",
+      "revokeConfirm": "Thu hồi phiên",
+      "cancel": "Hủy",
+      "revokeOthers": "Thu hồi các phiên khác",
+      "revokeOthersTitle": "Thu hồi tất cả phiên khác?",
+      "revokeOthersDescription": "Mọi phiên đăng nhập khác sẽ kết thúc. Thiết bị này vẫn đăng nhập.",
+      "revokeOthersConfirm": "Thu hồi các phiên khác",
+      "toasts": {
+        "revoked": "Đã thu hồi phiên",
+        "revokedOthers": "Đã thu hồi các phiên khác"
+      },
+      "errors": {
+        "revokeFailed": "Không thể thu hồi phiên",
+        "revokeNotFound": "Phiên đó không còn hoạt động. Danh sách đã được làm mới.",
+        "revokeOthersFailed": "Không thể thu hồi các phiên khác"
+      }
     }
   }
 }

@@ -19,6 +19,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	defer db.Close()
 
 	if err := database.SeedClass(context.Background(), db, *class); err != nil {
 		log.Fatal(err)

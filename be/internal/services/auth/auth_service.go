@@ -2,18 +2,16 @@ package auth
 
 import (
 	"context"
-	"crypto/sha256"
-	"encoding/hex"
 	"errors"
 	"fmt"
 	"mime/multipart"
+	"sort"
 	"strings"
 	"time"
 
 	"github.com/google/uuid"
 
 	apperrors "be/internal/common/errors"
-	"be/pkg/hash"
 	jwtmanager "be/internal/common/jwt"
 	authdto "be/internal/dto/auth"
 	userdto "be/internal/dto/user"
@@ -21,6 +19,7 @@ import (
 	usermodel "be/internal/models/user"
 	"be/internal/repository/interfaces"
 	"be/internal/services/media"
+	"be/pkg/hash"
 )
 
 type Service struct {
@@ -29,7 +28,7 @@ type Service struct {
 	roleRepo   interfaces.RoleRepository
 	jwt        *jwtmanager.Manager
 	refreshTTL time.Duration
-	media      *media.Service
+	media      media.AvatarStorage
 }
 
 func NewService(
@@ -38,7 +37,7 @@ func NewService(
 	roleRepo interfaces.RoleRepository,
 	jwt *jwtmanager.Manager,
 	refreshTTL time.Duration,
-	mediaSvc *media.Service,
+	mediaSvc media.AvatarStorage,
 ) *Service {
 	return &Service{
 		authRepo:   authRepo,
@@ -50,13 +49,8 @@ func NewService(
 	}
 }
 
-func hashRefreshToken(value string) string {
-	sum := sha256.Sum256([]byte(value))
-	return hex.EncodeToString(sum[:])
-}
-
 func (s *Service) ResolveAuthUser(ctx context.Context, userID string) (*authdto.AuthUserResponse, error) {
-	user, err := s.authRepo.FindUserByID(ctx, userID)
+	user, err := s.userRepo.GetByID(ctx, userID)
 	if err != nil {
 		return nil, err
 	}
@@ -93,6 +87,7 @@ func (s *Service) buildAuthUser(ctx context.Context, user *usermodel.User) (*aut
 		Role:        roleSlug,
 		RoleID:      user.RoleID,
 		Permissions: permissions,
+		SuperAdmin:  user.IsSuperAdmin,
 		Phone:       user.Phone,
 		AvatarURL:   user.AvatarURL,
 		General:     user.General,
@@ -103,7 +98,7 @@ func (s *Service) buildAuthUser(ctx context.Context, user *usermodel.User) (*aut
 	}, nil
 }
 
-func (s *Service) issueTokenPair(ctx context.Context, user *usermodel.User) (*authdto.AuthResponse, error) {
+func (s *Service) issueTokenPair(ctx context.Context, user *usermodel.User, ip, userAgent string) (*authdto.AuthResponse, error) {
 	authUser, err := s.buildAuthUser(ctx, user)
 	if err != nil {
 		return nil, err
@@ -116,18 +111,23 @@ func (s *Service) issueTokenPair(ctx context.Context, user *usermodel.User) (*au
 		authUser.Role,
 		user.RoleID,
 		authUser.Permissions,
+		authUser.SuperAdmin,
 	)
 	if err != nil {
 		return nil, err
 	}
 
+	now := time.Now().UTC()
 	rawRefresh := uuid.NewString()
 	refresh := &authmodel.RefreshToken{
-		UserID:    user.ID,
-		RawToken:  rawRefresh,
-		TokenHash: hashRefreshToken(rawRefresh),
-		ExpiresAt: time.Now().Add(s.refreshTTL),
+		UserID:     user.ID,
+		RawToken:   rawRefresh,
+		TokenHash:  hash.SHA256Hex(rawRefresh),
+		ExpiresAt:  now.Add(s.refreshTTL),
+		CreatedAt:  now,
+		UpdatedAt:  now,
 	}
+	applySessionMeta(refresh, ip, userAgent, now)
 	if err := s.authRepo.CreateRefreshToken(ctx, refresh); err != nil {
 		return nil, err
 	}
@@ -135,12 +135,13 @@ func (s *Service) issueTokenPair(ctx context.Context, user *usermodel.User) (*au
 	return &authdto.AuthResponse{
 		AccessToken:  accessToken,
 		RefreshToken: rawRefresh,
+		SessionID:    refresh.ID,
 		User:         *authUser,
 	}, nil
 }
 
-func (s *Service) Login(ctx context.Context, email, password string) (*authdto.AuthResponse, error) {
-	user, err := s.authRepo.FindUserByEmail(ctx, email)
+func (s *Service) Login(ctx context.Context, email, password, ip, userAgent string) (*authdto.AuthResponse, error) {
+	user, err := s.userRepo.GetByEmail(ctx, email)
 	if err != nil {
 		return nil, err
 	}
@@ -156,11 +157,11 @@ func (s *Service) Login(ctx context.Context, email, password string) (*authdto.A
 	if user.Status != usermodel.StatusActive {
 		return nil, fmt.Errorf("%w: account is not active", apperrors.ErrForbidden)
 	}
-	return s.issueTokenPair(ctx, user)
+	return s.issueTokenPair(ctx, user, ip, userAgent)
 }
 
-func (s *Service) Register(ctx context.Context, name, email, password string) (*authdto.AuthResponse, error) {
-	existing, err := s.authRepo.FindUserByEmail(ctx, email)
+func (s *Service) Register(ctx context.Context, name, email, password, ip, userAgent string) (*authdto.AuthResponse, error) {
+	existing, err := s.userRepo.GetByEmail(ctx, email)
 	if err != nil {
 		return nil, err
 	}
@@ -188,14 +189,14 @@ func (s *Service) Register(ctx context.Context, name, email, password string) (*
 		RoleID:       defaultRole.ID,
 		Status:       usermodel.StatusActive,
 	}
-	if err := s.authRepo.CreateUser(ctx, user); err != nil {
+	if err := s.userRepo.Create(ctx, user); err != nil {
 		return nil, err
 	}
-	return s.issueTokenPair(ctx, user)
+	return s.issueTokenPair(ctx, user, ip, userAgent)
 }
 
-func (s *Service) Refresh(ctx context.Context, refreshToken string) (*authdto.TokenPairResponse, error) {
-	stored, err := s.authRepo.FindRefreshTokenByHash(ctx, hashRefreshToken(refreshToken))
+func (s *Service) Refresh(ctx context.Context, refreshToken, ip, userAgent string) (*authdto.TokenPairResponse, error) {
+	stored, err := s.authRepo.FindRefreshTokenByHash(ctx, hash.SHA256Hex(refreshToken))
 	if err != nil {
 		return nil, err
 	}
@@ -203,7 +204,7 @@ func (s *Service) Refresh(ctx context.Context, refreshToken string) (*authdto.To
 		return nil, fmt.Errorf("%w: invalid refresh token", apperrors.ErrUnauthorized)
 	}
 
-	user, err := s.authRepo.FindUserByID(ctx, stored.UserID)
+	user, err := s.userRepo.GetByID(ctx, stored.UserID)
 	if err != nil {
 		return nil, err
 	}
@@ -227,18 +228,23 @@ func (s *Service) Refresh(ctx context.Context, refreshToken string) (*authdto.To
 		authUser.Role,
 		user.RoleID,
 		authUser.Permissions,
+		authUser.SuperAdmin,
 	)
 	if err != nil {
 		return nil, err
 	}
 
+	now := time.Now().UTC()
 	rawRefresh := uuid.NewString()
 	rotated := &authmodel.RefreshToken{
-		UserID:    stored.UserID,
-		RawToken:  rawRefresh,
-		TokenHash: hashRefreshToken(rawRefresh),
-		ExpiresAt: time.Now().Add(s.refreshTTL),
+		UserID:     stored.UserID,
+		RawToken:   rawRefresh,
+		TokenHash:  hash.SHA256Hex(rawRefresh),
+		ExpiresAt:  now.Add(s.refreshTTL),
+		CreatedAt:  sessionStartedAt(stored.CreatedAt, now),
+		UpdatedAt:  now,
 	}
+	applySessionMeta(rotated, ip, userAgent, now)
 	if err := s.authRepo.CreateRefreshToken(ctx, rotated); err != nil {
 		return nil, err
 	}
@@ -246,11 +252,12 @@ func (s *Service) Refresh(ctx context.Context, refreshToken string) (*authdto.To
 	return &authdto.TokenPairResponse{
 		AccessToken:  accessToken,
 		RefreshToken: rawRefresh,
+		SessionID:    rotated.ID,
 	}, nil
 }
 
 func (s *Service) Logout(ctx context.Context, refreshToken string) error {
-	stored, err := s.authRepo.FindRefreshTokenByHash(ctx, hashRefreshToken(refreshToken))
+	stored, err := s.authRepo.FindRefreshTokenByHash(ctx, hash.SHA256Hex(refreshToken))
 	if err != nil {
 		return err
 	}
@@ -258,6 +265,118 @@ func (s *Service) Logout(ctx context.Context, refreshToken string) error {
 		return nil
 	}
 	return s.authRepo.RevokeRefreshToken(ctx, stored.TokenHash, time.Now())
+}
+
+// ListSessions returns the JWT owner's active sessions. currentSessionID is the
+// refresh_tokens.id from X-Session-Id (not the refresh secret).
+func (s *Service) ListSessions(ctx context.Context, userID, currentSessionID string) (*authdto.SessionListResponse, error) {
+	rows, err := s.authRepo.ListActiveByUserID(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+	currentSessionID = strings.TrimSpace(currentSessionID)
+	items := make([]authdto.SessionListItem, 0, len(rows))
+	for i := range rows {
+		items = append(items, mapSessionListItem(&rows[i], currentSessionID))
+	}
+	sort.SliceStable(items, func(i, j int) bool {
+		if items[i].Current != items[j].Current {
+			return items[i].Current
+		}
+		return items[i].LastUsedAt.After(items[j].LastUsedAt)
+	})
+	return &authdto.SessionListResponse{Items: items}, nil
+}
+
+// RevokeSession ends one owned active session. 400 if target is the current session; 404 if missing/not owned/inactive.
+func (s *Service) RevokeSession(ctx context.Context, userID, targetID, currentSessionID string) error {
+	targetID = strings.TrimSpace(targetID)
+	currentSessionID = strings.TrimSpace(currentSessionID)
+	if targetID == "" {
+		return fmt.Errorf("%w: session id is required", apperrors.ErrBadRequest)
+	}
+	if currentSessionID != "" && targetID == currentSessionID {
+		return fmt.Errorf("%w: cannot revoke the current session; use sign out", apperrors.ErrBadRequest)
+	}
+	n, err := s.authRepo.RevokeByID(ctx, userID, targetID)
+	if err != nil {
+		return err
+	}
+	if n == 0 {
+		return fmt.Errorf("%w: session not found", apperrors.ErrNotFound)
+	}
+	return nil
+}
+
+// RevokeOtherSessions revokes every active session except sessionID. 400 if sessionID is missing or not an owned active session.
+func (s *Service) RevokeOtherSessions(ctx context.Context, userID, sessionID string) (*authdto.SessionListResponse, error) {
+	sessionID = strings.TrimSpace(sessionID)
+	if sessionID == "" {
+		return nil, fmt.Errorf("%w: sessionId is required", apperrors.ErrBadRequest)
+	}
+	rows, err := s.authRepo.ListActiveByUserID(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+	owned := false
+	for i := range rows {
+		if rows[i].ID == sessionID {
+			owned = true
+			break
+		}
+	}
+	if !owned {
+		return nil, fmt.Errorf("%w: session is not an active session of this user", apperrors.ErrBadRequest)
+	}
+	if _, err := s.authRepo.RevokeAllExcept(ctx, userID, sessionID); err != nil {
+		return nil, err
+	}
+	return s.ListSessions(ctx, userID, sessionID)
+}
+
+func applySessionMeta(token *authmodel.RefreshToken, ip, userAgent string, lastUsed time.Time) {
+	token.IPAddress = clipClientIP(ip)
+	token.UserAgent = strings.TrimSpace(userAgent)
+	token.LastUsedAt = lastUsed
+}
+
+func sessionStartedAt(stored time.Time, fallback time.Time) time.Time {
+	if stored.IsZero() || stored.Unix() <= 0 {
+		return fallback
+	}
+	return stored
+}
+
+func clipClientIP(ip string) string {
+	ip = strings.TrimSpace(ip)
+	if len(ip) > 64 {
+		return ip[:64]
+	}
+	return ip
+}
+
+func mapSessionListItem(row *authmodel.RefreshToken, currentID string) authdto.SessionListItem {
+	started := sessionStartedAt(row.CreatedAt, row.LastUsedAt)
+	if started.IsZero() || started.Unix() <= 0 {
+		started = row.ExpiresAt
+	}
+	return authdto.SessionListItem{
+		ID:         row.ID,
+		CreatedAt:  started.UTC(),
+		ExpiresAt:  row.ExpiresAt,
+		LastUsedAt: row.LastUsedAt,
+		IPAddress:  nullableMeta(row.IPAddress),
+		UserAgent:  nullableMeta(row.UserAgent),
+		Current:    currentID != "" && row.ID == currentID,
+	}
+}
+
+func nullableMeta(value string) *string {
+	value = strings.TrimSpace(value)
+	if value == "" {
+		return nil
+	}
+	return &value
 }
 
 func (s *Service) Me(ctx context.Context, userID string) (*authdto.AuthUserResponse, error) {

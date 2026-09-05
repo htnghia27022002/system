@@ -3,8 +3,8 @@ package interfaces
 import (
 	"context"
 
-	"be/pkg/query"
 	rolemodel "be/internal/models/role"
+	"be/pkg/query"
 )
 
 type RoleRepository interface {

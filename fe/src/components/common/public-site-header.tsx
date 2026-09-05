@@ -16,7 +16,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from '@/components/ui/sheet'
-import { useSignOut } from '@/features/auth/hooks/use-sign-out'
+import { useSignOut } from '@/features/auth'
 import { cn } from '@/lib/utils'
 import { useAuthStore } from '@/store/auth-store'
 import logoLockup from '@/assets/favicon/logo-lockup.svg'

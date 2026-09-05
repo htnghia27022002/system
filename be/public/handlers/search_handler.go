@@ -5,6 +5,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 
+	"be/internal/common/httpx"
 	"be/internal/common/response"
 	searchdto "be/internal/dto/search"
 	"be/internal/middleware"
@@ -26,9 +27,8 @@ func NewSearchHandler(
 }
 
 func (h *SearchHandler) Search(c *gin.Context) {
-	var query searchdto.SearchQuery
-	if err := c.ShouldBindQuery(&query); err != nil {
-		response.Error(c, http.StatusBadRequest, err.Error())
+	var form searchdto.SearchQuery
+	if !httpx.BindQuery(c, &form) {
 		return
 	}
 
@@ -38,12 +38,8 @@ func (h *SearchHandler) Search(c *gin.Context) {
 		return
 	}
 
-	result, err := h.search.Search(c.Request.Context(), query, permissions)
-	if err != nil {
-		response.HandleError(c, err)
-		return
-	}
-	response.JSON(c, http.StatusOK, result)
+	result, err := h.search.Search(c.Request.Context(), form, permissions)
+	httpx.OK(c, result, err)
 }
 
 func (h *SearchHandler) Reindex(c *gin.Context) {
@@ -77,27 +73,21 @@ func (h *SearchHandler) OutboxStats(c *gin.Context) {
 		response.HandleError(c, err)
 		return
 	}
-	response.JSON(c, http.StatusOK, searchdto.OutboxStatsResponse{
+	httpx.OK(c, searchdto.OutboxStatsResponse{
 		PendingCount:            stats.PendingCount,
 		FailedCount:             stats.FailedCount,
 		OldestPendingAgeSeconds: stats.OldestPendingAgeSeconds,
-	})
+	}, nil)
 }
 
 func (h *SearchHandler) ReplayOutbox(c *gin.Context) {
 	var req searchdto.ReplayOutboxRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		response.Error(c, http.StatusBadRequest, err.Error())
+	if !httpx.BindJSON(c, &req) {
 		return
 	}
 	if req.ID == "" {
 		response.Error(c, http.StatusBadRequest, "id is required")
 		return
 	}
-
-	if err := h.outbox.Replay(c.Request.Context(), req.ID); err != nil {
-		response.HandleError(c, err)
-		return
-	}
-	c.Status(http.StatusNoContent)
+	httpx.NoContent(c, h.outbox.Replay(c.Request.Context(), req.ID))
 }

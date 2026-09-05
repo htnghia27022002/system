@@ -6,7 +6,7 @@ type InboxResponse struct {
 	PublicUUID       string `json:"publicUuid"`
 	PublicPath       string `json:"publicPath"`
 	ActiveCount      int    `json:"activeCount"`
-	LifetimeReceived  int    `json:"lifetimeReceived"`
+	LifetimeReceived int    `json:"lifetimeReceived"`
 	CreatedAt        string `json:"createdAt"`
 	UpdatedAt        string `json:"updatedAt"`
 }
@@ -36,7 +36,7 @@ type RequestListItem struct {
 type RequestListResponse struct {
 	Items            []RequestListItem `json:"items"`
 	ActiveCount      int               `json:"activeCount"`
-	LifetimeReceived  int               `json:"lifetimeReceived"`
+	LifetimeReceived int               `json:"lifetimeReceived"`
 	Page             int               `json:"page"`
 	Limit            int               `json:"limit"`
 	Total            int64             `json:"total"`
@@ -70,8 +70,8 @@ type SetReadRequest struct {
 
 // SoftDeleteResponse is returned after soft-deleting a request.
 type SoftDeleteResponse struct {
-	OK              bool `json:"ok"`
-	ActiveCount     int  `json:"activeCount"`
+	OK               bool `json:"ok"`
+	ActiveCount      int  `json:"activeCount"`
 	LifetimeReceived int  `json:"lifetimeReceived"`
 }
 

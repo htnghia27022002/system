@@ -26,6 +26,7 @@ function userFromAccessToken(token: string | null): AuthUser | null {
       role: payload.role,
       roleId: payload.roleId ?? '',
       permissions: payload.permissions ?? [],
+      superAdmin: Boolean(payload.superAdmin),
     }
   } catch {
     return null
@@ -54,7 +55,8 @@ function buildState(
   return {
     accessToken,
     user: resolvedUser,
-    isAdmin: resolvedUser?.role === 'admin',
+    isAdmin:
+      resolvedUser?.role === 'admin' || Boolean(resolvedUser?.superAdmin),
     sessionSynced,
   }
 }
@@ -69,6 +71,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     authTokenService.setTokens({
       accessToken: response.accessToken,
       refreshToken: response.refreshToken,
+      sessionId: response.sessionId,
     })
     set({
       ...buildState(response.accessToken, response.user, true),
@@ -124,4 +127,8 @@ export function getPostLoginPath(): string {
 
 export function selectPermissions(state: AuthState): string[] {
   return state.user?.permissions ?? []
+}
+
+export function selectIsSuperAdmin(state: AuthState): boolean {
+  return Boolean(state.user?.superAdmin)
 }

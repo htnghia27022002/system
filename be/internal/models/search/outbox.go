@@ -13,16 +13,16 @@ const (
 )
 
 type OutboxEntry struct {
-	ID           string     `json:"id" gorm:"type:uuid;primaryKey;default:gen_random_uuid()"`
-	EntityType   string     `json:"entityType" gorm:"column:entity_type;type:varchar(50);not null"`
-	EntityID     string     `json:"entityId" gorm:"column:entity_id;type:uuid;not null"`
-	Operation    string     `json:"operation" gorm:"type:varchar(20);not null"`
-	Status       string     `json:"status" gorm:"type:varchar(20);not null;default:pending"`
-	AttemptCount int        `json:"attemptCount" gorm:"column:attempt_count;not null;default:0"`
-	LastError    *string    `json:"lastError,omitempty" gorm:"column:last_error;type:text"`
-	CreatedAt    time.Time  `json:"createdAt" gorm:"autoCreateTime"`
-	UpdatedAt    time.Time  `json:"updatedAt" gorm:"autoUpdateTime"`
-	ProcessedAt  *time.Time `json:"processedAt,omitempty" gorm:"column:processed_at"`
+	ID           string     `json:"id" db:"id"`
+	EntityType   string     `json:"entityType" db:"entity_type"`
+	EntityID     string     `json:"entityId" db:"entity_id"`
+	Operation    string     `json:"operation" db:"operation"`
+	Status       string     `json:"status" db:"status"`
+	AttemptCount int        `json:"attemptCount" db:"attempt_count"`
+	LastError    *string    `json:"lastError,omitempty" db:"last_error"`
+	CreatedAt    time.Time  `json:"createdAt" db:"created_at"`
+	UpdatedAt    time.Time  `json:"updatedAt" db:"updated_at"`
+	ProcessedAt  *time.Time `json:"processedAt,omitempty" db:"processed_at"`
 }
 
 func (OutboxEntry) TableName() string {

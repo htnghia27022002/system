@@ -28,9 +28,4 @@ type ListRolesQuery struct {
 	PermissionKey string `form:"permissionKey" binding:"omitempty,max=100"`
 }
 
-type PaginatedRolesResponse struct {
-	Items    []RoleResponse `json:"items"`
-	Total    int64          `json:"total"`
-	Page     int            `json:"page"`
-	PageSize int            `json:"pageSize"`
-}
+type PaginatedRolesResponse = query.Page[RoleResponse]

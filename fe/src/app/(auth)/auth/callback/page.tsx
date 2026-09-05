@@ -1,7 +1,7 @@
 import { Suspense } from 'react'
 import type { Metadata } from 'next'
 
-import { OAuthCallbackPage } from '@/features/auth/components/oauth-callback-page'
+import { OAuthCallbackPage } from '@/features/auth'
 import { Spinner } from '@/components/ui/spinner'
 
 export const metadata: Metadata = {

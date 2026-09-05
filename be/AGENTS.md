@@ -22,7 +22,7 @@ When relocating the backend, move the entire `be/` directory (including `go.mod`
 
 ## 3) Stack
 
-Go 1.22 · Gin · GORM · PostgreSQL · JWT · OAuth2 · golangci-lint · golang-migrate
+Go 1.22 · Gin · pgx · squirrel · PostgreSQL · JWT · OAuth2 · golangci-lint · golang-migrate
 
 ## 3.1) Migrations
 
@@ -43,7 +43,8 @@ be/
 │   ├── hash/
 │   ├── cache/
 │   ├── postgres/
-│   └── query/
+│   ├── query/
+│   └── repo/           # Generic pgx + squirrel CRUD
 ├── public/
 │   ├── api.go
 │   ├── handlers/
@@ -62,9 +63,10 @@ be/
 │   ├── dto/
 │   ├── queue/              # NATS JetStream infra (constants, nats.json, client)
 │   ├── repository/
+│   │   └── interfaces/     # Persistence contracts (feature-specific)
 │   ├── search/             # Elasticsearch client
 │   ├── services/
-│   └── common/             # App-private shared helpers (JWT, errors, response, …)
+│   └── common/             # App-private shared helpers (JWT, errors, response, httpx, …)
 ├── cmd/
 │   ├── migrate/
 │   ├── seed/
@@ -97,16 +99,41 @@ route → handler → service → repository interface → repository → databa
 | DI resolvers | `internal/app/dependency/` |
 | Business logic | `internal/services/<feature>/` |
 | Persistence contracts | `internal/repository/interfaces/` |
-| Persistence impl | `internal/repository/` |
-| Models / DTOs | `internal/models/`, `internal/dto/` |
+| Persistence impl | `internal/repository/` (embed `pkg/repo.Repository[T]`; query via `pkg/query`) |
+| Models / DTOs | `internal/models/`, `internal/dto/` (paginated lists: `query.Page[T]`) |
 | Reusable infra | `pkg/` (no `internal` imports) |
-| App-private shared helpers | `internal/common/` |
+| App-private shared helpers | `internal/common/` (HTTP bind/error helpers in `httpx`) |
 | Middleware | `internal/middleware/` |
 | NATS infra | `internal/queue/` |
 | Queue publish | `internal/handlers/publisher/` |
 | Queue consume | `internal/handlers/subscribers/` |
 
 Never put business logic in HTTP handlers or HTTP formatting in repositories.
+
+### 5.1) SOLID and reusable helpers
+
+Keep the layered layout above. Do **not** introduce extra top-level trees (`biz`/`data`/`usecase`, per-product `internal/<context>`). Optimize inside the existing layers.
+
+| Principle | Rule |
+|-----------|------|
+| SRP | Handlers bind HTTP and map errors; services own rules; repositories own SQL. Feature repos embed `pkg/repo.Repository[T]` and add **only** feature queries. |
+| OCP / DIP | Services depend on `internal/repository/interfaces` (and small ports like `media.AvatarStorage`, `OutboxEnqueuer`), never on concrete `*Repository` types. New OAuth providers implement `oauth.Provider` — no `switch` in `OAuthService`. |
+| ISP | Repository interfaces stay narrow. User rows go through `UserRepository`; tokens/OAuth accounts through `AuthRepository`. |
+| Reuse | Prefer an existing helper over a copy. Domain-agnostic code belongs in `pkg/`; Gin/JWT/RBAC helpers belong in `internal/common/`. |
+
+**`pkg/` helpers (no `internal` imports)**
+
+| Package | Use for |
+|---------|---------|
+| `pkg/repo` | Generic Find/Insert/Update/Delete/Paginate over pgx + squirrel |
+| `pkg/query` | Filter DSL, pagination clamp, `Page[T]` list JSON |
+| `pkg/postgres` | Pool, `WithTx`, `QueryStrings` |
+| `pkg/hash` | Password bcrypt, `SHA256Hex` |
+| `pkg/cache`, `pkg/redis` | Cache stores |
+
+**`internal/common/httpx`** — `BindJSON` / `BindQuery` / `RequireUserID` / `OK` / `Created` / `NoContent` / `FormFile`. Do not duplicate bind-or-400 in handlers.
+
+When adding a feature: DTO in `internal/dto/<feature>/`, model in `internal/models/<feature>/`, interface + thin repo, service constructor taking interfaces, handler using `httpx`.
 
 ## 6) Import rules
 

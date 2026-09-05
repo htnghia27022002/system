@@ -16,7 +16,7 @@ Deliver authenticated self-service profile at `/admin/profile` (personal fields,
 
 **Language/Version**: Go 1.22 (BE); TypeScript strict on Next.js 15 App Router + React 19 (FE)
 
-**Primary Dependencies**: Gin, GORM, golang-migrate, PostgreSQL (BE); TanStack Query, Zustand, react-hook-form, Zod, shadcn/ui, react-i18next (FE)
+**Primary Dependencies**: Gin, pgx, squirrel, golang-migrate, PostgreSQL (BE); TanStack Query, Zustand, react-hook-form, Zod, shadcn/ui, react-i18next (FE)
 
 **Storage**: PostgreSQL for user profile fields; local filesystem for avatar binaries (`UPLOAD_DIR`); `avatar_url` stores public API-relative or absolute URL string
 

@@ -3,10 +3,7 @@ package seeders
 import (
 	"context"
 
-	"gorm.io/gorm"
-	"gorm.io/gorm/clause"
-
-	rolemodel "be/internal/models/role"
+	"be/pkg/postgres"
 )
 
 // RoleSeeder seeds default roles.
@@ -20,30 +17,30 @@ func (s *RoleSeeder) Name() string {
 	return "RoleSeeder"
 }
 
-func (s *RoleSeeder) Run(ctx context.Context, db *gorm.DB) error {
-	roles := []rolemodel.Role{
-		{
-			ID:          RoleAdminID,
-			Name:        "Administrator",
-			Slug:        "admin",
-			Description: "Full system access",
-		},
-		{
-			ID:          RoleUserID,
-			Name:        "Member",
-			Slug:        "user",
-			Description: "Standard member access",
-		},
+func (s *RoleSeeder) Run(ctx context.Context, db *postgres.Postgres) error {
+	roles := []struct {
+		ID          string
+		Name        string
+		Slug        string
+		Description string
+	}{
+		{RoleAdminID, "Administrator", "admin", "Full system access"},
+		{RoleUserID, "Member", "user", "Standard member access"},
 	}
 
 	for _, role := range roles {
-		if err := db.WithContext(ctx).Clauses(clause.OnConflict{
-			Columns:   []clause.Column{{Name: "slug"}},
-			DoNothing: true,
-		}).Create(&role).Error; err != nil {
+		sql, args, err := db.Builder.
+			Insert(postgres.QuoteIdent("roles")).
+			Columns("id", "name", "slug", "description").
+			Values(role.ID, role.Name, role.Slug, role.Description).
+			Suffix("ON CONFLICT (slug) DO NOTHING").
+			ToSql()
+		if err != nil {
+			return err
+		}
+		if _, err := db.Querier(ctx).Exec(ctx, sql, args...); err != nil {
 			return err
 		}
 	}
-
 	return nil
 }

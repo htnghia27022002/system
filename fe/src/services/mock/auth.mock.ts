@@ -42,6 +42,7 @@ function buildAuthResponse(
     resolved.role,
     resolved.roleId,
     resolved.permissions,
+    Boolean(resolved.superAdmin),
   )
   return {
     ...tokens,
@@ -52,6 +53,7 @@ function buildAuthResponse(
       role: resolved.role,
       roleId: resolved.roleId,
       permissions: resolved.permissions,
+      superAdmin: Boolean(resolved.superAdmin),
       phone: '',
       avatarUrl: '',
       general: '',

@@ -1,4 +1,4 @@
-import type { PaginatedResponse } from '@/features/access-control/types'
+import type { PaginatedResponse } from '@/types/pagination'
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value)

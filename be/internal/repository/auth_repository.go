@@ -2,105 +2,109 @@ package repository
 
 import (
 	"context"
-	"crypto/sha256"
-	"encoding/hex"
-	"errors"
+	"strings"
 	"time"
 
-	"gorm.io/gorm"
+	"github.com/Masterminds/squirrel"
 
 	authmodel "be/internal/models/auth"
-	usermodel "be/internal/models/user"
 	"be/internal/repository/interfaces"
+	"be/pkg/hash"
+	"be/pkg/postgres"
+	"be/pkg/query"
+	"be/pkg/repo"
 )
 
 type AuthRepository struct {
-	db *gorm.DB
+	tokens   *repo.Repository[authmodel.RefreshToken]
+	accounts *repo.Repository[authmodel.OAuthAccount]
 }
 
 var _ interfaces.AuthRepository = (*AuthRepository)(nil)
 
-func NewAuthRepository(db *gorm.DB) *AuthRepository {
-	return &AuthRepository{db: db}
-}
-
-func hashToken(token string) string {
-	sum := sha256.Sum256([]byte(token))
-	return hex.EncodeToString(sum[:])
-}
-
-func (r *AuthRepository) FindUserByEmail(ctx context.Context, email string) (*usermodel.User, error) {
-	var user usermodel.User
-	if err := r.db.WithContext(ctx).Where("email = ?", email).First(&user).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, nil
-		}
-		return nil, err
+func NewAuthRepository(db *postgres.Postgres) *AuthRepository {
+	return &AuthRepository{
+		tokens:   repo.New[authmodel.RefreshToken](db, repo.Opts{Table: "refresh_tokens", PK: "id"}),
+		accounts: repo.New[authmodel.OAuthAccount](db, repo.Opts{Table: "oauth_accounts", PK: "id"}),
 	}
-	return &user, nil
-}
-
-func (r *AuthRepository) FindUserByID(ctx context.Context, id string) (*usermodel.User, error) {
-	var user usermodel.User
-	if err := r.db.WithContext(ctx).First(&user, "id = ?", id).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, nil
-		}
-		return nil, err
-	}
-	return &user, nil
-}
-
-func (r *AuthRepository) CreateUser(ctx context.Context, user *usermodel.User) error {
-	return r.db.WithContext(ctx).Create(user).Error
 }
 
 func (r *AuthRepository) CreateRefreshToken(ctx context.Context, token *authmodel.RefreshToken) error {
 	if token.TokenHash == "" && token.RawToken != "" {
-		token.TokenHash = hashToken(token.RawToken)
+		token.TokenHash = hash.SHA256Hex(token.RawToken)
 	}
-	return r.db.WithContext(ctx).Create(token).Error
+	return r.tokens.Insert(ctx, token)
 }
 
 func (r *AuthRepository) FindRefreshTokenByHash(ctx context.Context, tokenHash string) (*authmodel.RefreshToken, error) {
-	var token authmodel.RefreshToken
-	if err := r.db.WithContext(ctx).
-		Where("token_hash = ? AND revoked_at IS NULL AND expires_at > ?", tokenHash, time.Now()).
-		First(&token).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, nil
-		}
-		return nil, err
-	}
-	return &token, nil
+	return r.tokens.FindOne(ctx, query.New(1, 1).
+		WhereEqual("token_hash", tokenHash).
+		Where("revoked_at", query.OpIsNull, nil).
+		WhereRaw("expires_at > ?", time.Now()))
 }
 
 func (r *AuthRepository) RevokeRefreshToken(ctx context.Context, tokenHash string, revokedAt time.Time) error {
-	return r.db.WithContext(ctx).
-		Model(&authmodel.RefreshToken{}).
-		Where("token_hash = ?", tokenHash).
-		Update("revoked_at", revokedAt).Error
+	_, err := r.tokens.UpdateWhere(ctx,
+		query.New(1, 1).WhereEqual("token_hash", tokenHash),
+		map[string]any{"revoked_at": revokedAt},
+	)
+	return err
+}
+
+func (r *AuthRepository) ListActiveByUserID(ctx context.Context, userID string) ([]authmodel.RefreshToken, error) {
+	if strings.TrimSpace(userID) == "" {
+		return []authmodel.RefreshToken{}, nil
+	}
+	sb := r.tokens.Select().
+		Where(squirrel.Eq{postgres.QuoteIdent("user_id"): userID}).
+		Where(squirrel.Expr(postgres.QuoteIdent("revoked_at") + " IS NULL")).
+		Where(squirrel.Expr(postgres.QuoteIdent("expires_at")+" > ?", time.Now())).
+		OrderBy(postgres.QuoteIdent("last_used_at") + " DESC")
+	return r.tokens.Query(ctx, sb)
+}
+
+func (r *AuthRepository) RevokeByID(ctx context.Context, userID, id string) (int64, error) {
+	if strings.TrimSpace(userID) == "" || strings.TrimSpace(id) == "" {
+		return 0, nil
+	}
+	now := time.Now()
+	return r.tokens.UpdateWhere(ctx,
+		query.New(1, 1).
+			WhereEqual("id", id).
+			WhereEqual("user_id", userID).
+			Where("revoked_at", query.OpIsNull, nil).
+			WhereRaw("expires_at > ?", now),
+		map[string]any{"revoked_at": now},
+	)
+}
+
+func (r *AuthRepository) RevokeAllExcept(ctx context.Context, userID, keepID string) (int64, error) {
+	if strings.TrimSpace(userID) == "" || strings.TrimSpace(keepID) == "" {
+		return 0, nil
+	}
+	now := time.Now()
+	return r.tokens.UpdateWhere(ctx,
+		query.New(1, 1).
+			WhereEqual("user_id", userID).
+			Where("id", query.OpNotEqual, keepID).
+			Where("revoked_at", query.OpIsNull, nil).
+			WhereRaw("expires_at > ?", now),
+		map[string]any{"revoked_at": now},
+	)
 }
 
 func (r *AuthRepository) FindOAuthAccount(ctx context.Context, provider, providerUserID string) (*authmodel.OAuthAccount, error) {
-	var account authmodel.OAuthAccount
-	if err := r.db.WithContext(ctx).
-		Where("provider = ? AND provider_user_id = ?", provider, providerUserID).
-		First(&account).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, nil
-		}
-		return nil, err
-	}
-	return &account, nil
+	return r.accounts.FindOne(ctx, query.New(1, 1).
+		WhereEqual("provider", provider).
+		WhereEqual("provider_user_id", providerUserID))
 }
 
 func (r *AuthRepository) CreateOAuthAccount(ctx context.Context, account *authmodel.OAuthAccount) error {
-	return r.db.WithContext(ctx).Create(account).Error
+	return r.accounts.Insert(ctx, account)
 }
 
 func (r *AuthRepository) UpdateOAuthAccount(ctx context.Context, account *authmodel.OAuthAccount) error {
-	return r.db.WithContext(ctx).Save(account).Error
+	return r.accounts.Update(ctx, account)
 }
 
 func (r *AuthRepository) ListProvidersByUserIDs(ctx context.Context, userIDs []string) (map[string][]string, error) {
@@ -108,36 +112,43 @@ func (r *AuthRepository) ListProvidersByUserIDs(ctx context.Context, userIDs []s
 	if len(userIDs) == 0 {
 		return out, nil
 	}
-	type row struct {
-		UserID   string `gorm:"column:user_id"`
-		Provider string `gorm:"column:provider"`
-	}
-	var rows []row
-	if err := r.db.WithContext(ctx).
-		Model(&authmodel.OAuthAccount{}).
-		Select("user_id, provider").
-		Where("user_id IN ?", userIDs).
-		Order("provider ASC").
-		Find(&rows).Error; err != nil {
+
+	sql, args, err := r.accounts.DB().Builder.
+		Select("user_id", "provider").
+		From(postgres.QuoteIdent("oauth_accounts")).
+		Where(squirrel.Eq{postgres.QuoteIdent("user_id"): userIDs}).
+		OrderBy("provider ASC").
+		ToSql()
+	if err != nil {
 		return nil, err
 	}
+
+	rows, err := r.accounts.DB().Querier(ctx).Query(ctx, sql, args...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
 	seen := make(map[string]map[string]struct{})
-	for _, item := range rows {
-		if item.UserID == "" || item.Provider == "" {
+	for rows.Next() {
+		var userID, provider string
+		if err := rows.Scan(&userID, &provider); err != nil {
+			return nil, err
+		}
+		if userID == "" || provider == "" {
 			continue
 		}
-		if _, ok := seen[item.UserID]; !ok {
-			seen[item.UserID] = map[string]struct{}{}
+		if _, ok := seen[userID]; !ok {
+			seen[userID] = map[string]struct{}{}
 		}
-		if _, ok := seen[item.UserID][item.Provider]; ok {
+		if _, ok := seen[userID][provider]; ok {
 			continue
 		}
-		seen[item.UserID][item.Provider] = struct{}{}
-		out[item.UserID] = append(out[item.UserID], item.Provider)
+		seen[userID][provider] = struct{}{}
+		out[userID] = append(out[userID], provider)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
 	}
 	return out, nil
-}
-
-func HashRefreshToken(value string) string {
-	return hashToken(value)
 }

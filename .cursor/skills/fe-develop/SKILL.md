@@ -72,6 +72,8 @@ For admin pages/menu entries (see `contracts/permissions.md` and `.cursor/rules/
 - Expose feature public API via `index.ts` when appropriate.
 - Keep feature-specific types/services/hooks inside the feature folder.
 - Keep shared utilities generic and business-agnostic.
+- New admin lists: split `*-table.tsx` / `*-table-columns.tsx` / form dialog; use `DataTable` `serverPaging` for paginated APIs.
+- Server data via TanStack Query in `hooks/` — not `useEffect` + `useState`.
 
 ## Strict Import Matrix (Enforced)
 
@@ -79,11 +81,11 @@ Use this matrix for every import decision:
 
 - `src/app/**/*` can import from: `features`, `components`, `layouts`, `hooks`, `services`, `store`, `utils`, `types`, `config`.
 - `src/layouts/*` can import from: `components`, `hooks`, `services`, `utils`, `types`, `config`.
-- `src/features/<feature>/*` can import from: same feature, `components`, `hooks`, `services`, `utils`, `types`, `config`.
-- `src/components/*` can import from: `hooks`, `utils`, `types`, `config`, `services` (only if truly generic).
+- `src/features/<feature>/*` can import from: same feature, `components`, `hooks`, `services`, `utils`, `types`, `config`, and **barrels** of `access-control` / `auth` (kernel, one-way).
+- `src/components/*` can import from: `hooks`, `utils`, `types`, `config`, `services` (only if truly generic), plus **barrels** of `access-control` / `auth` for admin chrome only.
 - `src/hooks/*` can import from: `services`, `utils`, `types`, `config`.
 - `src/services/*` can import from: `utils`, `types`, `config`.
-- `src/store/*` can import from: `features/*/index.ts`, `services`, `utils`, `types`, `config`.
+- `src/store/*` can import from: `features/*/index.ts` types, `features/auth/services/auth-api` (avoid circular barrels), `services`, `utils`, `types`, `config`.
 
 If an import direction is not listed, treat it as forbidden unless the user explicitly asks for an exception.
 
@@ -122,15 +124,16 @@ Good examples:
 
 Authoritative visual rules: **`fe/DESIGN.md`**. Theme tokens: **`fe/src/styles/index.css`** (`:root` / `.dark`).
 
-Apply styling **through** shadcn/ui components and Tailwind classes that reference those tokens — not parallel custom layers.
+5. Apply styling **through** shadcn/ui components and Tailwind classes that reference those tokens — not parallel custom layers.
 
 ### Conflict resolution
 
 1. Installed libraries + their docs (shadcn/ui, Radix, next-themes)
-2. `fe/DESIGN.md` (visual / UI design rules)
-3. `fe/src/styles/index.css` (theme tokens)
-4. `fe/README.md` + `fe/AGENTS.md` (structure and boundaries)
-5. `design-taste-frontend` skill (anti-slop for landing/marketing only)
+2. `fe/DESIGN.md` + `.cursor/rules/fe-ux-product.mdc` (visual / product UX)
+3. `.cursor/rules/fe-feature-module.mdc` (feature folder + Query + table split)
+4. `fe/src/styles/index.css` (theme tokens)
+5. `fe/README.md` + `fe/AGENTS.md` (structure and boundaries)
+6. `design-taste-frontend` skill (anti-slop for landing/marketing only)
 
 ## UI and Layout Discipline
 
@@ -194,8 +197,9 @@ When task is a redesign:
 - [ ] File placement and naming conventions are correct.
 - [ ] Feature boundaries are respected (no deep cross-feature coupling).
 - [ ] Imports pass strict matrix and forbidden-pattern checks.
-- [ ] Imports use the `@/*` alias and feature public entries (no `../../../` chains, no deep feature imports).
+- [ ] Imports use the `@/*` alias and feature public entries (no `../../../` chains, no deep feature imports except `auth/services/auth-api` from store).
 - [ ] Tests are colocated next to the file under test (`*.test.ts` / `*.test.tsx`).
+- [ ] Paginated admin lists pass `serverPaging` (do not hide the pager).
 - [ ] Registry checked; shadcn component added or reused (no parallel hand-rolled UI where registry covers it).
 - [ ] UI work uses `src/styles/index.css` tokens via shadcn/Tailwind (no random hex values).
 - [ ] For extra landing/marketing polish, `design-taste-frontend` was checked when relevant.

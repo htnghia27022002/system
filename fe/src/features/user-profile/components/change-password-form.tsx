@@ -2,6 +2,7 @@
 
 import { zodResolver } from '@hookform/resolvers/zod'
 import axios from 'axios'
+import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
@@ -17,6 +18,7 @@ import {
   type ChangePasswordFormValues,
 } from '../schemas/profile-schemas'
 import { profileApi } from '../services/profile-api'
+import { generateSecurePassword } from '../utils/generate-secure-password'
 
 type ChangePasswordFormProps = {
   hasPassword: boolean
@@ -33,10 +35,12 @@ function apiErrorMessage(error: unknown, fallback: string): string {
 
 export function ChangePasswordForm({ hasPassword }: ChangePasswordFormProps) {
   const { t } = useTranslation('admin')
+  const [revealNew, setRevealNew] = useState(false)
   const {
     register,
     handleSubmit,
     reset,
+    setValue,
     formState: { errors, isSubmitting },
   } = useForm<ChangePasswordFormValues>({
     resolver: zodResolver(changePasswordSchema),
@@ -57,6 +61,14 @@ export function ChangePasswordForm({ hasPassword }: ChangePasswordFormProps) {
     )
   }
 
+  const fillGeneratedPassword = () => {
+    const password = generateSecurePassword()
+    setValue('newPassword', password, { shouldDirty: true, shouldValidate: true })
+    setValue('confirmPassword', password, { shouldDirty: true, shouldValidate: true })
+    setRevealNew(true)
+    toast.success(t('profile.toasts.passwordGenerated'))
+  }
+
   const onSubmit = handleSubmit(async (values) => {
     try {
       await profileApi.changePassword({
@@ -64,6 +76,7 @@ export function ChangePasswordForm({ hasPassword }: ChangePasswordFormProps) {
         newPassword: values.newPassword,
       })
       reset()
+      setRevealNew(false)
       toast.success(t('profile.toasts.passwordChanged'))
     } catch (error) {
       toast.error(apiErrorMessage(error, t('profile.errors.passwordFailed')))
@@ -86,11 +99,25 @@ export function ChangePasswordForm({ hasPassword }: ChangePasswordFormProps) {
         <InputError message={errors.currentPassword?.message} />
       </div>
       <div className="grid gap-2">
-        <Label htmlFor="new-password">{t('profile.fields.newPassword')}</Label>
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <Label htmlFor="new-password">{t('profile.fields.newPassword')}</Label>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={fillGeneratedPassword}
+          >
+            {t('profile.actions.generatePassword')}
+          </Button>
+        </div>
+        <p className="text-xs text-muted-foreground">
+          {t('profile.password.generateHint')}
+        </p>
         <Input
           id="new-password"
-          type="password"
+          type={revealNew ? 'text' : 'password'}
           autoComplete="new-password"
+          spellCheck={false}
           aria-invalid={Boolean(errors.newPassword)}
           {...register('newPassword')}
         />
@@ -102,8 +129,9 @@ export function ChangePasswordForm({ hasPassword }: ChangePasswordFormProps) {
         </Label>
         <Input
           id="confirm-password"
-          type="password"
+          type={revealNew ? 'text' : 'password'}
           autoComplete="new-password"
+          spellCheck={false}
           aria-invalid={Boolean(errors.confirmPassword)}
           {...register('confirmPassword')}
         />

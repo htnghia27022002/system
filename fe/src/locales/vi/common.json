@@ -23,6 +23,17 @@
     "dark": "Tối",
     "system": "Hệ thống"
   },
+  "table": {
+    "rows": "Hàng",
+    "noResults": "Không có kết quả",
+    "range": "{{from}}–{{to}} / {{total}}",
+    "pageOf": "{{page}} / {{pageCount}}",
+    "pageOne": "Trang 1",
+    "firstPage": "Trang đầu",
+    "previousPage": "Trang trước",
+    "nextPage": "Trang sau",
+    "lastPage": "Trang cuối"
+  },
   "auth": {
     "fields": {
       "name": "Họ và tên",

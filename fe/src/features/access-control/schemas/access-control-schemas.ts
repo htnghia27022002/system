@@ -19,6 +19,7 @@ export const createUserSchema = z
     password: z.string().min(8, 'Password must be at least 8 characters'),
     roleId: z.string().min(1, 'Role is required'),
     status: userStatusSchema,
+    superAdmin: z.boolean().optional(),
   })
   .merge(personalUserFields)
 
@@ -34,6 +35,7 @@ export const updateUserSchema = z
       .optional(),
     roleId: z.string().min(1, 'Role is required'),
     status: userStatusSchema,
+    superAdmin: z.boolean().optional(),
   })
   .merge(personalUserFields)
 

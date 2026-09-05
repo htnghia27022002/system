@@ -2,46 +2,37 @@ package repository
 
 import (
 	"context"
-	"errors"
-
-	"gorm.io/gorm"
 
 	permissionmodel "be/internal/models/permission"
-	"be/pkg/query"
 	"be/internal/repository/interfaces"
+	"be/pkg/postgres"
+	"be/pkg/query"
+	"be/pkg/repo"
 )
 
 type PermissionRepository struct {
-	db *gorm.DB
+	*repo.Repository[permissionmodel.Permission]
 }
 
 var _ interfaces.PermissionRepository = (*PermissionRepository)(nil)
 
-func NewPermissionRepository(db *gorm.DB) *PermissionRepository {
-	return &PermissionRepository{db: db}
+func NewPermissionRepository(db *postgres.Postgres) *PermissionRepository {
+	return &PermissionRepository{
+		Repository: repo.New[permissionmodel.Permission](db, repo.Opts{
+			Table: "permissions",
+			PK:    "id",
+		}),
+	}
 }
 
 func (r *PermissionRepository) ListAll(ctx context.Context) ([]permissionmodel.Permission, error) {
-	var permissions []permissionmodel.Permission
-	if err := r.db.WithContext(ctx).Order(`"group" ASC, key ASC`).Find(&permissions).Error; err != nil {
-		return nil, err
-	}
-	return permissions, nil
+	return r.Find(ctx, query.Unbounded().OrderBy(`"group" ASC, key ASC`))
 }
 
 func (r *PermissionRepository) List(ctx context.Context, q *query.Query) ([]permissionmodel.Permission, int64, error) {
-	var permissions []permissionmodel.Permission
-	total, err := query.Paginate[permissionmodel.Permission](ctx, r.db, q, &permissions)
-	return permissions, total, err
+	return r.Paginate(ctx, q)
 }
 
 func (r *PermissionRepository) GetByKey(ctx context.Context, key string) (*permissionmodel.Permission, error) {
-	var permission permissionmodel.Permission
-	if err := r.db.WithContext(ctx).Where("key = ?", key).First(&permission).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, nil
-		}
-		return nil, err
-	}
-	return &permission, nil
+	return r.FindOne(ctx, query.New(1, 1).WhereEqual("key", key))
 }

@@ -2,7 +2,11 @@
 
 import { useCallback, useMemo } from 'react'
 
-import { selectPermissions, useAuthStore } from '@/store/auth-store'
+import {
+  selectIsSuperAdmin,
+  selectPermissions,
+  useAuthStore,
+} from '@/store/auth-store'
 
 import {
   canModifyResource,
@@ -13,33 +17,40 @@ import {
 
 export function usePermissions() {
   const permissions = useAuthStore(selectPermissions)
+  const isSuperAdmin = useAuthStore(selectIsSuperAdmin)
   const sessionSynced = useAuthStore((state) => state.sessionSynced)
 
   const permissionSet = useMemo(() => new Set(permissions), [permissions])
 
   const hasPermission = useCallback(
-    (key: string) => isPermissionAllowed(permissionSet, key),
-    [permissionSet],
+    (key: string) =>
+      isSuperAdmin || isPermissionAllowed(permissionSet, key),
+    [isSuperAdmin, permissionSet],
   )
 
   const hasAny = useCallback(
-    (...keys: string[]) => keys.some((key) => isPermissionAllowed(permissionSet, key)),
-    [permissionSet],
+    (...keys: string[]) =>
+      isSuperAdmin ||
+      keys.some((key) => isPermissionAllowed(permissionSet, key)),
+    [isSuperAdmin, permissionSet],
   )
 
   const canView = useCallback(
-    (resource: PermissionResource) => canViewResource(permissionSet, resource),
-    [permissionSet],
+    (resource: PermissionResource) =>
+      isSuperAdmin || canViewResource(permissionSet, resource),
+    [isSuperAdmin, permissionSet],
   )
 
   const canModify = useCallback(
-    (resource: PermissionResource) => canModifyResource(permissionSet, resource),
-    [permissionSet],
+    (resource: PermissionResource) =>
+      isSuperAdmin || canModifyResource(permissionSet, resource),
+    [isSuperAdmin, permissionSet],
   )
 
   return {
     permissions,
     sessionSynced,
+    isSuperAdmin,
     hasPermission,
     hasAny,
     canView,

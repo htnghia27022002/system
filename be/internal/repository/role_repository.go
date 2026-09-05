@@ -2,90 +2,75 @@ package repository
 
 import (
 	"context"
-	"errors"
 
-	"gorm.io/gorm"
+	"github.com/Masterminds/squirrel"
 
-	permissionmodel "be/internal/models/permission"
 	rolemodel "be/internal/models/role"
-	"be/pkg/query"
 	"be/internal/repository/interfaces"
+	"be/pkg/postgres"
+	"be/pkg/query"
+	"be/pkg/repo"
 )
 
 type RoleRepository struct {
-	db *gorm.DB
+	*repo.Repository[rolemodel.Role]
+	links *repo.Repository[rolemodel.RolePermission]
 }
 
 var _ interfaces.RoleRepository = (*RoleRepository)(nil)
 
-func NewRoleRepository(db *gorm.DB) *RoleRepository {
-	return &RoleRepository{db: db}
+func NewRoleRepository(db *postgres.Postgres) *RoleRepository {
+	return &RoleRepository{
+		Repository: repo.New[rolemodel.Role](db, repo.Opts{Table: "roles", PK: "id"}),
+		links:      repo.New[rolemodel.RolePermission](db, repo.Opts{Table: "role_permissions", PK: "role_id"}),
+	}
 }
 
 func (r *RoleRepository) Create(ctx context.Context, role *rolemodel.Role) error {
-	return r.db.WithContext(ctx).Create(role).Error
+	return r.Insert(ctx, role)
 }
 
 func (r *RoleRepository) GetByID(ctx context.Context, id string) (*rolemodel.Role, error) {
-	var role rolemodel.Role
-	if err := r.db.WithContext(ctx).First(&role, "id = ?", id).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, nil
-		}
-		return nil, err
-	}
-	return &role, nil
+	return r.FindByID(ctx, id)
 }
 
 func (r *RoleRepository) GetBySlug(ctx context.Context, slug string) (*rolemodel.Role, error) {
-	var role rolemodel.Role
-	if err := r.db.WithContext(ctx).Where("slug = ?", slug).First(&role).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, nil
-		}
-		return nil, err
-	}
-	return &role, nil
+	return r.FindOne(ctx, query.New(1, 1).WhereEqual("slug", slug))
 }
 
 func (r *RoleRepository) ListAll(ctx context.Context) ([]rolemodel.Role, error) {
-	var roles []rolemodel.Role
-	if err := r.db.WithContext(ctx).Order("created_at ASC").Find(&roles).Error; err != nil {
-		return nil, err
-	}
-	return roles, nil
+	return r.Find(ctx, query.Unbounded().OrderBy("created_at ASC"))
 }
 
 func (r *RoleRepository) List(ctx context.Context, q *query.Query) ([]rolemodel.Role, int64, error) {
-	var roles []rolemodel.Role
-	total, err := query.Paginate[rolemodel.Role](ctx, r.db, q, &roles)
-	return roles, total, err
+	return r.Paginate(ctx, q)
 }
 
 func (r *RoleRepository) Update(ctx context.Context, role *rolemodel.Role) error {
-	return r.db.WithContext(ctx).Save(role).Error
+	return r.Repository.Update(ctx, role)
 }
 
 func (r *RoleRepository) Delete(ctx context.Context, id string) error {
-	return r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
-		if err := tx.Where("role_id = ?", id).Delete(&rolemodel.RolePermission{}).Error; err != nil {
+	return r.DB().WithTx(ctx, func(ctx context.Context) error {
+		if _, err := r.links.ExecBuilder(ctx, r.DB().Builder.
+			Delete(postgres.QuoteIdent("role_permissions")).
+			Where(squirrel.Eq{postgres.QuoteIdent("role_id"): id})); err != nil {
 			return err
 		}
-		return tx.Delete(&rolemodel.Role{}, "id = ?", id).Error
+		return r.DeleteByID(ctx, id)
 	})
 }
 
 func (r *RoleRepository) AssignPermissions(ctx context.Context, roleID string, permissionIDs []string) error {
-	return r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
-		if err := tx.Where("role_id = ?", roleID).Delete(&rolemodel.RolePermission{}).Error; err != nil {
+	return r.DB().WithTx(ctx, func(ctx context.Context) error {
+		if _, err := r.links.ExecBuilder(ctx, r.DB().Builder.
+			Delete(postgres.QuoteIdent("role_permissions")).
+			Where(squirrel.Eq{postgres.QuoteIdent("role_id"): roleID})); err != nil {
 			return err
 		}
 		for _, permissionID := range permissionIDs {
-			link := rolemodel.RolePermission{
-				RoleID:       roleID,
-				PermissionID: permissionID,
-			}
-			if err := tx.Create(&link).Error; err != nil {
+			link := rolemodel.RolePermission{RoleID: roleID, PermissionID: permissionID}
+			if err := r.links.Insert(ctx, &link); err != nil {
 				return err
 			}
 		}
@@ -94,30 +79,32 @@ func (r *RoleRepository) AssignPermissions(ctx context.Context, roleID string, p
 }
 
 func (r *RoleRepository) GetPermissionKeysByRoleID(ctx context.Context, roleID string) ([]string, error) {
-	var keys []string
-	err := r.db.WithContext(ctx).
-		Table("role_permissions").
+	sql, args, err := r.DB().Builder.
 		Select("permissions.key").
-		Joins("JOIN permissions ON permissions.id = role_permissions.permission_id").
-		Where("role_permissions.role_id = ?", roleID).
-		Order("permissions.key ASC").
-		Scan(&keys).Error
+		From("role_permissions").
+		Join("permissions ON permissions.id = role_permissions.permission_id").
+		Where(squirrel.Eq{"role_permissions.role_id": roleID}).
+		OrderBy("permissions.key ASC").
+		ToSql()
 	if err != nil {
 		return nil, err
 	}
-	return keys, nil
+
+	return postgres.QueryStrings(ctx, r.DB().Querier(ctx), sql, args...)
 }
 
 func (r *RoleRepository) GetPermissionIDsByKeys(ctx context.Context, keys []string) ([]string, error) {
 	if len(keys) == 0 {
 		return []string{}, nil
 	}
-	var ids []string
-	if err := r.db.WithContext(ctx).
-		Model(&permissionmodel.Permission{}).
-		Where("key IN ?", keys).
-		Pluck("id", &ids).Error; err != nil {
+	sql, args, err := r.DB().Builder.
+		Select("id").
+		From(postgres.QuoteIdent("permissions")).
+		Where(squirrel.Eq{postgres.QuoteIdent("key"): keys}).
+		ToSql()
+	if err != nil {
 		return nil, err
 	}
-	return ids, nil
+
+	return postgres.QueryStrings(ctx, r.DB().Querier(ctx), sql, args...)
 }

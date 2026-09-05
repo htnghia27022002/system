@@ -68,3 +68,7 @@ Creates `plan.md`, `contracts/database.md`, `contracts/endpoints.md`, and `contr
 | `@qa` | `speckit-checklist`, `speckit-analyze`, `speckit-converge` |
 
 Skill files: `.cursor/skills/speckit-*/SKILL.md`
+
+## Delivery rule (from 006 canary)
+
+When shipping a **new full-stack feature**, follow [`.cursor/rules/feature-delivery.mdc`](../../.cursor/rules/feature-delivery.mdc): lock owner-only vs admin RBAC before spec; extend an existing domain; `@be` then `@fe`; restart compose `be` before live Independent Tests (`go run` does not hot-reload).

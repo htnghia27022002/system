@@ -20,6 +20,7 @@ import {
 import { emptyPersonalFields } from '@/features/user-profile'
 import { useIsMobile } from '@/hooks/use-is-mobile'
 
+import { usePermissions } from '../hooks/use-permissions'
 import { UserFormFields, UserFormFooter } from './user-form-fields'
 import {
   createUserSchema,
@@ -53,6 +54,7 @@ export function UserFormDialog({
   onUpdate,
 }: UserFormDialogProps) {
   const { t } = useTranslation('admin')
+  const { isSuperAdmin } = usePermissions()
   const isMobile = useIsMobile()
   const isEdit = mode === 'edit'
   const schema = useMemo(
@@ -77,6 +79,7 @@ export function UserFormDialog({
       password: '',
       roleId: roles[0]?.id ?? '',
       status: 'active',
+      superAdmin: false,
       ...defaultPersonal,
     },
   })
@@ -93,6 +96,7 @@ export function UserFormDialog({
   const roleId = watch('roleId')
   const status = watch('status')
   const name = watch('name')
+  const superAdmin = Boolean(watch('superAdmin'))
   const title = isEdit
     ? t('access.users.editTitle')
     : t('access.users.createTitle')
@@ -107,6 +111,7 @@ export function UserFormDialog({
         password: '',
         roleId: user.roleId,
         status: user.status,
+        superAdmin: Boolean(user.superAdmin),
         phone: user.phone ?? '',
         general: user.general ?? '',
         birthday: user.birthday ?? '',
@@ -125,6 +130,7 @@ export function UserFormDialog({
       password: '',
       roleId: roles[0]?.id ?? '',
       status: 'active',
+      superAdmin: false,
       ...emptyPersonalFields(),
     })
   }, [open, isEdit, user, roles, reset])
@@ -157,10 +163,11 @@ export function UserFormDialog({
       roles={roles}
       roleId={roleId}
       status={status}
+      superAdmin={superAdmin}
+      canGrantSuperAdmin={isSuperAdmin}
       errors={errors}
       register={register}
       setValue={setValue}
-      control={control}
       socialFields={socialFields}
       appendSocial={appendSocial}
       removeSocial={removeSocial}

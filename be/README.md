@@ -14,6 +14,7 @@ route → handler → service → repository interface → repository → databa
 be/
 ├── config.yaml           # Public config (committed)
 ├── main.go
+├── pkg/                  # Reusable infra: postgres, query, repo, hash, cache, redis
 ├── public/
 │   ├── api.go
 │   ├── handlers/
@@ -50,7 +51,7 @@ be/
 
 ## Stack
 
-Go 1.22 · Gin · GORM · PostgreSQL · JWT · OAuth2 · Elasticsearch · NATS JetStream · golangci-lint
+Go 1.22 · Gin · pgx · squirrel · PostgreSQL · JWT · OAuth2 · Elasticsearch · NATS JetStream · golangci-lint
 
 ## API routes
 

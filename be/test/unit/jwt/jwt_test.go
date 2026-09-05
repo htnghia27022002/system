@@ -20,6 +20,7 @@ func TestSignAndVerifyAccessToken(t *testing.T) {
 		"user",
 		"role-user",
 		[]string{"dashboard:view"},
+		false,
 	)
 	if err != nil {
 		t.Fatalf("sign token: %v", err)
@@ -37,5 +38,8 @@ func TestSignAndVerifyAccessToken(t *testing.T) {
 	}
 	if len(claims.Permissions) != 1 || claims.Permissions[0] != "dashboard:view" {
 		t.Fatalf("unexpected permissions: %v", claims.Permissions)
+	}
+	if claims.SuperAdmin {
+		t.Fatal("expected superAdmin false")
 	}
 }

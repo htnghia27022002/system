@@ -1,3 +1,5 @@
+export type { PaginatedResponse } from '@/types/pagination'
+
 export type Permission = {
   key: string
   name: string
@@ -24,6 +26,7 @@ export type ManagedUser = {
   email: string
   name: string
   roleId: string
+  superAdmin?: boolean
   status: ManagedUserStatus
   password: string
   phone?: string
@@ -61,13 +64,6 @@ export type ListPermissionsParams = {
   group?: string
 }
 
-export type PaginatedResponse<T> = {
-  items: T[]
-  total: number
-  page: number
-  pageSize: number
-}
-
 export type CreateUserInput = {
   email: string
   name: string
@@ -79,6 +75,7 @@ export type CreateUserInput = {
   birthday?: string | null
   address?: string
   socialLinks?: SocialLink[]
+  superAdmin?: boolean
 }
 
 export type UpdateUserInput = {
@@ -92,6 +89,7 @@ export type UpdateUserInput = {
   birthday?: string | null
   address?: string
   socialLinks?: SocialLink[]
+  superAdmin?: boolean
 }
 
 export type CreateRoleInput = {
@@ -113,4 +111,5 @@ export type AuthResolvedUser = {
   roleId: string
   role: 'admin' | 'user'
   permissions: string[]
+  superAdmin?: boolean
 }

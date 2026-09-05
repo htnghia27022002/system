@@ -14,7 +14,7 @@ queue (cmd/queue) → nats (consume) → elasticsearch
 | Layer | Path | Stack |
 |-------|------|-------|
 | Frontend | [`fe/`](fe/) | Next.js 15, React 19, TypeScript, Tailwind v4 |
-| Backend | [`be/`](be/) | Go 1.22, Gin, GORM, PostgreSQL, JWT, RBAC |
+| Backend | [`be/`](be/) | Go 1.22, Gin, pgx, squirrel, PostgreSQL, JWT, RBAC |
 | Infrastructure | [`docker/`](docker/) | nginx, postgres, redis, elasticsearch, nats, compose profiles |
 
 **Request flow (BE):** `route → handler → service → repository → database`

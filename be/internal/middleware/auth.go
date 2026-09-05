@@ -18,9 +18,10 @@ const (
 	ContextUserRoleKey    = "userRole"
 	ContextUserRoleIDKey  = "userRoleID"
 	ContextPermissionsKey = "permissions"
+	ContextSuperAdminKey  = "superAdmin"
 )
 
-func Auth(jwtManager *jwtmanager.Manager, roleRepo interfaces.RoleRepository) gin.HandlerFunc {
+func Auth(jwtManager *jwtmanager.Manager, roleRepo interfaces.RoleRepository, userRepo interfaces.UserRepository) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		header := c.GetHeader("Authorization")
 		if header == "" {
@@ -53,17 +54,29 @@ func Auth(jwtManager *jwtmanager.Manager, roleRepo interfaces.RoleRepository) gi
 			permissions = []string{}
 		}
 
+		superAdmin := claims.SuperAdmin
+		if userRepo != nil && claims.Subject != "" {
+			if user, err := userRepo.GetByID(c.Request.Context(), claims.Subject); err == nil && user != nil {
+				superAdmin = user.IsSuperAdmin
+			}
+		}
+
 		c.Set(ContextUserIDKey, claims.Subject)
 		c.Set(ContextUserEmailKey, claims.Email)
 		c.Set(ContextUserRoleKey, claims.Role)
 		c.Set(ContextUserRoleIDKey, claims.RoleID)
 		c.Set(ContextPermissionsKey, permissions)
+		c.Set(ContextSuperAdminKey, superAdmin)
 		c.Next()
 	}
 }
 
 func RequirePermission(permission string) gin.HandlerFunc {
 	return func(c *gin.Context) {
+		if IsSuperAdmin(c) {
+			c.Next()
+			return
+		}
 		permissions, ok := permissionsFromContext(c)
 		if !ok {
 			response.HandleError(c, apperrors.ErrForbidden)
@@ -91,6 +104,15 @@ func GetUserID(c *gin.Context) string {
 	value, _ := c.Get(ContextUserIDKey)
 	id, _ := value.(string)
 	return id
+}
+
+func IsSuperAdmin(c *gin.Context) bool {
+	value, ok := c.Get(ContextSuperAdminKey)
+	if !ok {
+		return false
+	}
+	superAdmin, _ := value.(bool)
+	return superAdmin
 }
 
 func GetPermissions(c *gin.Context) ([]string, bool) {

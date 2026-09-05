@@ -16,8 +16,8 @@ import {
   ADMIN_HOME_HREF,
   useAdminNavItems,
   useAdminNavLeaves,
-} from '@/components/common/use-admin-nav-items'
-import { usePinnedAdminNav } from '@/components/common/use-pinned-admin-nav'
+  usePinnedAdminNav,
+} from '@/features/access-control'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,

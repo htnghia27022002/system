@@ -2,72 +2,61 @@ package repository
 
 import (
 	"context"
-	"errors"
-
-	"gorm.io/gorm"
 
 	usermodel "be/internal/models/user"
-	"be/pkg/query"
 	"be/internal/repository/interfaces"
+	"be/pkg/postgres"
+	"be/pkg/query"
+	"be/pkg/repo"
 )
 
 type UserRepository struct {
-	db *gorm.DB
+	*repo.Repository[usermodel.User]
 }
 
 var _ interfaces.UserRepository = (*UserRepository)(nil)
 
-func NewUserRepository(db *gorm.DB) *UserRepository {
-	return &UserRepository{db: db}
+func NewUserRepository(db *postgres.Postgres) *UserRepository {
+	return &UserRepository{
+		Repository: repo.New[usermodel.User](db, repo.Opts{
+			Table:            "users",
+			PK:               "id",
+			SoftDeleteColumn: "deleted_at",
+		}),
+	}
 }
 
 func (r *UserRepository) Create(ctx context.Context, user *usermodel.User) error {
-	return r.db.WithContext(ctx).Create(user).Error
+	return r.Insert(ctx, user)
 }
 
 func (r *UserRepository) GetByID(ctx context.Context, id string) (*usermodel.User, error) {
-	var user usermodel.User
-	if err := r.db.WithContext(ctx).First(&user, "id = ?", id).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, nil
-		}
-		return nil, err
-	}
-	return &user, nil
+	return r.FindByID(ctx, id)
 }
 
 func (r *UserRepository) GetByEmail(ctx context.Context, email string) (*usermodel.User, error) {
-	var user usermodel.User
-	if err := r.db.WithContext(ctx).Where("email = ?", email).First(&user).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, nil
-		}
-		return nil, err
-	}
-	return &user, nil
+	return r.FindOne(ctx, query.New(1, 1).WhereEqual("email", email))
 }
 
 func (r *UserRepository) List(ctx context.Context, q *query.Query) ([]usermodel.User, int64, error) {
-	var users []usermodel.User
-	total, err := query.Paginate[usermodel.User](ctx, r.db, q, &users)
-	return users, total, err
+	return r.Paginate(ctx, q)
 }
 
 func (r *UserRepository) ListAll(ctx context.Context) ([]usermodel.User, error) {
-	var users []usermodel.User
-	if err := r.db.WithContext(ctx).
-		Where("status = ?", usermodel.StatusActive).
-		Order("created_at ASC").
-		Find(&users).Error; err != nil {
-		return nil, err
-	}
-	return users, nil
+	return r.Find(ctx, query.Unbounded().
+		WhereEqual("status", string(usermodel.StatusActive)).
+		OrderBy("created_at ASC"))
 }
 
 func (r *UserRepository) Update(ctx context.Context, user *usermodel.User) error {
-	return r.db.WithContext(ctx).Save(user).Error
+	return r.Repository.Update(ctx, user)
 }
 
 func (r *UserRepository) Delete(ctx context.Context, id string) error {
-	return r.db.WithContext(ctx).Delete(&usermodel.User{}, "id = ?", id).Error
+	return r.DeleteByID(ctx, id)
+}
+
+func (r *UserRepository) CountSuperAdmins(ctx context.Context) (int64, error) {
+	_, total, err := r.Paginate(ctx, query.New(1, 1).WhereRaw("is_super_admin = TRUE"))
+	return total, err
 }

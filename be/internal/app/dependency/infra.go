@@ -8,14 +8,13 @@ import (
 	"be/internal/handlers/publisher"
 	"be/internal/queue"
 	searchpkg "be/internal/search"
-
-	"gorm.io/gorm"
+	"be/pkg/postgres"
 )
 
 // Infra holds process-wide infrastructure shared by service resolvers.
 type Infra struct {
 	Config       config.Config
-	DB           *gorm.DB
+	DB           *postgres.Postgres
 	Queue        queue.Config
 	QueueClient  *queue.Client
 	JWT          *jwtmanager.Manager
@@ -23,7 +22,7 @@ type Infra struct {
 	SearchClient *searchpkg.Client
 }
 
-func NewInfra(cfg config.Config, db *gorm.DB) *Infra {
+func NewInfra(cfg config.Config, db *postgres.Postgres) *Infra {
 	queueCfg := queue.LoadConfig()
 	queueClient, err := queue.New(queueCfg)
 	if err != nil {

@@ -5,7 +5,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
   ADMIN_HOME_HREF,
   useAdminNavLeaves,
-} from '@/components/common/use-admin-nav-items'
+} from './use-admin-nav-items'
 import type { NavItem } from '@/types/navigation'
 
 const STORAGE_KEY = 'admin.mobile.pinnedNav'

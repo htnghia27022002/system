@@ -1,14 +1,14 @@
 package handlers
 
 import (
-	"net/http"
-
 	"github.com/gin-gonic/gin"
 
+	"be/internal/common/httpx"
 	"be/internal/common/response"
 	userdto "be/internal/dto/user"
 	"be/internal/middleware"
 	usersvc "be/internal/services/user"
+	"be/pkg/query"
 )
 
 type UserHandler struct {
@@ -21,22 +21,17 @@ func NewUserHandler(svc *usersvc.Service) *UserHandler {
 
 func (h *UserHandler) Create(c *gin.Context) {
 	var req userdto.CreateUserRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		response.Error(c, http.StatusBadRequest, err.Error())
+	if !httpx.BindJSON(c, &req) {
 		return
 	}
 
-	user, err := h.svc.Create(c.Request.Context(), req)
+	user, err := h.svc.Create(c.Request.Context(), req, actorFrom(c))
 	if err != nil {
 		response.HandleError(c, err)
 		return
 	}
 	item, err := h.svc.ResponseForUser(c.Request.Context(), user)
-	if err != nil {
-		response.HandleError(c, err)
-		return
-	}
-	response.JSON(c, http.StatusCreated, item)
+	httpx.Created(c, item, err)
 }
 
 func (h *UserHandler) Get(c *gin.Context) {
@@ -46,66 +41,43 @@ func (h *UserHandler) Get(c *gin.Context) {
 		return
 	}
 	item, err := h.svc.ResponseForUser(c.Request.Context(), user)
-	if err != nil {
-		response.HandleError(c, err)
-		return
-	}
-	response.JSON(c, http.StatusOK, item)
+	httpx.OK(c, item, err)
 }
 
 func (h *UserHandler) List(c *gin.Context) {
-	var query userdto.ListUsersQuery
-	if err := c.ShouldBindQuery(&query); err != nil {
-		response.Error(c, http.StatusBadRequest, err.Error())
+	var form userdto.ListUsersQuery
+	if !httpx.BindQuery(c, &form) {
 		return
 	}
 
-	users, total, page, pageSize, err := h.svc.List(c.Request.Context(), query)
+	users, total, page, pageSize, err := h.svc.List(c.Request.Context(), form)
 	if err != nil {
 		response.HandleError(c, err)
 		return
 	}
 
 	items, err := h.svc.ResponsesForUsers(c.Request.Context(), users)
-	if err != nil {
-		response.HandleError(c, err)
-		return
-	}
-	response.JSON(c, http.StatusOK, userdto.PaginatedUsersResponse{
-		Items:    items,
-		Total:    total,
-		Page:     page,
-		PageSize: pageSize,
-	})
+	httpx.OK(c, query.NewPage(items, total, page, pageSize), err)
 }
 
 func (h *UserHandler) Update(c *gin.Context) {
 	var req userdto.UpdateUserRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		response.Error(c, http.StatusBadRequest, err.Error())
+	if !httpx.BindJSON(c, &req) {
 		return
 	}
 
-	user, err := h.svc.Update(c.Request.Context(), c.Param("id"), req, middleware.GetUserID(c))
+	user, err := h.svc.Update(c.Request.Context(), c.Param("id"), req, actorFrom(c))
 	if err != nil {
 		response.HandleError(c, err)
 		return
 	}
 	item, err := h.svc.ResponseForUser(c.Request.Context(), user)
-	if err != nil {
-		response.HandleError(c, err)
-		return
-	}
-	response.JSON(c, http.StatusOK, item)
+	httpx.OK(c, item, err)
 }
 
 func (h *UserHandler) UploadAvatar(c *gin.Context) {
-	file, header, err := c.Request.FormFile("file")
-	if err != nil {
-		file, header, err = c.Request.FormFile("avatar")
-	}
-	if err != nil {
-		response.Error(c, http.StatusBadRequest, "avatar file is required (field: file or avatar)")
+	file, header, ok := httpx.FormFile(c, "avatar file is required (field: file or avatar)", "file", "avatar")
+	if !ok {
 		return
 	}
 	defer file.Close()
@@ -116,17 +88,16 @@ func (h *UserHandler) UploadAvatar(c *gin.Context) {
 		return
 	}
 	item, err := h.svc.ResponseForUser(c.Request.Context(), user)
-	if err != nil {
-		response.HandleError(c, err)
-		return
-	}
-	response.JSON(c, http.StatusOK, item)
+	httpx.OK(c, item, err)
 }
 
 func (h *UserHandler) Delete(c *gin.Context) {
-	if err := h.svc.Delete(c.Request.Context(), c.Param("id"), middleware.GetUserID(c)); err != nil {
-		response.HandleError(c, err)
-		return
+	httpx.NoContent(c, h.svc.Delete(c.Request.Context(), c.Param("id"), actorFrom(c)))
+}
+
+func actorFrom(c *gin.Context) usersvc.Actor {
+	return usersvc.Actor{
+		ID:         middleware.GetUserID(c),
+		SuperAdmin: middleware.IsSuperAdmin(c),
 	}
-	c.Status(http.StatusNoContent)
 }

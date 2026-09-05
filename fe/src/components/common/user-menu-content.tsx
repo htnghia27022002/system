@@ -24,7 +24,7 @@ import {
   type LocaleCode,
 } from '@/components/common/locale-flags'
 import { UserInfo } from '@/components/common/user-info'
-import { useAuthStore } from '@/store/auth-store'
+import { useSignOut } from '@/features/auth'
 import { cn } from '@/lib/utils'
 import type { AuthUser } from '@/types/auth'
 
@@ -35,7 +35,7 @@ type UserMenuContentProps = {
 
 export function UserMenuContent({ user, onNavigate }: UserMenuContentProps) {
   const { t, i18n } = useTranslation('admin')
-  const signOut = useAuthStore((state) => state.signOut)
+  const signOut = useSignOut()
   const { theme, setTheme } = useTheme()
   const activeLocale = normalizeLocale(i18n.language)
 
@@ -114,7 +114,7 @@ export function UserMenuContent({ user, onNavigate }: UserMenuContentProps) {
         className="text-destructive focus:text-destructive"
         onClick={() => {
           onNavigate?.()
-          signOut()
+          signOut.mutate()
         }}
       >
         <LogOutIcon className="size-4" />

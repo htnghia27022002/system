@@ -21,6 +21,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	defer db.Close()
 
 	container := app.NewContainer(cfg, db)
 	defer container.Close()

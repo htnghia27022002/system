@@ -15,6 +15,7 @@ type Claims struct {
 	Role        string   `json:"role"`
 	RoleID      string   `json:"roleId"`
 	Permissions []string `json:"permissions"`
+	SuperAdmin  bool     `json:"superAdmin"`
 	jwt.RegisteredClaims
 }
 
@@ -30,7 +31,7 @@ func NewManager(cfg config.Config) *Manager {
 	}
 }
 
-func (m *Manager) SignAccessToken(userID, email, name, role, roleID string, permissions []string) (string, error) {
+func (m *Manager) SignAccessToken(userID, email, name, role, roleID string, permissions []string, superAdmin bool) (string, error) {
 	now := time.Now()
 	claims := Claims{
 		Email:       email,
@@ -38,6 +39,7 @@ func (m *Manager) SignAccessToken(userID, email, name, role, roleID string, perm
 		Role:        role,
 		RoleID:      roleID,
 		Permissions: permissions,
+		SuperAdmin:  superAdmin,
 		RegisteredClaims: jwt.RegisteredClaims{
 			Subject:   userID,
 			IssuedAt:  jwt.NewNumericDate(now),

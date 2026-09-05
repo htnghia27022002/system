@@ -3,8 +3,8 @@ package interfaces
 import (
 	"context"
 
-	"be/pkg/query"
 	permissionmodel "be/internal/models/permission"
+	"be/pkg/query"
 )
 
 type PermissionRepository interface {

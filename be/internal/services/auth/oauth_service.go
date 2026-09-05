@@ -18,15 +18,23 @@ import (
 type OAuthService struct {
 	cfg      config.Config
 	authRepo interfaces.AuthRepository
+	userRepo interfaces.UserRepository
 	roleRepo interfaces.RoleRepository
 	authSvc  *Service
 	registry *oauthprovider.Registry
 }
 
-func NewOAuthService(cfg config.Config, authRepo interfaces.AuthRepository, roleRepo interfaces.RoleRepository, authSvc *Service) *OAuthService {
+func NewOAuthService(
+	cfg config.Config,
+	authRepo interfaces.AuthRepository,
+	userRepo interfaces.UserRepository,
+	roleRepo interfaces.RoleRepository,
+	authSvc *Service,
+) *OAuthService {
 	return &OAuthService{
 		cfg:      cfg,
 		authRepo: authRepo,
+		userRepo: userRepo,
 		roleRepo: roleRepo,
 		authSvc:  authSvc,
 		registry: oauthprovider.NewRegistry(cfg),
@@ -81,7 +89,7 @@ func (s *OAuthService) StartURL(providerID, redirectURI string) (string, error) 
 	return cfg.AuthCodeURL(providerID+"-state", oauth2.AccessTypeOffline), nil
 }
 
-func (s *OAuthService) Callback(ctx context.Context, providerID, code, redirectURI string) (*authdto.AuthResponse, error) {
+func (s *OAuthService) Callback(ctx context.Context, providerID, code, redirectURI, ip, userAgent string) (*authdto.AuthResponse, error) {
 	p, err := s.provider(providerID)
 	if err != nil {
 		return nil, err
@@ -109,7 +117,7 @@ func (s *OAuthService) Callback(ctx context.Context, providerID, code, redirectU
 	if user.Status != usermodel.StatusActive {
 		return nil, fmt.Errorf("%w: account is not active", apperrors.ErrForbidden)
 	}
-	return s.authSvc.issueTokenPair(ctx, user)
+	return s.authSvc.issueTokenPair(ctx, user, ip, userAgent)
 }
 
 func (s *OAuthService) resolveOAuthUser(ctx context.Context, provider string, profile *oauthprovider.Profile, token *oauth2.Token) (*usermodel.User, error) {
@@ -120,7 +128,7 @@ func (s *OAuthService) resolveOAuthUser(ctx context.Context, provider string, pr
 
 	var user *usermodel.User
 	if account != nil {
-		user, err = s.authRepo.FindUserByID(ctx, account.UserID)
+		user, err = s.userRepo.GetByID(ctx, account.UserID)
 		if err != nil {
 			return nil, err
 		}
@@ -131,7 +139,7 @@ func (s *OAuthService) resolveOAuthUser(ctx context.Context, provider string, pr
 		return user, nil
 	}
 
-	user, err = s.authRepo.FindUserByEmail(ctx, profile.Email)
+	user, err = s.userRepo.GetByEmail(ctx, profile.Email)
 	if err != nil {
 		return nil, err
 	}
@@ -149,7 +157,7 @@ func (s *OAuthService) resolveOAuthUser(ctx context.Context, provider string, pr
 			RoleID:   defaultRole.ID,
 			Status:   usermodel.StatusActive,
 		}
-		if err := s.authRepo.CreateUser(ctx, user); err != nil {
+		if err := s.userRepo.Create(ctx, user); err != nil {
 			return nil, err
 		}
 	}

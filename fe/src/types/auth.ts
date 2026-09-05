@@ -3,6 +3,8 @@ export type UserRole = 'admin' | 'user'
 export type AuthTokens = {
   accessToken: string
   refreshToken: string
+  /** Refresh-token row id (UUID). Never put this in URLs or query strings. */
+  sessionId?: string | null
 }
 
 export type SocialLink = {
@@ -17,6 +19,7 @@ export type AuthUser = {
   role: UserRole
   roleId: string
   permissions: string[]
+  superAdmin?: boolean
   phone?: string
   avatarUrl?: string
   general?: string
@@ -35,4 +38,5 @@ export type JwtPayload = {
   role?: UserRole
   roleId?: string
   permissions?: string[]
+  superAdmin?: boolean
 }

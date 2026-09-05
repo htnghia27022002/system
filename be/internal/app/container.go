@@ -6,6 +6,7 @@ import (
 	"be/internal/config"
 	"be/internal/handlers/publisher"
 	"be/internal/queue"
+	"be/internal/repository"
 	"be/internal/repository/interfaces"
 	searchpkg "be/internal/search"
 	authsvc "be/internal/services/auth"
@@ -15,16 +16,15 @@ import (
 	searchsvc "be/internal/services/search"
 	usersvc "be/internal/services/user"
 	webhooksvc "be/internal/services/webhook"
+	"be/pkg/postgres"
 	"be/public/handlers"
-
-	"gorm.io/gorm"
 )
 
 type Container struct {
 	Config            config.Config
 	Queue             queue.Config
 	QueueClient       *queue.Client
-	DB                *gorm.DB
+	DB                *postgres.Postgres
 	JWT               *jwtmanager.Manager
 	Publisher         *publisher.Publisher
 	MediaService      *media.Service
@@ -39,6 +39,7 @@ type Container struct {
 	WebhookService    *webhooksvc.Service
 	SearchClient      *searchpkg.Client
 	RoleRepo          interfaces.RoleRepository
+	UserRepo          interfaces.UserRepository
 	AuthHandler       *handlers.AuthHandler
 	UserHandler       *handlers.UserHandler
 	RoleHandler       *handlers.RoleHandler
@@ -48,7 +49,7 @@ type Container struct {
 	WebhookHandler    *handlers.WebhookHandler
 }
 
-func NewContainer(cfg config.Config, db *gorm.DB) *Container {
+func NewContainer(cfg config.Config, db *postgres.Postgres) *Container {
 	infra := dependency.NewInfra(cfg, db)
 	searchStack := dependency.NewSearchStack(infra)
 	mediaSvc := dependency.NewMediaService(infra)
@@ -86,6 +87,7 @@ func NewContainer(cfg config.Config, db *gorm.DB) *Container {
 		WebhookService:    webhookService,
 		SearchClient:      infra.SearchClient,
 		RoleRepo:          roleServices.Repo,
+		UserRepo:          repository.NewUserRepository(db),
 		AuthHandler:       httpHandlers.Auth,
 		UserHandler:       httpHandlers.User,
 		RoleHandler:       httpHandlers.Role,

@@ -3,18 +3,18 @@ package role
 import "time"
 
 type Role struct {
-	ID          string    `json:"id" gorm:"type:uuid;primaryKey;default:gen_random_uuid()"`
-	Name        string    `json:"name" gorm:"type:varchar(50);not null;uniqueIndex"`
-	Slug        string    `json:"slug" gorm:"type:varchar(50);not null;uniqueIndex"`
-	Description string    `json:"description" gorm:"type:text"`
-	CreatedAt   time.Time `json:"createdAt" gorm:"autoCreateTime"`
-	UpdatedAt   time.Time `json:"updatedAt" gorm:"autoUpdateTime"`
+	ID          string    `json:"id" db:"id"`
+	Name        string    `json:"name" db:"name"`
+	Slug        string    `json:"slug" db:"slug"`
+	Description string    `json:"description" db:"description"`
+	CreatedAt   time.Time `json:"createdAt" db:"created_at"`
+	UpdatedAt   time.Time `json:"updatedAt" db:"updated_at"`
 }
 
 type RolePermission struct {
-	RoleID       string    `json:"roleId" gorm:"type:uuid;primaryKey"`
-	PermissionID string    `json:"permissionId" gorm:"type:uuid;primaryKey"`
-	CreatedAt    time.Time `json:"createdAt" gorm:"autoCreateTime"`
+	RoleID       string    `json:"roleId" db:"role_id"`
+	PermissionID string    `json:"permissionId" db:"permission_id"`
+	CreatedAt    time.Time `json:"createdAt" db:"created_at"`
 }
 
 func (RolePermission) TableName() string {

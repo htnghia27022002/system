@@ -18,7 +18,7 @@ func TestAuthLoginE2E(t *testing.T) {
 	db := testutil.ConnectPostgres(t)
 	testutil.MigrateTestSchema(t, db)
 	t.Cleanup(func() {
-		_ = db.Exec("TRUNCATE users, roles, role_permissions, permissions, refresh_tokens, oauth_accounts RESTART IDENTITY CASCADE").Error
+		testutil.TruncateAuthTables(t, db)
 	})
 
 	if err := database.SeedRBAC(context.Background(), db); err != nil {
@@ -81,7 +81,7 @@ func TestAuthLoginInvalidCredentialsE2E(t *testing.T) {
 	db := testutil.ConnectPostgres(t)
 	testutil.MigrateTestSchema(t, db)
 	t.Cleanup(func() {
-		_ = db.Exec("TRUNCATE users, roles, role_permissions, permissions, refresh_tokens, oauth_accounts RESTART IDENTITY CASCADE").Error
+		testutil.TruncateAuthTables(t, db)
 	})
 
 	if err := database.SeedRBAC(context.Background(), db); err != nil {

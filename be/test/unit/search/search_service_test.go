@@ -63,6 +63,15 @@ func (s *stubUserRepo) List(_ context.Context, q *query.Query) ([]usermodel.User
 func (s *stubUserRepo) ListAll(context.Context) ([]usermodel.User, error) { return s.users, nil }
 func (s *stubUserRepo) Update(context.Context, *usermodel.User) error       { return nil }
 func (s *stubUserRepo) Delete(context.Context, string) error                 { return nil }
+func (s *stubUserRepo) CountSuperAdmins(context.Context) (int64, error) {
+	var n int64
+	for _, user := range s.users {
+		if user.IsSuperAdmin {
+			n++
+		}
+	}
+	return n, nil
+}
 
 func TestSearchEmptyQueryReturnsEmpty(t *testing.T) {
 	t.Parallel()

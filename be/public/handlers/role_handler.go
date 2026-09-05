@@ -1,13 +1,12 @@
 package handlers
 
 import (
-	"net/http"
-
 	"github.com/gin-gonic/gin"
 
-	"be/internal/common/response"
+	"be/internal/common/httpx"
 	roledto "be/internal/dto/role"
 	rolesvc "be/internal/services/role"
+	"be/pkg/query"
 )
 
 type RoleHandler struct {
@@ -20,76 +19,44 @@ func NewRoleHandler(svc *rolesvc.Service) *RoleHandler {
 
 func (h *RoleHandler) Create(c *gin.Context) {
 	var req roledto.CreateRoleRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		response.Error(c, http.StatusBadRequest, err.Error())
+	if !httpx.BindJSON(c, &req) {
 		return
 	}
 
 	role, err := h.svc.Create(c.Request.Context(), req)
-	if err != nil {
-		response.HandleError(c, err)
-		return
-	}
-	response.JSON(c, http.StatusCreated, role)
+	httpx.Created(c, role, err)
 }
 
 func (h *RoleHandler) ListAll(c *gin.Context) {
 	roles, err := h.svc.ListAll(c.Request.Context())
-	if err != nil {
-		response.HandleError(c, err)
-		return
-	}
-	response.JSON(c, http.StatusOK, roles)
+	httpx.OK(c, roles, err)
 }
 
 func (h *RoleHandler) List(c *gin.Context) {
-	var query roledto.ListRolesQuery
-	if err := c.ShouldBindQuery(&query); err != nil {
-		response.Error(c, http.StatusBadRequest, err.Error())
+	var form roledto.ListRolesQuery
+	if !httpx.BindQuery(c, &form) {
 		return
 	}
 
-	roles, total, page, pageSize, err := h.svc.List(c.Request.Context(), query)
-	if err != nil {
-		response.HandleError(c, err)
-		return
-	}
-	response.JSON(c, http.StatusOK, roledto.PaginatedRolesResponse{
-		Items:    roles,
-		Total:    total,
-		Page:     page,
-		PageSize: pageSize,
-	})
+	roles, total, page, pageSize, err := h.svc.List(c.Request.Context(), form)
+	httpx.OK(c, query.NewPage(roles, total, page, pageSize), err)
 }
 
 func (h *RoleHandler) Get(c *gin.Context) {
 	role, err := h.svc.GetByID(c.Request.Context(), c.Param("id"))
-	if err != nil {
-		response.HandleError(c, err)
-		return
-	}
-	response.JSON(c, http.StatusOK, role)
+	httpx.OK(c, role, err)
 }
 
 func (h *RoleHandler) Update(c *gin.Context) {
 	var req roledto.UpdateRoleRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		response.Error(c, http.StatusBadRequest, err.Error())
+	if !httpx.BindJSON(c, &req) {
 		return
 	}
 
 	role, err := h.svc.Update(c.Request.Context(), c.Param("id"), req)
-	if err != nil {
-		response.HandleError(c, err)
-		return
-	}
-	response.JSON(c, http.StatusOK, role)
+	httpx.OK(c, role, err)
 }
 
 func (h *RoleHandler) Delete(c *gin.Context) {
-	if err := h.svc.Delete(c.Request.Context(), c.Param("id")); err != nil {
-		response.HandleError(c, err)
-		return
-	}
-	c.Status(http.StatusNoContent)
+	httpx.NoContent(c, h.svc.Delete(c.Request.Context(), c.Param("id")))
 }

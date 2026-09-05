@@ -8,17 +8,17 @@ import (
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	goredis "github.com/redis/go-redis/v9"
-	"gorm.io/gorm"
 
 	"be/internal/app"
 	"be/internal/common/cache"
 	"be/internal/config"
 	"be/internal/database"
 	"be/internal/middleware"
+	"be/pkg/postgres"
 	"be/public/routes"
 )
 
-func Run(cfg config.Config, db *gorm.DB, redis *goredis.Client) error {
+func Run(cfg config.Config, db *postgres.Postgres, redis *goredis.Client) error {
 	if err := database.RunMigrations(cfg); err != nil {
 		return err
 	}
@@ -32,7 +32,6 @@ func Run(cfg config.Config, db *gorm.DB, redis *goredis.Client) error {
 	defer func() { _ = cache.Close() }()
 
 	container := app.NewContainer(cfg, db)
-	defer container.Close()
 	defer container.Close()
 
 	ctx := context.Background()

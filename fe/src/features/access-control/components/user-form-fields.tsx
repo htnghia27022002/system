@@ -2,7 +2,6 @@
 
 import { useRef, useState } from 'react'
 import type {
-  Control,
   FieldErrors,
   UseFieldArrayAppend,
   UseFieldArrayRemove,
@@ -13,12 +12,25 @@ import type {
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 import axios from 'axios'
+import { EyeIcon, EyeOffIcon, WandSparklesIcon } from 'lucide-react'
 
 import { InputError } from '@/components/common/input-error'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
+import { Checkbox } from '@/components/ui/checkbox'
 import { Input } from '@/components/ui/input'
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupButton,
+  InputGroupInput,
+} from '@/components/ui/input-group'
 import { Label } from '@/components/ui/label'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip'
 import {
   Select,
   SelectContent,
@@ -27,8 +39,13 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Spinner } from '@/components/ui/spinner'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Textarea } from '@/components/ui/textarea'
-import { SocialLinksEditor, validateAvatarFile } from '@/features/user-profile'
+import {
+  SocialLinksEditor,
+  generateSecurePassword,
+  validateAvatarFile,
+} from '@/features/user-profile'
 import { useInitials } from '@/hooks/use-initials'
 import { resolveMediaUrl } from '@/utils/resolve-media-url'
 
@@ -49,10 +66,11 @@ type UserFormFieldsProps = {
   roles: Role[]
   roleId: string
   status: string
+  superAdmin: boolean
+  canGrantSuperAdmin: boolean
   errors: FieldErrors<UserFormValues>
   register: UseFormRegister<UserFormValues>
   setValue: UseFormSetValue<UserFormValues>
-  control: Control<UserFormValues>
   socialFields: FieldArrayWithId<UserFormValues, 'socialLinks', 'id'>[]
   appendSocial: UseFieldArrayAppend<UserFormValues, 'socialLinks'>
   removeSocial: UseFieldArrayRemove
@@ -67,6 +85,8 @@ export function UserFormFields({
   roles,
   roleId,
   status,
+  superAdmin,
+  canGrantSuperAdmin,
   errors,
   register,
   setValue,
@@ -80,6 +100,7 @@ export function UserFormFields({
   const inputRef = useRef<HTMLInputElement>(null)
   const [avatarPending, setAvatarPending] = useState(false)
   const [avatarError, setAvatarError] = useState<string | null>(null)
+  const [revealPassword, setRevealPassword] = useState(false)
   const avatarSrc = resolveMediaUrl(avatarUrl ?? undefined)
 
   const onAvatarPick = async (file: File | undefined) => {
@@ -108,13 +129,30 @@ export function UserFormFields({
     }
   }
 
-  return (
-    <div className="min-w-0 space-y-6">
-      <fieldset className="min-w-0 space-y-4">
-        <legend className="text-sm font-medium text-foreground">
-          {t('access.users.sections.account')}
-        </legend>
+  const fillGeneratedPassword = () => {
+    const password = generateSecurePassword()
+    setValue('password', password, { shouldDirty: true, shouldValidate: true })
+    toast.success(t('profile.toasts.passwordGenerated'))
+  }
 
+  return (
+    <Tabs defaultValue="profile" className="min-w-0 gap-4">
+      <TabsList
+        variant="line"
+        className="h-auto w-full max-w-full flex-wrap justify-start"
+      >
+        <TabsTrigger value="profile" className="flex-none px-3">
+          {t('access.users.tabs.profile')}
+        </TabsTrigger>
+        <TabsTrigger value="password" className="flex-none px-3">
+          {t('access.users.tabs.password')}
+        </TabsTrigger>
+        <TabsTrigger value="account" className="flex-none px-3">
+          {t('access.users.tabs.account')}
+        </TabsTrigger>
+      </TabsList>
+
+      <TabsContent value="profile" className="min-w-0 space-y-6">
         {isEdit ? (
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
             <Avatar className="h-16 w-16 overflow-hidden rounded-full">
@@ -174,28 +212,6 @@ export function UserFormFields({
           </div>
         </div>
 
-        <div className="grid min-w-0 gap-2">
-          <Label htmlFor="user-password">{t('access.users.fields.password')}</Label>
-          {isEdit ? (
-            <p className="text-xs text-muted-foreground">
-              {t('access.users.fields.passwordOptionalHint')}
-            </p>
-          ) : null}
-          <Input
-            id="user-password"
-            type="password"
-            autoComplete="new-password"
-            aria-invalid={Boolean(errors.password)}
-            {...register('password')}
-          />
-          <InputError message={errors.password?.message} />
-        </div>
-      </fieldset>
-
-      <fieldset className="min-w-0 space-y-4">
-        <legend className="text-sm font-medium text-foreground">
-          {t('access.users.sections.personal')}
-        </legend>
         <div className="grid min-w-0 gap-4 sm:grid-cols-2">
           <div className="grid min-w-0 gap-2">
             <Label htmlFor="user-phone">{t('access.users.fields.phone')}</Label>
@@ -246,13 +262,75 @@ export function UserFormFields({
           append={appendSocial}
           remove={removeSocial}
         />
-      </fieldset>
+      </TabsContent>
 
-      <fieldset className="min-w-0 space-y-4">
-        <legend className="text-sm font-medium text-foreground">
-          {t('access.users.sections.access')}
-        </legend>
+      <TabsContent value="password" className="min-w-0 space-y-4">
+        <div className="grid min-w-0 gap-2">
+          <Label htmlFor="user-password">{t('access.users.fields.password')}</Label>
+          {isEdit ? (
+            <p className="text-xs text-muted-foreground">
+              {t('access.users.fields.passwordOptionalHint')}
+            </p>
+          ) : (
+            <p className="text-xs text-muted-foreground">
+              {t('profile.password.generateHint')}
+            </p>
+          )}
+          <InputGroup>
+            <InputGroupInput
+              id="user-password"
+              type={revealPassword ? 'text' : 'password'}
+              autoComplete="new-password"
+              spellCheck={false}
+              aria-invalid={Boolean(errors.password)}
+              {...register('password')}
+            />
+            <InputGroupAddon align="inline-end">
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <InputGroupButton
+                    size="icon-xs"
+                    aria-label={
+                      revealPassword
+                        ? t('access.users.actions.hidePassword')
+                        : t('access.users.actions.showPassword')
+                    }
+                    onClick={() => setRevealPassword((open) => !open)}
+                  >
+                    {revealPassword ? (
+                      <EyeOffIcon className="size-3.5" />
+                    ) : (
+                      <EyeIcon className="size-3.5" />
+                    )}
+                  </InputGroupButton>
+                </TooltipTrigger>
+                <TooltipContent>
+                  {revealPassword
+                    ? t('access.users.actions.hidePassword')
+                    : t('access.users.actions.showPassword')}
+                </TooltipContent>
+              </Tooltip>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <InputGroupButton
+                    size="icon-xs"
+                    aria-label={t('profile.actions.generatePassword')}
+                    onClick={fillGeneratedPassword}
+                  >
+                    <WandSparklesIcon className="size-3.5" />
+                  </InputGroupButton>
+                </TooltipTrigger>
+                <TooltipContent>
+                  {t('profile.actions.generatePassword')}
+                </TooltipContent>
+              </Tooltip>
+            </InputGroupAddon>
+          </InputGroup>
+          <InputError message={errors.password?.message} />
+        </div>
+      </TabsContent>
 
+      <TabsContent value="account" className="min-w-0 space-y-4">
         <div className="grid min-w-0 gap-4 sm:grid-cols-2">
           <div className="grid min-w-0 gap-2">
             <Label>{t('access.users.fields.role')}</Label>
@@ -296,8 +374,30 @@ export function UserFormFields({
             </Select>
           </div>
         </div>
-      </fieldset>
-    </div>
+
+        {canGrantSuperAdmin ? (
+          <div className="flex items-start gap-3 rounded-lg border border-border p-3">
+            <Checkbox
+              id="user-super-admin"
+              checked={superAdmin}
+              onCheckedChange={(checked) =>
+                setValue('superAdmin', checked === true, {
+                  shouldDirty: true,
+                })
+              }
+            />
+            <div className="min-w-0 space-y-1">
+              <Label htmlFor="user-super-admin" className="font-medium">
+                {t('access.users.fields.superAdmin')}
+              </Label>
+              <p className="text-xs text-muted-foreground">
+                {t('access.users.fields.superAdminHint')}
+              </p>
+            </div>
+          </div>
+        ) : null}
+      </TabsContent>
+    </Tabs>
   )
 }
 

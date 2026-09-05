@@ -9,7 +9,7 @@ import (
 
 func RegisterAdminRoutes(r *gin.RouterGroup, c *app.Container) {
 	admin := r.Group("/admin")
-	admin.Use(middleware.Auth(c.JWT, c.RoleRepo))
+	admin.Use(middleware.Auth(c.JWT, c.RoleRepo, c.UserRepo))
 	{
 		permissions := admin.Group("/permissions")
 		permissions.GET("", middleware.RequireView("permissions"), c.PermissionHandler.List)

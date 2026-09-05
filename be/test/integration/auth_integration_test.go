@@ -6,18 +6,18 @@ import (
 	"context"
 	"testing"
 
-	"be/pkg/hash"
 	"be/internal/database"
-	"be/internal/repository"
 	usermodel "be/internal/models/user"
+	"be/internal/repository"
+	"be/pkg/hash"
 	"be/test/testutil"
 )
 
-func TestAuthRepositoryFindUserByEmail(t *testing.T) {
+func TestUserRepositoryGetByEmail(t *testing.T) {
 	db := testutil.ConnectPostgres(t)
 	testutil.MigrateTestSchema(t, db)
 	t.Cleanup(func() {
-		_ = db.Exec("TRUNCATE users, roles, role_permissions, permissions, refresh_tokens, oauth_accounts RESTART IDENTITY CASCADE").Error
+		testutil.TruncateAuthTables(t, db)
 	})
 
 	ctx := context.Background()
@@ -25,8 +25,8 @@ func TestAuthRepositoryFindUserByEmail(t *testing.T) {
 		t.Fatalf("seed rbac: %v", err)
 	}
 
-	authRepo := repository.NewAuthRepository(db)
-	user, err := authRepo.FindUserByEmail(ctx, "admin@example.com")
+	userRepo := repository.NewUserRepository(db)
+	user, err := userRepo.GetByEmail(ctx, "admin@example.com")
 	if err != nil {
 		t.Fatalf("find user: %v", err)
 	}
@@ -42,7 +42,7 @@ func TestAuthServiceLoginWithSeededAdmin(t *testing.T) {
 	db := testutil.ConnectPostgres(t)
 	testutil.MigrateTestSchema(t, db)
 	t.Cleanup(func() {
-		_ = db.Exec("TRUNCATE users, roles, role_permissions, permissions, refresh_tokens, oauth_accounts RESTART IDENTITY CASCADE").Error
+		testutil.TruncateAuthTables(t, db)
 	})
 
 	ctx := context.Background()
@@ -51,7 +51,7 @@ func TestAuthServiceLoginWithSeededAdmin(t *testing.T) {
 	}
 
 	container := testutil.NewTestContainer(t, db)
-	result, err := container.AuthService.Login(ctx, "admin@example.com", "admin1234")
+	result, err := container.AuthService.Login(ctx, "admin@example.com", "admin1234", "", "")
 	if err != nil {
 		t.Fatalf("login: %v", err)
 	}
@@ -64,7 +64,7 @@ func TestUserRepositoryCreateAndFind(t *testing.T) {
 	db := testutil.ConnectPostgres(t)
 	testutil.MigrateTestSchema(t, db)
 	t.Cleanup(func() {
-		_ = db.Exec("TRUNCATE users, roles, role_permissions, permissions, refresh_tokens, oauth_accounts RESTART IDENTITY CASCADE").Error
+		testutil.TruncateAuthTables(t, db)
 	})
 
 	ctx := context.Background()

@@ -1,0 +1,29 @@
+---
+description: Product UI/UX consistency for fe/ admin and tools — Toss-inspired hierarchy, states, a11y; theme via index.css.
+globs: fe/**/*
+alwaysApply: false
+---
+
+# FE product UX
+
+Adapted from [Toss-style DS](https://github.com/PatrickJS/awesome-cursorrules) + `fe/DESIGN.md`. **Not** a second token layer — use `--background`, `--foreground`, `--muted`, `--primary`, `--destructive`.
+
+## Hierarchy
+
+- One accent (`text-primary` / `bg-primary`) for primary actions and **clickable table values**
+- Status only via semantic tokens (`destructive`, success/warning badges) — never color alone
+- No nested cards, no extra hex colors, no decorative gradients on admin screens
+
+## Every interactive surface
+
+Must have **loading, empty, error, hover, focus**. Lists that hit a paginated API must show pager (prev/next or `DataTable` `serverPaging`).
+
+## Copy
+
+- Visible `<Label>` on inputs (never placeholder-only)
+- User-visible strings via i18n (`t()`), including toasts and pagination
+- Focus visible; tap targets padded; honor `prefers-reduced-motion`
+
+## Spacing
+
+Admin pages: outer `flex flex-1 flex-col gap-4 p-4`. Do not invent a second page shell.

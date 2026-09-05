@@ -96,6 +96,7 @@ const SEED_USERS: ManagedUser[] = [
     name: 'Admin User',
     password: 'admin1234',
     roleId: 'role-admin',
+    superAdmin: true,
     status: 'active',
     oauthProviders: [],
     createdAt: '2026-01-01T00:00:00.000Z',
@@ -288,6 +289,7 @@ export function resolveAuthUserByEmail(
     roleId: user.roleId,
     role: roleSlugToUserRole(role.slug),
     permissions: role.permissionKeys,
+    superAdmin: Boolean(user.superAdmin),
   }
 }
 
@@ -543,6 +545,7 @@ export const mockAccessControlApi = {
         birthday: input.birthday ?? null,
         address: input.address ?? '',
         socialLinks: input.socialLinks ?? [],
+        superAdmin: Boolean(input.superAdmin),
         avatarUrl: '',
         oauthProviders: [],
         createdAt: new Date().toISOString(),
@@ -607,6 +610,28 @@ export const mockAccessControlApi = {
         )
       }
 
+      const superAdminCount = users.filter((u) => u.superAdmin).length
+      if (
+        current.superAdmin &&
+        input.superAdmin === false &&
+        superAdminCount <= 1
+      ) {
+        throw new MockAccessControlError(
+          'Cannot remove the last super admin',
+          403,
+        )
+      }
+      if (
+        current.superAdmin &&
+        input.status === 'inactive' &&
+        superAdminCount <= 1
+      ) {
+        throw new MockAccessControlError(
+          'Cannot remove the last super admin',
+          403,
+        )
+      }
+
       const updated: ManagedUser = {
         ...current,
         name: input.name ?? current.name,
@@ -623,6 +648,10 @@ export const mockAccessControlApi = {
           input.birthday !== undefined ? input.birthday : (current.birthday ?? null),
         address: input.address ?? current.address ?? '',
         socialLinks: input.socialLinks ?? current.socialLinks ?? [],
+        superAdmin:
+          input.superAdmin !== undefined
+            ? input.superAdmin
+            : Boolean(current.superAdmin),
       }
       const next = [...users]
       next[index] = updated
@@ -654,6 +683,12 @@ export const mockAccessControlApi = {
             400,
           )
         }
+      }
+      if (user.superAdmin && users.filter((u) => u.superAdmin).length <= 1) {
+        throw new MockAccessControlError(
+          'Cannot remove the last super admin',
+          403,
+        )
       }
 
       writeUsers(users.filter((u) => u.id !== id))

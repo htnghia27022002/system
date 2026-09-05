@@ -1,13 +1,12 @@
 package handlers
 
 import (
-	"net/http"
-
 	"github.com/gin-gonic/gin"
 
-	"be/internal/common/response"
+	"be/internal/common/httpx"
 	permissiondto "be/internal/dto/permission"
 	permissionsvc "be/internal/services/permission"
+	"be/pkg/query"
 )
 
 type PermissionHandler struct {
@@ -20,29 +19,15 @@ func NewPermissionHandler(svc *permissionsvc.Service) *PermissionHandler {
 
 func (h *PermissionHandler) ListAll(c *gin.Context) {
 	permissions, err := h.svc.ListAll(c.Request.Context())
-	if err != nil {
-		response.HandleError(c, err)
-		return
-	}
-	response.JSON(c, http.StatusOK, permissions)
+	httpx.OK(c, permissions, err)
 }
 
 func (h *PermissionHandler) List(c *gin.Context) {
-	var query permissiondto.ListPermissionsQuery
-	if err := c.ShouldBindQuery(&query); err != nil {
-		response.Error(c, http.StatusBadRequest, err.Error())
+	var form permissiondto.ListPermissionsQuery
+	if !httpx.BindQuery(c, &form) {
 		return
 	}
 
-	permissions, total, page, pageSize, err := h.svc.List(c.Request.Context(), query)
-	if err != nil {
-		response.HandleError(c, err)
-		return
-	}
-	response.JSON(c, http.StatusOK, permissiondto.PaginatedPermissionsResponse{
-		Items:    permissions,
-		Total:    total,
-		Page:     page,
-		PageSize: pageSize,
-	})
+	permissions, total, page, pageSize, err := h.svc.List(c.Request.Context(), form)
+	httpx.OK(c, query.NewPage(permissions, total, page, pageSize), err)
 }

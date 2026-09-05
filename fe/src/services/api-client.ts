@@ -26,7 +26,11 @@ async function refreshAccessToken(): Promise<string | null> {
       { headers: { 'Content-Type': 'application/json' } },
     )
 
-    authTokenService.setTokens(response.data)
+    authTokenService.setTokens({
+      accessToken: response.data.accessToken,
+      refreshToken: response.data.refreshToken,
+      sessionId: response.data.sessionId,
+    })
     return response.data.accessToken
   } catch {
     authTokenService.clearTokens()

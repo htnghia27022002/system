@@ -42,12 +42,15 @@ src/
     ui/           ← shadcn/ui components
   config/         ← env.ts (Zod-validated NEXT_PUBLIC_* vars), i18n.ts
   features/       ← all domain logic + page-level components
-    auth/         ← LoginPage, RegisterPage, guards, forms, hooks
-    home/         ← HomePage
-    admin-dashboard/
+    auth/
+    landing/      ← public `/`
+    tools/
     access-control/
+    admin-dashboard/
+    admin-search/
+    user-profile/
   hooks/          ← shared custom hooks ('use client')
-  layouts/        ← MainLayout, AdminLayout (true route layout shells only)
+  layouts/        ← AdminLayout (admin chrome only)
   lib/            ← utils.ts (cn helper)
   locales/        ← en/, vi/ i18n JSON
   services/       ← api-client, auth-token-service, mock/
@@ -60,9 +63,9 @@ src/
 **Key rules:**
 - `src/app/` files are thin: route wiring, `metadata` exports, layout guards. No business logic.
 - `src/features/` owns all domain logic **and** page-level components.
-- `src/layouts/` only contains `MainLayout` and `AdminLayout` — shells used inside `src/app/**/layout.tsx`.
+- `src/layouts/` contains `AdminLayout` only — used from `src/app/admin/layout.tsx`. Public marketing/tools chrome lives in `PublicSiteHeader` / landing nav.
 - `src/components/common/` contains truly shared UI including `AuthLayout`.
-- **Do NOT create `src/pages/` or `src/screens/`** — `src/pages/` conflicts with Next.js Pages Router; `src/screens/` was removed as redundant.
+- **Do NOT create `src/pages/` or `src/screens/`** — `src/pages/` conflicts with Next.js Pages Router.
 
 ## 4) App Router Structure
 
@@ -72,8 +75,8 @@ src/app/
   not-found.tsx             ← 404
   sitemap.ts / robots.ts    ← SEO
   (public)/
-    layout.tsx              ← wraps with MainLayout
-    page.tsx                ← imports HomePage from @/features/home
+    layout.tsx              ← passthrough (LandingNav / PublicSiteHeader inside features)
+    page.tsx                ← imports LandingPage from @/features/landing
   (auth)/
     layout.tsx              ← GuestGuard
     login/page.tsx          ← imports LoginPage from @/features/auth
@@ -130,7 +133,7 @@ See `.cursor/rules/feature-permissions.mdc`.
 | Route entry (metadata + render) | `src/app/**/page.tsx` |
 | Route layout shell | `src/app/**/layout.tsx` |
 | Domain page component | `src/features/<feature>/components/` |
-| Layout shell (MainLayout, AdminLayout) | `src/layouts/` |
+| Layout shell (AdminLayout) | `src/layouts/` |
 | Auth card wrapper | `src/components/common/auth-layout.tsx` |
 | Shared UI primitives | `src/components/ui/` (shadcn) |
 | Shared presentational components | `src/components/common/` |
@@ -153,9 +156,10 @@ See `.cursor/rules/feature-permissions.mdc`.
 
 - Use `@/*` alias for all imports (mapped to `src/*`).
 - Import features through `@/features/<feature>` (public `index.ts`), not deep internal files.
+- Exception: `store` and some services may import `@/features/auth/services/auth-api` to avoid circular barrels.
+- Admin chrome (`components/common` sidebar/nav, `layouts`) may import `@/features/access-control` and `@/features/auth` **barrels** (RBAC/session kernel). One-way only.
 - `src/app/` imports from `features/`, `components/`, `layouts/`.
 - `src/features/` imports from `components/`, `hooks/`, `services/`, `utils/`, `types/`, `config/`.
-- `src/layouts/` imports from `components/`, `hooks/`, `utils/`, `types/`, `config/`.
 - Features must NOT import from other features' internals.
 - **Do NOT import from `react-router-dom`** — removed. Use `next/link` and `next/navigation`.
 
@@ -166,10 +170,14 @@ See `.cursor/rules/feature-permissions.mdc`.
 
 ## 12) Naming Conventions
 
+Match shadcn/ui and [bulletproof-react](https://github.com/alan2207/bulletproof-react):
+
 - Folders: `kebab-case`
-- React component files: `PascalCase.tsx`
-- Hook files: `useXxx.ts`
-- Utility files: `camelCase.ts`
+- React components: `kebab-case.tsx` (`users-table.tsx`, `login-page.tsx`)
+- Hooks: `use-users.ts`
+- Utilities: `kebab-case.ts`
+
+Do not introduce `PascalCase.tsx` page files. Existing `LandingPage.tsx` / `ToolsHubPage.tsx` are legacy; new files follow kebab-case.
 
 ## 13) Before Finishing Any Task
 
@@ -178,4 +186,5 @@ See `.cursor/rules/feature-permissions.mdc`.
 3. Does a new public `app/page.tsx` export `metadata`?
 4. Are feature boundaries respected?
 5. Is content written in English?
-6. Does UI follow [`DESIGN.md`](./DESIGN.md)? (theme tokens, matching page padding, mobile, clickable cells as links, shadcn first)
+6. Does UI follow [`DESIGN.md`](./DESIGN.md) and `.cursor/rules/fe-ux-product.mdc`? (theme tokens, matching page padding, mobile, clickable cells as links, loading/empty/error, shadcn first)
+7. Does a new feature follow `.cursor/rules/fe-feature-module.mdc`?
