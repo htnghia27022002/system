@@ -8,10 +8,15 @@ import type {
 } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 
-import { InputError } from '@/components/common/input-error'
 import { Button } from '@/components/ui/button'
+import {
+  Field,
+  FieldDescription,
+  FieldError,
+  FieldGroup,
+  FieldLabel,
+} from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 
 type SocialLinkRow = { id: string; label?: string; url: string }
 
@@ -40,34 +45,33 @@ export function SocialLinksEditor({
   const linkErrors = errors.socialLinks
 
   return (
-    <div className="space-y-3">
-      <div className="flex items-center justify-between gap-2">
-        <div>
-          <Label>{t('profile.fields.socialLinks')}</Label>
-          <p className="text-xs text-muted-foreground">
-            {t('profile.fields.socialLinksHint')}
-          </p>
+    <FieldGroup>
+      <Field>
+        <div className="flex items-start justify-between gap-2">
+          <div className="min-w-0">
+            <FieldLabel>{t('profile.fields.socialLinks')}</FieldLabel>
+            <FieldDescription>
+              {t('profile.fields.socialLinksHint')}
+            </FieldDescription>
+          </div>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            disabled={fields.length >= max}
+            onClick={() => append({ label: '', url: '' })}
+          >
+            <PlusIcon className="size-4" />
+            {t('profile.actions.addLink')}
+          </Button>
         </div>
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          disabled={fields.length >= max}
-          onClick={() => append({ label: '', url: '' })}
-        >
-          <PlusIcon className="size-4" />
-          {t('profile.actions.addLink')}
-        </Button>
-      </div>
-
-      {typeof linkErrors?.message === 'string' ? (
-        <InputError message={linkErrors.message} />
-      ) : null}
+        {typeof linkErrors?.message === 'string' ? (
+          <FieldError>{linkErrors.message}</FieldError>
+        ) : null}
+      </Field>
 
       {fields.length === 0 ? (
-        <p className="text-sm text-muted-foreground">
-          {t('profile.empty.socialLinks')}
-        </p>
+        <FieldDescription>{t('profile.empty.socialLinks')}</FieldDescription>
       ) : (
         <ul className="space-y-3">
           {fields.map((field, index) => {
@@ -77,24 +81,24 @@ export function SocialLinksEditor({
             return (
               <li
                 key={field.id}
-                className="grid gap-3 rounded-lg border border-border p-3 sm:grid-cols-[1fr_1.4fr_auto]"
+                className="grid gap-3 rounded-lg border p-3 sm:grid-cols-[1fr_1.4fr_auto]"
               >
-                <div className="grid gap-2">
-                  <Label htmlFor={`social-label-${field.id}`}>
+                <Field data-invalid={Boolean(entryError?.label)}>
+                  <FieldLabel htmlFor={`social-label-${field.id}`}>
                     {t('profile.fields.socialLabel')}
-                  </Label>
+                  </FieldLabel>
                   <Input
                     id={`social-label-${field.id}`}
                     placeholder={t('profile.fields.socialLabelPlaceholder')}
                     aria-invalid={Boolean(entryError?.label)}
                     {...register(`socialLinks.${index}.label`)}
                   />
-                  <InputError message={entryError?.label?.message as string} />
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor={`social-url-${field.id}`}>
+                  <FieldError errors={[entryError?.label]} />
+                </Field>
+                <Field data-invalid={Boolean(entryError?.url)}>
+                  <FieldLabel htmlFor={`social-url-${field.id}`}>
                     {t('profile.fields.socialUrl')}
-                  </Label>
+                  </FieldLabel>
                   <Input
                     id={`social-url-${field.id}`}
                     type="url"
@@ -102,8 +106,8 @@ export function SocialLinksEditor({
                     aria-invalid={Boolean(entryError?.url)}
                     {...register(`socialLinks.${index}.url`)}
                   />
-                  <InputError message={entryError?.url?.message as string} />
-                </div>
+                  <FieldError errors={[entryError?.url]} />
+                </Field>
                 <div className="flex items-end">
                   <Button
                     type="button"
@@ -121,6 +125,6 @@ export function SocialLinksEditor({
           })}
         </ul>
       )}
-    </div>
+    </FieldGroup>
   )
 }

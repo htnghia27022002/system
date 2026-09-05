@@ -1,6 +1,8 @@
 'use client'
 
+import { useEffect } from 'react'
 import Link from 'next/link'
+import { usePathname } from 'next/navigation'
 
 import { AdminAppLogo } from '@/components/common/admin-app-logo'
 import { NavMain } from '@/components/common/nav-main'
@@ -14,21 +16,21 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarRail,
   useSidebar,
 } from '@/components/ui/sidebar'
 
 export function AppSidebar() {
-  const { isMobile } = useSidebar()
+  const pathname = usePathname()
+  const { setOpenMobile } = useSidebar()
   const mainNavItems = useAdminNavItems()
 
-  // Mobile uses AdminMobileNav (dedicated touch drawer) instead of the
-  // cramped desktop sidebar-in-sheet pattern from shadcn Sidebar.
-  if (isMobile) {
-    return null
-  }
+  useEffect(() => {
+    setOpenMobile(false)
+  }, [pathname, setOpenMobile])
 
   return (
-    <Sidebar collapsible="icon" variant="inset">
+    <Sidebar collapsible="icon">
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
@@ -48,6 +50,7 @@ export function AppSidebar() {
       <SidebarFooter>
         <NavUser />
       </SidebarFooter>
+      <SidebarRail />
     </Sidebar>
   )
 }

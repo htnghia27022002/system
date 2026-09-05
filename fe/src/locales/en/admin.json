@@ -5,15 +5,7 @@
     "openMenu": "Open menu",
     "collapseMenu": "Collapse sidebar",
     "expandMenu": "Expand sidebar",
-    "publicHome": "Public home",
-    "menuTitle": "Menu",
-    "menuTab": "Menu",
-    "bottomNav": "Primary navigation",
-    "yourShortcuts": "Your shortcuts",
-    "allShortcuts": "All shortcuts",
-    "pinHint": "Pin up to {{count}} to the bottom bar",
-    "pinShortcut": "Pin {{name}} to bottom bar",
-    "unpinShortcut": "Unpin {{name}} from bottom bar"
+    "publicHome": "Public home"
   },
   "userMenu": {
     "settings": "Account settings",
@@ -83,6 +75,8 @@
       "description": "Manage user accounts, roles, status, and Super admin.",
       "createTitle": "Create user",
       "editTitle": "Edit user",
+      "createDescription": "Add an account and assign a role.",
+      "editDescription": "Update this user's profile and access.",
       "createAction": "Create user",
       "deleteTitle": "Delete user",
       "deleteDescription": "Remove {{name}}? This cannot be undone.",

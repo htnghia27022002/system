@@ -192,9 +192,8 @@ export function DataTable<TData, TValue = unknown>({
             isRefreshing && 'opacity-60',
           )}
         >
-          <div className="overflow-hidden rounded-xl border border-border">
-            <div className="relative w-full overflow-x-auto">
-              <Table>
+          <div className="overflow-hidden rounded-xl border">
+            <Table>
                 <TableHeader className="bg-muted/50">
                   {table.getHeaderGroups().map((headerGroup) => (
                     <TableRow
@@ -250,8 +249,7 @@ export function DataTable<TData, TValue = unknown>({
                     ))
                   )}
                 </TableBody>
-              </Table>
-            </div>
+            </Table>
           </div>
 
           {showLocalPagination ? <DataTablePagination table={table} /> : null}

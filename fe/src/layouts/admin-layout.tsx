@@ -1,17 +1,19 @@
 'use client'
 
 import type { ReactNode } from 'react'
+import { useMemo } from 'react'
 import { usePathname } from 'next/navigation'
 import { useTranslation } from 'react-i18next'
-import { useMemo } from 'react'
 
-import { AdminMobileNav } from '@/components/common/admin-mobile-nav'
-import { AppContent } from '@/components/common/app-content'
-import { AppShell } from '@/components/common/app-shell'
 import { AppSidebar } from '@/components/common/app-sidebar'
-import { AppSidebarHeader } from '@/components/common/app-sidebar-header'
+import { Breadcrumbs } from '@/components/common/breadcrumbs'
 import { NavLoadingBar } from '@/components/common/nav-loading-bar'
-import { TooltipProvider } from '@/components/ui/tooltip'
+import { Separator } from '@/components/ui/separator'
+import {
+  SidebarInset,
+  SidebarProvider,
+  SidebarTrigger,
+} from '@/components/ui/sidebar'
 import type { BreadcrumbItem } from '@/types/navigation'
 
 const BREADCRUMB_MAP: Record<
@@ -63,21 +65,22 @@ export function AdminLayout({ children }: AdminLayoutProps) {
   }, [pathname, t])
 
   return (
-    <TooltipProvider delayDuration={0}>
-      <AppShell variant="sidebar">
-        <AppSidebar />
-        <AdminMobileNav />
-        <AppContent
-          variant="sidebar"
-          className="overflow-x-hidden pb-[calc(3rem+env(safe-area-inset-bottom,0px))] md:pb-0"
-        >
-          <div className="relative">
-            <NavLoadingBar />
-            <AppSidebarHeader breadcrumbs={breadcrumbs} />
-          </div>
-          {children}
-        </AppContent>
-      </AppShell>
-    </TooltipProvider>
+    <SidebarProvider defaultOpen>
+      <AppSidebar />
+      <SidebarInset className="overflow-x-hidden">
+        <div className="relative">
+          <NavLoadingBar />
+          <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">
+            <SidebarTrigger className="-ml-1" />
+            <Separator
+              orientation="vertical"
+              className="mr-2 data-vertical:h-4 data-vertical:self-auto"
+            />
+            <Breadcrumbs breadcrumbs={breadcrumbs} />
+          </header>
+        </div>
+        {children}
+      </SidebarInset>
+    </SidebarProvider>
   )
 }

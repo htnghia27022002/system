@@ -17,23 +17,7 @@ import type { NavItem } from '@/types/navigation'
 export const ADMIN_HOME_HREF = '/admin'
 
 /**
- * Flatten nested admin nav into leaf destinations (for mobile pins / menu grid).
- * Parent group nodes with children are skipped; home/dashboard is a leaf.
- */
-export function flattenAdminNavLeaves(items: NavItem[]): NavItem[] {
-  const leaves: NavItem[] = []
-  for (const item of items) {
-    if (item.items && item.items.length > 0) {
-      leaves.push(...item.items)
-      continue
-    }
-    leaves.push(item)
-  }
-  return leaves
-}
-
-/**
- * Permission-filtered admin nav tree shared by desktop sidebar and mobile menu.
+ * Permission-filtered admin nav tree for the sidebar.
  */
 export function useAdminNavItems(): NavItem[] {
   const { t } = useTranslation('admin')
@@ -95,10 +79,4 @@ export function useAdminNavItems(): NavItem[] {
       (item) => !item.permission || hasPermission(item.permission),
     )
   }, [hasPermission, t])
-}
-
-/** Leaf destinations the user can open / pin (excludes empty groups). */
-export function useAdminNavLeaves(): NavItem[] {
-  const items = useAdminNavItems()
-  return useMemo(() => flattenAdminNavLeaves(items), [items])
 }
