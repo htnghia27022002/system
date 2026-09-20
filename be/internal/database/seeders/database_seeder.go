@@ -19,6 +19,8 @@ func NewDatabaseSeeder() *DatabaseSeeder {
 			NewRoleSeeder(),
 			NewRolePermissionSeeder(),
 			NewUserSeeder(),
+			NewCategorySeeder(),
+			NewGeoSeeder(),
 		},
 	}
 }
@@ -38,6 +40,8 @@ var Registry = map[string]func() Seeder{
 	"RoleSeeder":           func() Seeder { return NewRoleSeeder() },
 	"RolePermissionSeeder": func() Seeder { return NewRolePermissionSeeder() },
 	"UserSeeder":           func() Seeder { return NewUserSeeder() },
+	"CategorySeeder":       func() Seeder { return NewCategorySeeder() },
+	"GeoSeeder":            func() Seeder { return NewGeoSeeder() },
 }
 
 // RunByName executes a registered seeder by class name.

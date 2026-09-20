@@ -38,6 +38,11 @@ type Config struct {
 
 	// UploadDir is the local filesystem root for uploaded media (avatars). Owned by be/.env.
 	UploadDir string
+
+	// Map geocode (admin search). Owned by be/.env — never root or fe/.env.
+	MapGeocodeProvider    string
+	MapNominatimURL       string
+	MapNominatimUserAgent string
 }
 
 type ElasticsearchConfig struct {
@@ -175,6 +180,19 @@ func Load() Config {
 	}
 
 	cfg.UploadDir = firstNonEmpty(os.Getenv("UPLOAD_DIR"), "data/uploads")
+
+	cfg.MapGeocodeProvider = strings.ToLower(firstNonEmpty(
+		os.Getenv("MAP_GEOCODE_PROVIDER"),
+		"osm",
+	))
+	cfg.MapNominatimURL = firstNonEmpty(
+		os.Getenv("MAP_NOMINATIM_URL"),
+		"https://nominatim.openstreetmap.org",
+	)
+	cfg.MapNominatimUserAgent = firstNonEmpty(
+		os.Getenv("MAP_NOMINATIM_USER_AGENT"),
+		"system-maps/1.0 (admin search)",
+	)
 
 	// Discrete DB_* password default only when not using a full connection URL.
 	if cfg.DBURL == "" && cfg.DBPass == "" {

@@ -9,8 +9,8 @@ import (
 	"testing"
 	"time"
 
-	apperrors "be/internal/common/errors"
-	jwtmanager "be/internal/common/jwt"
+	apperrors "be/common/errors"
+	jwtmanager "be/common/jwt"
 	authdto "be/internal/dto/auth"
 	userdto "be/internal/dto/user"
 	authmodel "be/internal/models/auth"

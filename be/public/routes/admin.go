@@ -36,5 +36,7 @@ func RegisterAdminRoutes(r *gin.RouterGroup, c *app.Container) {
 		search.POST("/reindex", c.SearchHandler.Reindex)
 		search.GET("/outbox/stats", c.SearchHandler.OutboxStats)
 		search.POST("/outbox/replay", c.SearchHandler.ReplayOutbox)
+
+		RegisterMapsRoutes(admin, c)
 	}
 }

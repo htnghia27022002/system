@@ -3,7 +3,7 @@ package handlers
 import (
 	"github.com/gin-gonic/gin"
 
-	"be/internal/common/httpx"
+	"be/common/httpx"
 	roledto "be/internal/dto/role"
 	rolesvc "be/internal/services/role"
 	"be/pkg/query"

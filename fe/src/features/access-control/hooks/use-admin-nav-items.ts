@@ -3,6 +3,7 @@
 import {
   LayoutGridIcon,
   Link2Icon,
+  MapIcon,
   ShieldCheckIcon,
   UsersIcon,
   WrenchIcon,
@@ -56,6 +57,15 @@ export function useAdminNavItems(): NavItem[] {
         permission: PermissionKeys.dashboard.view,
       },
     ]
+
+    if (hasPermission(PermissionKeys.maps.view)) {
+      items.push({
+        title: t('nav.maps'),
+        href: '/admin/maps',
+        icon: MapIcon,
+        permission: PermissionKeys.maps.view,
+      })
+    }
 
     if (toolsItems.length > 0) {
       items.push({

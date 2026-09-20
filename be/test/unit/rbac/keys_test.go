@@ -3,7 +3,7 @@ package rbac_test
 import (
 	"testing"
 
-	"be/internal/common/rbac"
+	"be/common/rbac"
 )
 
 func TestAllowedViewAndModify(t *testing.T) {

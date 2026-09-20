@@ -11,8 +11,9 @@ import (
 
 	"github.com/google/uuid"
 
-	apperrors "be/internal/common/errors"
-	jwtmanager "be/internal/common/jwt"
+	apperrors "be/common/errors"
+	jwtmanager "be/common/jwt"
+	"be/common/utils"
 	authdto "be/internal/dto/auth"
 	userdto "be/internal/dto/user"
 	authmodel "be/internal/models/auth"
@@ -91,7 +92,7 @@ func (s *Service) buildAuthUser(ctx context.Context, user *usermodel.User) (*aut
 		Phone:       user.Phone,
 		AvatarURL:   user.AvatarURL,
 		General:     user.General,
-		Birthday:    userdto.FormatBirthday(user.Birthday),
+		Birthday:    utils.FormatDate(user.Birthday),
 		Address:     user.Address,
 		SocialLinks: userdto.SocialLinksToDTO(user.SocialLinks),
 		HasPassword: user.PasswordHash != "",

@@ -1,0 +1,24 @@
+[
+  {
+    "locationName": "Cho Han Market",
+    "countryCode": "VN",
+    "placeName": "Com Tam Demo",
+    "category": "eatery",
+    "placeKey": "demo-eatery-1",
+    "lat": 16.047079,
+    "lng": 108.20623,
+    "title": "New eatery near Cho Han",
+    "originalUrl": "https://example.com/news/cho-han-eatery"
+  },
+  {
+    "locationName": "Bach Dang Riverside",
+    "countryCode": "VN",
+    "placeName": "Hotel Bach Dang Demo",
+    "category": "hotel",
+    "placeKey": "demo-hotel-1",
+    "lat": 16.0678,
+    "lng": 108.2208,
+    "title": "Hotel opening on Bach Dang",
+    "originalUrl": "https://example.com/news/bach-dang-hotel"
+  }
+]

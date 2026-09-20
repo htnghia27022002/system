@@ -9,8 +9,8 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	apperrors "be/internal/common/errors"
-	"be/internal/common/response"
+	apperrors "be/common/errors"
+	"be/common/response"
 	"be/internal/middleware"
 )
 

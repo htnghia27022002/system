@@ -14,6 +14,7 @@ route → handler → service → repository interface → repository → databa
 be/
 ├── config.yaml           # Public config (committed)
 ├── main.go
+├── common/               # App-shared helpers: jwt, errors, response, httpx, rbac, cache, utils
 ├── pkg/                  # Reusable infra: postgres, query, repo, hash, cache, redis
 ├── public/
 │   ├── api.go
@@ -107,7 +108,7 @@ go run ./cmd/reindex      # one-shot Elasticsearch bulk reindex
 
 Redis dial: `be/pkg/redis.Connect(url)`; app wrappers in `internal/database` (`ConnectRedis` / `ConnectRedisURL`).
 
-Cache stores live in `be/pkg/cache` (Options + drivers). App Init/Default wiring stays in `internal/common/cache` and maps `config.CacheConfig` → pkg Options. Disabled by default (`cache.enabled: false`).
+Cache stores live in `be/pkg/cache` (Options + drivers). App Init/Default wiring stays in `common/cache` and maps `config.CacheConfig` → pkg Options. Disabled by default (`cache.enabled: false`).
 
 | Driver | Config | Notes |
 |--------|--------|-------|
@@ -170,7 +171,7 @@ Add a new domain service by adding `dependency/<feature>_service.go` with a `New
 - NATS infra in `internal/queue/` — subject names from `constants.go` only
 - Business logic in `internal/services/<feature>`
 - DTOs separate from models
-- Errors via `internal/common/errors` + `response.HandleError`
+- Errors via `common/errors` + `response.HandleError`
 
 ## Module imports
 

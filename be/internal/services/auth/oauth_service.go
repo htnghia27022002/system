@@ -6,7 +6,7 @@ import (
 
 	"golang.org/x/oauth2"
 
-	apperrors "be/internal/common/errors"
+	apperrors "be/common/errors"
 	"be/internal/config"
 	authdto "be/internal/dto/auth"
 	authmodel "be/internal/models/auth"

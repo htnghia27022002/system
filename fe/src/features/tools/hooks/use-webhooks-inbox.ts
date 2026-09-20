@@ -22,7 +22,7 @@ import type {
 export const webhooksInboxKey = ['tools', 'webhooks', 'inbox'] as const
 export const webhooksRequestsKey = ['tools', 'webhooks', 'requests'] as const
 
-const POLL_MS = 5_000
+const POLL_MS = 3_000
 
 function isListResponse(
   value: unknown,

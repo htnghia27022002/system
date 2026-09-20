@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	apperrors "be/internal/common/errors"
+	apperrors "be/common/errors"
 	usermodel "be/internal/models/user"
 )
 
@@ -138,15 +138,6 @@ func (n *NormalizedPersonal) Apply(user *usermodel.User) {
 			user.SocialLinks = []usermodel.SocialLink{}
 		}
 	}
-}
-
-// FormatBirthday returns YYYY-MM-DD or nil.
-func FormatBirthday(t *time.Time) *string {
-	if t == nil {
-		return nil
-	}
-	s := t.UTC().Format("2006-01-02")
-	return &s
 }
 
 // SocialLinksToDTO converts model links to DTO slice (never nil).

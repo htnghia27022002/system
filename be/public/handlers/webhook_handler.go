@@ -8,9 +8,9 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	apperrors "be/internal/common/errors"
-	"be/internal/common/httpx"
-	"be/internal/common/response"
+	apperrors "be/common/errors"
+	"be/common/httpx"
+	"be/common/response"
 	webhookdto "be/internal/dto/webhook"
 	webhooksvc "be/internal/services/webhook"
 )

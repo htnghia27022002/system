@@ -41,7 +41,7 @@ export function DataTableServerPagination({ paging }: DataTableServerPaginationP
   const canNext = page < pageCount
 
   return (
-    <div className="flex flex-col items-center justify-between gap-3 border-t px-3 py-3 sm:flex-row">
+    <div className="flex flex-col items-center justify-between gap-3 px-3 py-3 sm:flex-row">
       <p className="order-2 text-sm text-muted-foreground sm:order-1">
         {total === 0
           ? t('table.noResults')

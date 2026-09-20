@@ -20,6 +20,15 @@ describe('permission-keys', () => {
     expect(canModifyResource(granted, 'roles')).toBe(true)
   })
 
+  it('exposes additive maps view and modify keys', () => {
+    expect(PermissionKeys.maps.view).toBe('maps:view')
+    expect(PermissionKeys.maps.modify).toBe('maps:modify')
+
+    const granted = new Set([PermissionKeys.maps.view])
+    expect(canViewResource(granted, 'maps')).toBe(true)
+    expect(canModifyResource(granted, 'maps')).toBe(false)
+  })
+
   it('maps legacy read/crud keys during transition', () => {
     const granted = new Set(['dashboard:read', 'users:update'])
 

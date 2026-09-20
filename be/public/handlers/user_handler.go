@@ -3,8 +3,8 @@ package handlers
 import (
 	"github.com/gin-gonic/gin"
 
-	"be/internal/common/httpx"
-	"be/internal/common/response"
+	"be/common/httpx"
+	"be/common/response"
 	userdto "be/internal/dto/user"
 	"be/internal/middleware"
 	usersvc "be/internal/services/user"

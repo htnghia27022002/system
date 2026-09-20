@@ -6,7 +6,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	apperrors "be/internal/common/errors"
+	apperrors "be/common/errors"
 )
 
 func JSON(c *gin.Context, status int, payload any) {

@@ -1,5 +1,11 @@
 {
   "appName": "System App",
+  "address": {
+    "country": "Country",
+    "division": "Administrative division",
+    "allCountries": "All countries",
+    "allDivisions": "All divisions"
+  },
   "home": {
     "title": "Frontend initialized",
     "description": "React, Tailwind v4, shadcn/ui, TanStack Query, i18n, and auth services are ready.",

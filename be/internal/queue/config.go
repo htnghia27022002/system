@@ -105,6 +105,25 @@ func defaultConfig() Config {
 					},
 				},
 			},
+			StreamKeyMaps: {
+				Retention:       "limits",
+				Storage:         "file",
+				MaxAge:          "168h",
+				MaxMsgs:         100000,
+				MaxBytes:        1073741824,
+				Discard:         "old",
+				DuplicateWindow: "2m",
+				Consumers: map[string]ConsumerOptions{
+					ConsumerKeyMapsIngest: {
+						AckPolicy:     "explicit",
+						AckWait:       "60s",
+						MaxDeliver:    5,
+						MaxAckPending: 16,
+						DeliverPolicy: "all",
+						ReplayPolicy:  "instant",
+					},
+				},
+			},
 		},
 	}
 }
@@ -140,6 +159,11 @@ func resolveStream(key string) (StreamDefinition, error) {
 			Name:     StreamSearch,
 			Subjects: []string{SubjectSearchWildcard},
 		}, nil
+	case StreamKeyMaps:
+		return StreamDefinition{
+			Name:     StreamMaps,
+			Subjects: []string{SubjectMapsWildcard},
+		}, nil
 	default:
 		return StreamDefinition{}, fmt.Errorf("queue: unknown stream key %q", key)
 	}
@@ -154,6 +178,15 @@ func resolveConsumer(streamKey, consumerKey string) (ConsumerDefinition, error) 
 				Name:          ConsumerSearchOutbox,
 				FilterSubject: SubjectSearchOutbox,
 				Handler:       HandlerSearchOutbox,
+			}, nil
+		}
+	case StreamKeyMaps:
+		switch consumerKey {
+		case ConsumerKeyMapsIngest:
+			return ConsumerDefinition{
+				Name:          ConsumerMapsIngest,
+				FilterSubject: SubjectMapsIngest,
+				Handler:       HandlerMapsIngest,
 			}, nil
 		}
 	}

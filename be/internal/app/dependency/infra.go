@@ -3,7 +3,7 @@ package dependency
 import (
 	"log"
 
-	jwtmanager "be/internal/common/jwt"
+	jwtmanager "be/common/jwt"
 	"be/internal/config"
 	"be/internal/handlers/publisher"
 	"be/internal/queue"

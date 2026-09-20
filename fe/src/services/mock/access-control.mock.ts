@@ -70,6 +70,18 @@ const SEED_PERMISSIONS: Permission[] = [
     group: 'webhooks',
     description: 'Regenerate the public URL and soft-delete captured requests',
   },
+  {
+    key: 'maps:view',
+    name: 'View maps',
+    group: 'maps',
+    description: 'View the admin street map, Places, Sources, and ingest status',
+  },
+  {
+    key: 'maps:modify',
+    name: 'Modify maps',
+    group: 'maps',
+    description: 'Manage Sources, run Load data, and change Place status',
+  },
 ]
 
 const ALL_PERMISSION_KEYS = SEED_PERMISSIONS.map((p) => p.key)

@@ -29,3 +29,35 @@ func newWebhookInboxRepository(db *postgres.Postgres) interfaces.WebhookInboxRep
 func newWebhookRequestRepository(db *postgres.Postgres) interfaces.WebhookRequestRepository {
 	return repository.NewWebhookRequestRepository(db)
 }
+
+func newCountryRepository(db *postgres.Postgres) interfaces.CountryRepository {
+	return repository.NewCountryRepository(db)
+}
+
+func newDivisionRepository(db *postgres.Postgres) interfaces.DivisionRepository {
+	return repository.NewDivisionRepository(db)
+}
+
+func newLocationRepository(db *postgres.Postgres) interfaces.LocationRepository {
+	return repository.NewLocationRepository(db)
+}
+
+func newPlaceRepository(db *postgres.Postgres) interfaces.PlaceRepository {
+	return repository.NewPlaceRepository(db)
+}
+
+func newCategoryRepository(db *postgres.Postgres) interfaces.CategoryRepository {
+	return repository.NewCategoryRepository(db)
+}
+
+func newNewsRepository(db *postgres.Postgres) interfaces.NewsRepository {
+	return repository.NewNewsRepository(db)
+}
+
+func newDataSourceRepository(db *postgres.Postgres) interfaces.DataSourceRepository {
+	return repository.NewDataSourceRepository(db)
+}
+
+func newIngestRunRepository(db *postgres.Postgres) interfaces.IngestRunRepository {
+	return repository.NewIngestRunRepository(db)
+}

@@ -10,7 +10,7 @@ import (
 	goredis "github.com/redis/go-redis/v9"
 
 	"be/internal/app"
-	"be/internal/common/cache"
+	"be/common/cache"
 	"be/internal/config"
 	"be/internal/database"
 	"be/internal/middleware"
@@ -56,6 +56,7 @@ func Run(cfg config.Config, db *postgres.Postgres, redis *goredis.Client) error 
 
 	api := r.Group("/api")
 	routes.RegisterAuthRoutes(api, container)
+	routes.RegisterAddressRoutes(api, container)
 	routes.RegisterAdminRoutes(api, container)
 	routes.RegisterMediaRoutes(api, container)
 	routes.RegisterWebhookRoutes(api, container)

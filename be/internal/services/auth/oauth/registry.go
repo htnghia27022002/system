@@ -3,7 +3,7 @@ package oauth
 import (
 	"fmt"
 
-	apperrors "be/internal/common/errors"
+	apperrors "be/common/errors"
 	"be/internal/config"
 )
 

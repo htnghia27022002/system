@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"mime/multipart"
 	"strings"
-	"time"
 
-	apperrors "be/internal/common/errors"
+	apperrors "be/common/errors"
+	"be/common/utils"
 	userdto "be/internal/dto/user"
 	usermodel "be/internal/models/user"
 	"be/internal/repository/interfaces"
@@ -296,11 +296,11 @@ func ToResponse(user *usermodel.User, oauthProviders ...string) userdto.UserResp
 		Phone:          user.Phone,
 		AvatarURL:      user.AvatarURL,
 		General:        user.General,
-		Birthday:       userdto.FormatBirthday(user.Birthday),
+		Birthday:       utils.FormatDate(user.Birthday),
 		Address:        user.Address,
 		SocialLinks:    userdto.SocialLinksToDTO(links),
 		OAuthProviders: providers,
-		CreatedAt:      user.CreatedAt.UTC().Format(time.RFC3339),
+		CreatedAt:      utils.FormatRFC3339(user.CreatedAt),
 	}
 }
 

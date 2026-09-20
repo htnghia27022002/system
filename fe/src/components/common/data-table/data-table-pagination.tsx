@@ -43,7 +43,7 @@ export function DataTablePagination<TData>({
     : defaultLabel(from, to, total)
 
   return (
-    <div className="flex flex-col items-center justify-between gap-3 border-t px-3 py-3 sm:flex-row">
+    <div className="flex flex-col items-center justify-between gap-3 px-3 py-3 sm:flex-row">
       <p className="order-2 text-sm text-muted-foreground sm:order-1">
         {label}
       </p>

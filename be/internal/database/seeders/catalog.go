@@ -1,6 +1,6 @@
 package seeders
 
-import "be/internal/common/rbac"
+import "be/common/rbac"
 
 // Stable IDs for dev/test references.
 const (
@@ -77,6 +77,20 @@ func DefaultPermissions() []PermissionDef {
 			Name:        "Modify webhooks",
 			Group:       "webhooks",
 			Description: "Regenerate webhook URL and soft-delete captured requests",
+		},
+		{
+			ID:          "10000001-0000-4000-8000-000000000019",
+			Key:         rbac.Key("maps", rbac.ActionView),
+			Name:        "View maps",
+			Group:       "maps",
+			Description: "View the admin street map, Places, Sources, and ingest status",
+		},
+		{
+			ID:          "10000001-0000-4000-8000-000000000020",
+			Key:         rbac.Key("maps", rbac.ActionModify),
+			Name:        "Modify maps",
+			Group:       "maps",
+			Description: "Manage Sources, run Load data, and change Place status",
 		},
 	}
 }

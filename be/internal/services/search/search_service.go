@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	listquery "be/pkg/query"
-	"be/internal/common/rbac"
+	"be/common/rbac"
 	searchdto "be/internal/dto/search"
 	searchpkg "be/internal/search"
 	"be/internal/repository/interfaces"

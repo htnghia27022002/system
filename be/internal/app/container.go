@@ -1,7 +1,7 @@
 package app
 
 import (
-	jwtmanager "be/internal/common/jwt"
+	jwtmanager "be/common/jwt"
 	"be/internal/app/dependency"
 	"be/internal/config"
 	"be/internal/handlers/publisher"
@@ -15,6 +15,7 @@ import (
 	rolesvc "be/internal/services/role"
 	searchsvc "be/internal/services/search"
 	usersvc "be/internal/services/user"
+	ingestsvc "be/internal/services/maps/ingest"
 	webhooksvc "be/internal/services/webhook"
 	"be/pkg/postgres"
 	"be/public/handlers"
@@ -37,6 +38,7 @@ type Container struct {
 	SearchProcessor   *searchsvc.IndexProcessor
 	OutboxService     *searchsvc.OutboxService
 	WebhookService    *webhooksvc.Service
+	IngestService     *ingestsvc.Service
 	SearchClient      *searchpkg.Client
 	RoleRepo          interfaces.RoleRepository
 	UserRepo          interfaces.UserRepository
@@ -47,6 +49,8 @@ type Container struct {
 	SearchHandler     *handlers.SearchHandler
 	MediaHandler      *handlers.MediaHandler
 	WebhookHandler    *handlers.WebhookHandler
+	MapsHandler       *handlers.MapsHandler
+	AddressHandler    *handlers.AddressHandler
 }
 
 func NewContainer(cfg config.Config, db *postgres.Postgres) *Container {
@@ -58,6 +62,8 @@ func NewContainer(cfg config.Config, db *postgres.Postgres) *Container {
 	roleServices := dependency.NewRoleServices(infra, searchStack.Outbox)
 	permissionService := dependency.NewPermissionService(infra)
 	webhookService := dependency.NewWebhookService(infra)
+	addressService := dependency.NewAddressService(infra)
+	mapsServices := dependency.NewMapsServices(infra, addressService)
 	httpHandlers := dependency.NewHTTPHandlers(
 		authServices,
 		userService,
@@ -66,6 +72,8 @@ func NewContainer(cfg config.Config, db *postgres.Postgres) *Container {
 		searchStack,
 		mediaSvc,
 		webhookService,
+		mapsServices,
+		addressService,
 	)
 
 	return &Container{
@@ -85,6 +93,7 @@ func NewContainer(cfg config.Config, db *postgres.Postgres) *Container {
 		SearchProcessor:   searchStack.Processor,
 		OutboxService:     searchStack.Outbox,
 		WebhookService:    webhookService,
+		IngestService:     mapsServices.Ingest,
 		SearchClient:      infra.SearchClient,
 		RoleRepo:          roleServices.Repo,
 		UserRepo:          repository.NewUserRepository(db),
@@ -95,6 +104,8 @@ func NewContainer(cfg config.Config, db *postgres.Postgres) *Container {
 		SearchHandler:     httpHandlers.Search,
 		MediaHandler:      httpHandlers.Media,
 		WebhookHandler:    httpHandlers.Webhook,
+		MapsHandler:       httpHandlers.Maps,
+		AddressHandler:    httpHandlers.Address,
 	}
 }
 

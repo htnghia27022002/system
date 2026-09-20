@@ -24,7 +24,7 @@ Use the existing **view / modify** model only:
 | Read / list / open page | `{resource}:view` | BE `RequireView("resource")` · FE `PermissionKeys.{resource}.view` |
 | Create / update / delete | `{resource}:modify` | BE `RequireModify("resource")` · FE `PermissionKeys.{resource}.modify` |
 
-Helpers: BE `be/internal/common/rbac` (`rbac.Key`, `rbac.ActionView`, `rbac.ActionModify`); FE `fe/src/features/access-control/permission-keys.ts`.
+Helpers: BE `be/common/rbac` (`rbac.Key`, `rbac.ActionView`, `rbac.ActionModify`); FE `fe/src/features/access-control/permission-keys.ts`.
 
 ## Who does what
 

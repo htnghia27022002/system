@@ -9,6 +9,8 @@ const envSchema = z.object({
     .optional()
     .transform((value) => value === 'true'),
   VITE_MOCK_API_DELAY_MS: z.coerce.number().int().positive().default(1200),
+  MAP_PROVIDER: z.enum(['osm', 'google']).default('osm'),
+  GOOGLE_MAPS_API_KEY: z.string().optional(),
 })
 
 export const env = envSchema.parse({
@@ -19,4 +21,6 @@ export const env = envSchema.parse({
   VITE_APP_NAME: process.env.NEXT_PUBLIC_APP_NAME ?? 'System App',
   VITE_USE_MOCK_API: process.env.NEXT_PUBLIC_USE_MOCK_API ?? 'true',
   VITE_MOCK_API_DELAY_MS: process.env.NEXT_PUBLIC_MOCK_API_DELAY_MS ?? '1200',
+  MAP_PROVIDER: process.env.NEXT_PUBLIC_MAP_PROVIDER || 'osm',
+  GOOGLE_MAPS_API_KEY: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || undefined,
 })

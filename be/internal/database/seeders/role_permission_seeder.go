@@ -3,7 +3,7 @@ package seeders
 import (
 	"context"
 
-	"be/internal/common/rbac"
+	"be/common/rbac"
 	"be/pkg/postgres"
 )
 

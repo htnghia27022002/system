@@ -25,6 +25,25 @@
           "replay_policy": "instant"
         }
       }
+    },
+    "maps": {
+      "retention": "limits",
+      "storage": "file",
+      "max_age": "168h",
+      "max_msgs": 100000,
+      "max_bytes": 1073741824,
+      "discard": "old",
+      "duplicate_window": "2m",
+      "consumers": {
+        "maps_ingest": {
+          "ack_policy": "explicit",
+          "ack_wait": "60s",
+          "max_deliver": 5,
+          "max_ack_pending": 16,
+          "deliver_policy": "all",
+          "replay_policy": "instant"
+        }
+      }
     }
   }
 }

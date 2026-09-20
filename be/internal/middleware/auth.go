@@ -5,10 +5,10 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	apperrors "be/internal/common/errors"
-	jwtmanager "be/internal/common/jwt"
-	"be/internal/common/rbac"
-	"be/internal/common/response"
+	apperrors "be/common/errors"
+	jwtmanager "be/common/jwt"
+	"be/common/rbac"
+	"be/common/response"
 	"be/internal/repository/interfaces"
 )
 

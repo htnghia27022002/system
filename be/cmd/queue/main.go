@@ -39,7 +39,7 @@ func main() {
 		log.Printf("queue worker drained %d pending outbox entries", count)
 	}
 
-	registry := subscribers.NewRegistry(container.SearchProcessor)
+	registry := subscribers.NewRegistry(container.SearchProcessor, container.IngestService)
 
 	if container.QueueClient != nil && container.QueueClient.Enabled() {
 		if err := container.QueueClient.EnsureInfrastructure(ctx); err != nil {
@@ -60,7 +60,7 @@ func main() {
 func runPollingWorker(container *app.Container) {
 	ticker := time.NewTicker(2 * time.Second)
 	defer ticker.Stop()
-	log.Printf("queue worker polling outbox (NATS disabled)")
+	log.Printf("queue worker polling outbox and maps ingest (NATS disabled)")
 	for range ticker.C {
 		count, err := container.SearchProcessor.ProcessBatch(context.Background(), 25)
 		if err != nil {
@@ -69,6 +69,16 @@ func runPollingWorker(container *app.Container) {
 		}
 		if count > 0 {
 			log.Printf("queue worker processed %d outbox entries", count)
+		}
+		if container.IngestService != nil {
+			ingested, ingestErr := container.IngestService.ProcessQueued(context.Background(), 10)
+			if ingestErr != nil {
+				log.Printf("queue worker maps ingest poll failed: %v", ingestErr)
+				continue
+			}
+			if ingested > 0 {
+				log.Printf("queue worker processed %d maps ingest runs", ingested)
+			}
 		}
 	}
 }

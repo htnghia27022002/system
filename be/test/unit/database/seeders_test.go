@@ -3,7 +3,7 @@ package database_test
 import (
 	"testing"
 
-	"be/internal/common/rbac"
+	"be/common/rbac"
 	"be/internal/database/seeders"
 )
 
@@ -11,8 +11,8 @@ func TestDefaultPermissionsUseViewModifyKeys(t *testing.T) {
 	t.Parallel()
 
 	perms := seeders.DefaultPermissions()
-	if len(perms) != 8 {
-		t.Fatalf("expected 8 permissions, got %d", len(perms))
+	if len(perms) != 10 {
+		t.Fatalf("expected 10 permissions, got %d", len(perms))
 	}
 
 	keys := map[string]bool{}
@@ -29,6 +29,8 @@ func TestDefaultPermissionsUseViewModifyKeys(t *testing.T) {
 		rbac.Key("permissions", rbac.ActionView),
 		rbac.Key("webhooks", rbac.ActionView),
 		rbac.Key("webhooks", rbac.ActionModify),
+		rbac.Key("maps", rbac.ActionView),
+		rbac.Key("maps", rbac.ActionModify),
 	}
 
 	for _, key := range want {

@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"be/internal/common/cache"
+	"be/common/cache"
 	"be/internal/config"
 )
 

@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"be/pkg/query"
-	"be/internal/common/rbac"
+	"be/common/rbac"
 	searchpkg "be/internal/search"
 	permissionmodel "be/internal/models/permission"
 	rolemodel "be/internal/models/role"

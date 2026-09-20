@@ -8,7 +8,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	jwtmanager "be/internal/common/jwt"
+	jwtmanager "be/common/jwt"
 	"be/internal/middleware"
 	usermodel "be/internal/models/user"
 	"be/test/testutil"

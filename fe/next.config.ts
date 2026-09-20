@@ -32,6 +32,19 @@ const nextConfig: NextConfig = {
     // react-hook-form that are intentional. Run linting separately with pnpm lint.
     ignoreDuringBuilds: true,
   },
+  async headers() {
+    return [
+      {
+        source: '/:path*',
+        headers: [
+          {
+            key: 'Permissions-Policy',
+            value: 'geolocation=(self)',
+          },
+        ],
+      },
+    ]
+  },
   async redirects() {
     return [
       {

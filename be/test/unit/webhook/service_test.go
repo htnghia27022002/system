@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	apperrors "be/internal/common/errors"
+	apperrors "be/common/errors"
 	webhookdto "be/internal/dto/webhook"
 	webhookmodel "be/internal/models/webhook"
 	webhooksvc "be/internal/services/webhook"

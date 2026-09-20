@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	apperrors "be/internal/common/errors"
+	apperrors "be/common/errors"
 	"be/pkg/hash"
 	userdto "be/internal/dto/user"
 	usermodel "be/internal/models/user"

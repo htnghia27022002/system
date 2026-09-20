@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	jwtmanager "be/internal/common/jwt"
+	jwtmanager "be/common/jwt"
 	authmodel "be/internal/models/auth"
 	rolemodel "be/internal/models/role"
 	usermodel "be/internal/models/user"

@@ -36,7 +36,8 @@ public/routes → public/handlers → internal/services → internal/repository 
 | Request/response shapes | `be/internal/dto/<feature>/` |
 | Entities | `be/internal/models/<feature>/` |
 | Hash, cache, postgres dial, query DSL, generic repo | `be/pkg/` |
-| JWT, errors, response, HTTP bind helpers | `be/internal/common/` |
+| JWT, errors, response, HTTP bind helpers | `be/common/` |
+| Time/string format helpers | `be/common/utils` |
 | Auth middleware | `be/internal/middleware/` |
 | DI orchestrator | `be/internal/app/container.go` |
 | DI resolvers | `be/internal/app/dependency/` (one file per domain, e.g. `user_service.go`) |

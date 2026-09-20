@@ -7,8 +7,8 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	"be/internal/common/httpx"
-	"be/internal/common/response"
+	"be/common/httpx"
+	"be/common/response"
 	authdto "be/internal/dto/auth"
 	authsvc "be/internal/services/auth"
 )

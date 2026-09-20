@@ -1,5 +1,11 @@
 {
   "appName": "System App",
+  "address": {
+    "country": "Quốc gia",
+    "division": "Đơn vị hành chính",
+    "allCountries": "Tất cả quốc gia",
+    "allDivisions": "Tất cả đơn vị"
+  },
   "home": {
     "title": "Frontend đã khởi tạo",
     "description": "React, Tailwind v4, shadcn/ui, TanStack Query, i18n và auth store đã sẵn sàng.",

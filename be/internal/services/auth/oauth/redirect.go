@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"net/url"
 
-	apperrors "be/internal/common/errors"
+	apperrors "be/common/errors"
 )
 
 // ValidateRedirectURI checks that a redirect URI is an absolute URL with scheme and host.

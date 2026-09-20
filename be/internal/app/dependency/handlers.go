@@ -1,6 +1,7 @@
 package dependency
 
 import (
+	addresssvc "be/internal/services/address"
 	"be/internal/services/media"
 	permissionsvc "be/internal/services/permission"
 	usersvc "be/internal/services/user"
@@ -17,6 +18,8 @@ type HTTPHandlers struct {
 	Search     *handlers.SearchHandler
 	Media      *handlers.MediaHandler
 	Webhook    *handlers.WebhookHandler
+	Maps       *handlers.MapsHandler
+	Address    *handlers.AddressHandler
 }
 
 func NewHTTPHandlers(
@@ -27,6 +30,8 @@ func NewHTTPHandlers(
 	search *SearchStack,
 	mediaSvc *media.Service,
 	webhook *webhooksvc.Service,
+	maps *MapsServices,
+	address *addresssvc.Service,
 ) *HTTPHandlers {
 	return &HTTPHandlers{
 		Auth:       handlers.NewAuthHandler(auth.Auth, auth.OAuth),
@@ -36,5 +41,7 @@ func NewHTTPHandlers(
 		Search:     handlers.NewSearchHandler(search.Service, search.Processor, search.Outbox),
 		Media:      handlers.NewMediaHandler(mediaSvc),
 		Webhook:    handlers.NewWebhookHandler(webhook),
+		Maps:       handlers.NewMapsHandler(maps.Places, maps.Locations, maps.Sources, maps.Ingest, maps.Search),
+		Address:    handlers.NewAddressHandler(address),
 	}
 }

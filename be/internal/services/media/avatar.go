@@ -11,7 +11,7 @@ import (
 
 	"github.com/google/uuid"
 
-	apperrors "be/internal/common/errors"
+	apperrors "be/common/errors"
 )
 
 const (

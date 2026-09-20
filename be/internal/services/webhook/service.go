@@ -9,12 +9,12 @@ import (
 	"io"
 	"net/http"
 	"strings"
-	"time"
 	"unicode/utf8"
 
 	"github.com/google/uuid"
 
-	apperrors "be/internal/common/errors"
+	apperrors "be/common/errors"
+	"be/common/utils"
 	webhookdto "be/internal/dto/webhook"
 	webhookmodel "be/internal/models/webhook"
 	"be/internal/repository/interfaces"
@@ -391,8 +391,8 @@ func toInboxResponse(inbox *webhookmodel.Inbox) *webhookdto.InboxResponse {
 		PublicPath:      PublicPath(inbox.PublicUUID),
 		ActiveCount:     inbox.ActiveCount,
 		LifetimeReceived: inbox.LifetimeReceived,
-		CreatedAt:       inbox.CreatedAt.UTC().Format(time.RFC3339),
-		UpdatedAt:       inbox.UpdatedAt.UTC().Format(time.RFC3339),
+		CreatedAt:       utils.FormatRFC3339(inbox.CreatedAt),
+		UpdatedAt:       utils.FormatRFC3339(inbox.UpdatedAt),
 	}
 }
 
@@ -402,7 +402,7 @@ func toListItem(req *webhookmodel.Request) webhookdto.RequestListItem {
 		Method:    req.Method,
 		URL:       req.URL,
 		ClientIP:  req.ClientIP,
-		CreatedAt: req.CreatedAt.UTC().Format(time.RFC3339),
+		CreatedAt: utils.FormatRFC3339(req.CreatedAt),
 		Snippet:   bodySnippet(req),
 		IsRead:    req.IsRead,
 	}
@@ -426,7 +426,7 @@ func toDetailResponse(req *webhookmodel.Request) *webhookdto.RequestDetailRespon
 		BodyTruncated: req.BodyTruncated,
 		CaptureStatus: req.CaptureStatus,
 		IsRead:        req.IsRead,
-		CreatedAt:     req.CreatedAt.UTC().Format(time.RFC3339),
+		CreatedAt:     utils.FormatRFC3339(req.CreatedAt),
 	}
 }
 

@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	jwtmanager "be/internal/common/jwt"
+	jwtmanager "be/common/jwt"
 	"be/test/testutil"
 )
 

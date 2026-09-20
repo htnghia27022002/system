@@ -6,7 +6,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	"be/internal/common/response"
+	"be/common/response"
 	"be/internal/services/media"
 )
 

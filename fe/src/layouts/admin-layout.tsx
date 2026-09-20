@@ -34,6 +34,7 @@ const BREADCRUMB_MAP: Record<
     label: 'nav.webhooks',
     parent: { label: 'nav.tools' },
   },
+  '/admin/maps': { label: 'nav.maps' },
 }
 
 type AdminLayoutProps = {

@@ -5,8 +5,8 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	"be/internal/common/httpx"
-	"be/internal/common/response"
+	"be/common/httpx"
+	"be/common/response"
 	searchdto "be/internal/dto/search"
 	"be/internal/middleware"
 	searchsvc "be/internal/services/search"

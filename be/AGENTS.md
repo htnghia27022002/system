@@ -8,7 +8,7 @@ Follow these rules before creating, editing, moving, or deleting files.
 `be/` is a **standalone Go module**. It can be moved out of this workspace without changing internal import paths.
 
 - Module path: declared in `be/go.mod` (`module be`)
-- In-module imports: `be/pkg/...`, `be/internal/...`, `be/public/...` — these refer to the **module name**, not the monorepo folder layout
+- In-module imports: `be/pkg/...`, `be/common/...`, `be/internal/...`, `be/public/...` — these refer to the **module name**, not the monorepo folder layout
 - `be/pkg/...` is reusable public infra and must **never** import `be/internal/...`
 - Run all Go commands from `be/` (`go run .`, `make test`, etc.)
 - Do **not** import from `fe/`, repo root, or any path outside this module
@@ -38,6 +38,7 @@ Go 1.22 · Gin · pgx · squirrel · PostgreSQL · JWT · OAuth2 · golangci-lin
 be/
 ├── main.go
 ├── go.mod              ← module boundary; all internal imports start with `be/`
+├── common/             # App-shared helpers (JWT, errors, response, httpx, rbac, cache, utils)
 ├── pkg/                # Public reusable infra (stdlib + third-party only)
 │   ├── redis/
 │   ├── hash/
@@ -102,7 +103,7 @@ route → handler → service → repository interface → repository → databa
 | Persistence impl | `internal/repository/` (embed `pkg/repo.Repository[T]`; query via `pkg/query`) |
 | Models / DTOs | `internal/models/`, `internal/dto/` (paginated lists: `query.Page[T]`) |
 | Reusable infra | `pkg/` (no `internal` imports) |
-| App-private shared helpers | `internal/common/` (HTTP bind/error helpers in `httpx`) |
+| App-shared helpers | `common/` (HTTP bind/error helpers in `httpx`; format helpers in `utils`) |
 | Middleware | `internal/middleware/` |
 | NATS infra | `internal/queue/` |
 | Queue publish | `internal/handlers/publisher/` |
@@ -119,7 +120,7 @@ Keep the layered layout above. Do **not** introduce extra top-level trees (`biz`
 | SRP | Handlers bind HTTP and map errors; services own rules; repositories own SQL. Feature repos embed `pkg/repo.Repository[T]` and add **only** feature queries. |
 | OCP / DIP | Services depend on `internal/repository/interfaces` (and small ports like `media.AvatarStorage`, `OutboxEnqueuer`), never on concrete `*Repository` types. New OAuth providers implement `oauth.Provider` — no `switch` in `OAuthService`. |
 | ISP | Repository interfaces stay narrow. User rows go through `UserRepository`; tokens/OAuth accounts through `AuthRepository`. |
-| Reuse | Prefer an existing helper over a copy. Domain-agnostic code belongs in `pkg/`; Gin/JWT/RBAC helpers belong in `internal/common/`. |
+| Reuse | Prefer an existing helper over a copy. Domain-agnostic code belongs in `pkg/`; Gin/JWT/RBAC helpers belong in `common/`. Time/string format helpers belong in `common/utils`. |
 
 **`pkg/` helpers (no `internal` imports)**
 
@@ -131,13 +132,15 @@ Keep the layered layout above. Do **not** introduce extra top-level trees (`biz`
 | `pkg/hash` | Password bcrypt, `SHA256Hex` |
 | `pkg/cache`, `pkg/redis` | Cache stores |
 
-**`internal/common/httpx`** — `BindJSON` / `BindQuery` / `RequireUserID` / `OK` / `Created` / `NoContent` / `FormFile`. Do not duplicate bind-or-400 in handlers.
+**`common/httpx`** — `BindJSON` / `BindQuery` / `RequireUserID` / `OK` / `Created` / `NoContent` / `FormFile`. Do not duplicate bind-or-400 in handlers.
+
+**`common/utils`** — `FormatRFC3339` / `FormatRFC3339Ptr` / `FormatDate` / `StringPtr`. Do not copy these helpers in services.
 
 When adding a feature: DTO in `internal/dto/<feature>/`, model in `internal/models/<feature>/`, interface + thin repo, service constructor taking interfaces, handler using `httpx`.
 
 ## 6) Import rules
 
-- Use the module path for all in-repo imports: `be/pkg/...`, `be/internal/...`, `be/public/...`
+- Use the module path for all in-repo imports: `be/pkg/...`, `be/common/...`, `be/internal/...`, `be/public/...`
 - `be/pkg/...` must not import `be/internal/...`
 - Optional **file-local** package aliases are allowed to avoid name clashes, e.g.:
 
@@ -190,7 +193,7 @@ Priority: **env > config.yaml > built-in default**. Never commit secrets in YAML
 1. Is the file placed in the correct layer folder?
 2. Are imports scoped to the `be` module only?
 3. Are DTOs separate from models?
-4. Are errors handled via `internal/common/errors` and `response.HandleError`?
+4. Are errors handled via `common/errors` and `response.HandleError`?
 5. Is content written in English?
 6. Did you run `make test-be` from repo root (or `make test` in `be/` only when Go is installed locally)?
 

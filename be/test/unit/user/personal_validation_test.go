@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	apperrors "be/internal/common/errors"
+	apperrors "be/common/errors"
 	userdto "be/internal/dto/user"
 )
 

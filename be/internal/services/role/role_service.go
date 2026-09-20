@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strings"
 
-	apperrors "be/internal/common/errors"
+	apperrors "be/common/errors"
 	"be/pkg/query"
 	roledto "be/internal/dto/role"
 	rolemodel "be/internal/models/role"

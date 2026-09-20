@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"be/pkg/query"
-	"be/internal/common/rbac"
+	"be/common/rbac"
 	searchdto "be/internal/dto/search"
 	usermodel "be/internal/models/user"
 	searchpkg "be/internal/search"

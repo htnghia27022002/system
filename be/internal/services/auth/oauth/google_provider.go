@@ -11,7 +11,7 @@ import (
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
 
-	apperrors "be/internal/common/errors"
+	apperrors "be/common/errors"
 	"be/internal/config"
 )
 

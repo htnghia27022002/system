@@ -9,6 +9,7 @@ export type PermissionResource =
   | 'roles'
   | 'permissions'
   | 'webhooks'
+  | 'maps'
 
 export const PermissionKeys = {
   dashboard: {
@@ -28,6 +29,10 @@ export const PermissionKeys = {
   webhooks: {
     view: 'webhooks:view',
     modify: 'webhooks:modify',
+  },
+  maps: {
+    view: 'maps:view',
+    modify: 'maps:modify',
   },
 } as const
 

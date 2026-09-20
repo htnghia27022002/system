@@ -3,7 +3,7 @@ package handlers
 import (
 	"github.com/gin-gonic/gin"
 
-	"be/internal/common/httpx"
+	"be/common/httpx"
 	permissiondto "be/internal/dto/permission"
 	permissionsvc "be/internal/services/permission"
 	"be/pkg/query"

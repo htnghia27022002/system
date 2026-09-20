@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"be/internal/queue"
+	ingestsvc "be/internal/services/maps/ingest"
 	searchsvc "be/internal/services/search"
 )
 
@@ -11,9 +12,10 @@ type Registry struct {
 	byName map[string]queue.Handler
 }
 
-func NewRegistry(processor *searchsvc.IndexProcessor) *Registry {
+func NewRegistry(processor *searchsvc.IndexProcessor, ingest *ingestsvc.Service) *Registry {
 	items := []queue.Handler{
 		NewProcessSearchOutbox(processor),
+		NewProcessMapsIngest(ingest),
 	}
 
 	byName := make(map[string]queue.Handler, len(items))

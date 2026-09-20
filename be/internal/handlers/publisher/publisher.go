@@ -11,6 +11,10 @@ type SearchOutboxPayload struct {
 	ID string `json:"id"`
 }
 
+type MapsIngestPayload struct {
+	ID string `json:"id"`
+}
+
 type Publisher struct {
 	client *queue.Client
 }
@@ -38,6 +42,19 @@ func (p *Publisher) PublishSearchOutbox(ctx context.Context, outboxID string) er
 	}
 
 	return p.client.Publish(ctx, queue.SubjectSearchOutbox, body)
+}
+
+func (p *Publisher) PublishMapsIngest(ctx context.Context, runID string) error {
+	if p == nil || p.client == nil || !p.client.Enabled() {
+		return nil
+	}
+
+	body, err := json.Marshal(MapsIngestPayload{ID: runID})
+	if err != nil {
+		return err
+	}
+
+	return p.client.Publish(ctx, queue.SubjectMapsIngest, body)
 }
 
 func (p *Publisher) Close() {
