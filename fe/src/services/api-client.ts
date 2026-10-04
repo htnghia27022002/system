@@ -21,7 +21,7 @@ async function refreshAccessToken(): Promise<string | null> {
 
   try {
     const response = await axios.post<AuthTokens>(
-      `${env.VITE_API_BASE_URL}/auth/refresh`,
+      `${env.API_BASE_URL}/auth/refresh`,
       { refreshToken },
       { headers: { 'Content-Type': 'application/json' } },
     )
@@ -39,7 +39,7 @@ async function refreshAccessToken(): Promise<string | null> {
 }
 
 export const apiClient = axios.create({
-  baseURL: env.VITE_API_BASE_URL,
+  baseURL: env.API_BASE_URL,
   headers: {
     'Content-Type': 'application/json',
   },

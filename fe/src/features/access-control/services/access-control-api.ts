@@ -1,10 +1,7 @@
 import { env } from '@/config/env'
 import { apiClient } from '@/services/api-client'
 import { normalizePaginatedResponse } from '@/lib/normalize-paginated-response'
-import {
-  mockAccessControlApi,
-  MockAccessControlError,
-} from '@/services/mock/access-control.mock'
+import { loadAccessControlMock, MockAccessControlError } from '@/services/mock'
 
 import type {
   CreateRoleInput,
@@ -26,8 +23,8 @@ export const accessControlApi = {
   listPermissions(
     params: ListPermissionsParams = {},
   ): Promise<PaginatedResponse<Permission>> {
-    if (env.VITE_USE_MOCK_API) {
-      return mockAccessControlApi.listPermissions(params)
+    if (env.USE_MOCK_API) {
+      return loadAccessControlMock().then((mock) => mock.listPermissions(params))
     }
     return apiClient
       .get<PaginatedResponse<Permission>>('/admin/permissions', { params })
@@ -35,9 +32,9 @@ export const accessControlApi = {
   },
 
   listAllPermissions(): Promise<Permission[]> {
-    if (env.VITE_USE_MOCK_API) {
-      return mockAccessControlApi
-        .listPermissions({ page: 1, pageSize: 1000 })
+    if (env.USE_MOCK_API) {
+      return loadAccessControlMock()
+        .then((mock) => mock.listPermissions({ page: 1, pageSize: 1000 }))
         .then((r) => r.items)
     }
     return apiClient
@@ -46,8 +43,8 @@ export const accessControlApi = {
   },
 
   listRoles(params: ListRolesParams = {}): Promise<PaginatedResponse<Role>> {
-    if (env.VITE_USE_MOCK_API) {
-      return mockAccessControlApi.listRoles(params)
+    if (env.USE_MOCK_API) {
+      return loadAccessControlMock().then((mock) => mock.listRoles(params))
     }
     return apiClient
       .get<PaginatedResponse<Role>>('/admin/roles', {
@@ -58,9 +55,9 @@ export const accessControlApi = {
   },
 
   listAllRoles(): Promise<Role[]> {
-    if (env.VITE_USE_MOCK_API) {
-      return mockAccessControlApi
-        .listRoles({ page: 1, pageSize: 1000 })
+    if (env.USE_MOCK_API) {
+      return loadAccessControlMock()
+        .then((mock) => mock.listRoles({ page: 1, pageSize: 1000 }))
         .then((r) => r.items)
     }
     return apiClient
@@ -69,22 +66,22 @@ export const accessControlApi = {
   },
 
   getRole(id: string): Promise<Role> {
-    if (env.VITE_USE_MOCK_API) {
-      return mockAccessControlApi.getRole(id)
+    if (env.USE_MOCK_API) {
+      return loadAccessControlMock().then((mock) => mock.getRole(id))
     }
     return apiClient.get<Role>(`/admin/roles/${id}`).then((r) => r.data)
   },
 
   createRole(input: CreateRoleInput): Promise<Role> {
-    if (env.VITE_USE_MOCK_API) {
-      return mockAccessControlApi.createRole(input)
+    if (env.USE_MOCK_API) {
+      return loadAccessControlMock().then((mock) => mock.createRole(input))
     }
     return apiClient.post<Role>('/admin/roles', input).then((r) => r.data)
   },
 
   updateRole(id: string, input: UpdateRoleInput): Promise<Role> {
-    if (env.VITE_USE_MOCK_API) {
-      return mockAccessControlApi.updateRole(id, input)
+    if (env.USE_MOCK_API) {
+      return loadAccessControlMock().then((mock) => mock.updateRole(id, input))
     }
     return apiClient
       .patch<Role>(`/admin/roles/${id}`, input)
@@ -92,15 +89,15 @@ export const accessControlApi = {
   },
 
   deleteRole(id: string): Promise<void> {
-    if (env.VITE_USE_MOCK_API) {
-      return mockAccessControlApi.deleteRole(id)
+    if (env.USE_MOCK_API) {
+      return loadAccessControlMock().then((mock) => mock.deleteRole(id))
     }
     return apiClient.delete(`/admin/roles/${id}`).then(() => undefined)
   },
 
   listUsers(params: ListUsersParams = {}): Promise<PaginatedResponse<ManagedUser>> {
-    if (env.VITE_USE_MOCK_API) {
-      return mockAccessControlApi.listUsers(params)
+    if (env.USE_MOCK_API) {
+      return loadAccessControlMock().then((mock) => mock.listUsers(params))
     }
     return apiClient
       .get<PaginatedResponse<ManagedUser>>('/admin/users', {
@@ -111,15 +108,15 @@ export const accessControlApi = {
   },
 
   getUser(id: string): Promise<ManagedUser> {
-    if (env.VITE_USE_MOCK_API) {
-      return mockAccessControlApi.getUser(id)
+    if (env.USE_MOCK_API) {
+      return loadAccessControlMock().then((mock) => mock.getUser(id))
     }
     return apiClient.get<ManagedUser>(`/admin/users/${id}`).then((r) => r.data)
   },
 
   createUser(input: CreateUserInput): Promise<ManagedUser> {
-    if (env.VITE_USE_MOCK_API) {
-      return mockAccessControlApi.createUser(input)
+    if (env.USE_MOCK_API) {
+      return loadAccessControlMock().then((mock) => mock.createUser(input))
     }
     return apiClient.post<ManagedUser>('/admin/users', input).then((r) => r.data)
   },
@@ -129,8 +126,10 @@ export const accessControlApi = {
     input: UpdateUserInput,
     sessionUserId?: string,
   ): Promise<ManagedUser> {
-    if (env.VITE_USE_MOCK_API) {
-      return mockAccessControlApi.updateUser(id, input, sessionUserId)
+    if (env.USE_MOCK_API) {
+      return loadAccessControlMock().then((mock) =>
+        mock.updateUser(id, input, sessionUserId),
+      )
     }
     return apiClient
       .patch<ManagedUser>(`/admin/users/${id}`, input)
@@ -138,15 +137,15 @@ export const accessControlApi = {
   },
 
   deleteUser(id: string, sessionUserId?: string): Promise<void> {
-    if (env.VITE_USE_MOCK_API) {
-      return mockAccessControlApi.deleteUser(id, sessionUserId)
+    if (env.USE_MOCK_API) {
+      return loadAccessControlMock().then((mock) => mock.deleteUser(id, sessionUserId))
     }
     return apiClient.delete(`/admin/users/${id}`).then(() => undefined)
   },
 
   uploadUserAvatar(id: string, file: File): Promise<ManagedUser> {
-    if (env.VITE_USE_MOCK_API) {
-      return mockAccessControlApi.uploadUserAvatar(id, file)
+    if (env.USE_MOCK_API) {
+      return loadAccessControlMock().then((mock) => mock.uploadUserAvatar(id, file))
     }
     const formData = new FormData()
     formData.append('file', file)

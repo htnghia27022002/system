@@ -32,14 +32,12 @@ be/
 │   ├── models/
 │   ├── dto/
 │   ├── repository/
-│   ├── search/               # Elasticsearch client
 │   ├── services/
 │   └── common/
 ├── cmd/
 │   ├── migrate/
 │   ├── seed/
-│   ├── queue/                # NATS consumer worker
-│   └── reindex/              # Bulk search reindex CLI
+│   └── queue/                # NATS consumer worker
 ├── migrations/
 ├── test/                     # All unit, integration, and e2e tests
 │   ├── unit/
@@ -52,7 +50,7 @@ be/
 
 ## Stack
 
-Go 1.22 · Gin · pgx · squirrel · PostgreSQL · JWT · OAuth2 · Elasticsearch · NATS JetStream · golangci-lint
+Go 1.22 · Gin · pgx · squirrel · PostgreSQL · JWT · OAuth2 · NATS JetStream · golangci-lint
 
 ## API routes
 
@@ -61,7 +59,7 @@ Base URL: `/api` (via nginx `http://localhost:8080/api` in Docker, or `http://lo
 | Group | Paths |
 |-------|-------|
 | Auth | `POST /auth/login`, `/register`, `/refresh`, `/logout`; `GET /auth/me`; OAuth under `/auth/oauth/:provider/*` |
-| Admin | CRUD `/admin/users`, `/admin/roles`; `GET /admin/permissions`; `GET /admin/search` (+ reindex / outbox admin) |
+| Admin | CRUD `/admin/users`, `/admin/roles`; `GET /admin/permissions`; `GET /admin/search` (Postgres ILIKE over users, roles, permissions; filtered by `*:view`) |
 
 JSON responses use **camelCase**. Admin routes require Bearer JWT + permissions.
 
@@ -101,7 +99,6 @@ make migrate-create name=add_users_index  # scaffold up/down files
 make seed             # run DatabaseSeeder
 make seed-class class=PermissionSeeder  # run one seeder class
 go run ./cmd/queue        # NATS queue worker (consumers; separate from API)
-go run ./cmd/reindex      # one-shot Elasticsearch bulk reindex
 ```
 
 ## Cache
@@ -119,7 +116,7 @@ Package API: `cache.Init(cfg.Cache, redisClient)` at startup, then `cache.Get`, 
 
 ## Queue (NATS JetStream)
 
-Search index sync uses a **transactional outbox** in PostgreSQL and NATS JetStream for async processing.
+NATS JetStream runs async background work (currently maps ingest). Admin search is a direct Postgres query — there is no search index to sync.
 
 | Layer | Path | Role |
 |-------|------|------|
@@ -127,16 +124,14 @@ Search index sync uses a **transactional outbox** in PostgreSQL and NATS JetStre
 | Constants | `internal/queue/constants.go` | Stream, subject, consumer, handler names |
 | Options | `internal/queue/nats.json` | Retention, ack policy, etc. (not names) |
 | Publish | `internal/handlers/publisher/` | Outbound messages after DB write |
-| Consume | `internal/handlers/subscribers/` | Inbound handlers (`process_search`, …) |
+| Consume | `internal/handlers/subscribers/` | Inbound handlers (`process_maps_ingest`, …) |
 | Worker | `cmd/queue/` | Runs consumers (Docker service `queue`) |
 
 The API process publishes only. **`cmd/queue`** calls `EnsureInfrastructure` and `StartConsumers` on startup.
 
 Env: `NATS_ENABLED`, `NATS_URL`, optional `QUEUE_CONFIG_FILE` (default `internal/queue/nats.json`).
 
-When NATS is disabled, the publisher no-ops and `cmd/queue` polls the outbox table.
-
-Design reference: [`docs/features/002-elasticsearch-search/be-implement.md`](../docs/features/002-elasticsearch-search/be-implement.md).
+When NATS is disabled, the publisher no-ops and `cmd/queue` polls queued maps ingest runs.
 
 From monorepo root: `make test-be`, `make test-be-integration`, `make test-be-e2e`, `make test-be-all`.
 
@@ -150,9 +145,9 @@ Wiring lives under `internal/app/`. **`container.go`** is a thin orchestrator; e
 internal/app/
 ├── container.go              # NewContainer — exposes handlers + services to routes/cmd
 └── dependency/
-    ├── infra.go              # Queue, JWT, publisher, Elasticsearch client
+    ├── infra.go              # Queue, JWT, publisher
     ├── repositories.go       # newAuthRepository, newUserRepository, …
-    ├── search.go             # Outbox, index processor, search query service
+    ├── search.go             # Admin search service (Postgres)
     ├── auth_service.go       # Auth + OAuth
     ├── user_service.go       # UserService (+ user repo)
     ├── role_service.go       # RoleService (+ role repo for auth middleware)
@@ -160,7 +155,7 @@ internal/app/
     └── handlers.go           # HTTP handler constructors
 ```
 
-**Resolve order in `NewContainer`:** `Infra` → `SearchStack` (shared outbox) → domain services → `HTTPHandlers`.
+**Resolve order in `NewContainer`:** `Infra` → domain services → `HTTPHandlers`.
 
 Add a new domain service by adding `dependency/<feature>_service.go` with a `New…` constructor, then register it in `container.go`. Keep business logic in `internal/services/<feature>/`; resolvers only wire dependencies.
 

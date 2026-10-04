@@ -7,7 +7,7 @@ export type HealthResponse = {
 
 export const mockHealthApi = {
   async getHealth(): Promise<HealthResponse> {
-    await mockDelay(env.VITE_MOCK_API_DELAY_MS)
+    await mockDelay(env.MOCK_API_DELAY_MS)
     return { status: 'ok' }
   },
 }

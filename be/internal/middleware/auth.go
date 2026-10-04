@@ -44,11 +44,18 @@ func Auth(jwtManager *jwtmanager.Manager, roleRepo interfaces.RoleRepository, us
 			return
 		}
 
+		// Permissions and super-admin are re-read from the database so revocations apply
+		// before the access token expires. Lookup failures fail closed rather than
+		// falling back to (possibly revoked) token claims.
 		permissions := claims.Permissions
 		if roleRepo != nil && claims.RoleID != "" {
-			if fresh, err := roleRepo.GetPermissionKeysByRoleID(c.Request.Context(), claims.RoleID); err == nil {
-				permissions = fresh
+			fresh, err := roleRepo.GetPermissionKeysByRoleID(c.Request.Context(), claims.RoleID)
+			if err != nil {
+				response.HandleError(c, err)
+				c.Abort()
+				return
 			}
+			permissions = fresh
 		}
 		if permissions == nil {
 			permissions = []string{}
@@ -56,9 +63,18 @@ func Auth(jwtManager *jwtmanager.Manager, roleRepo interfaces.RoleRepository, us
 
 		superAdmin := claims.SuperAdmin
 		if userRepo != nil && claims.Subject != "" {
-			if user, err := userRepo.GetByID(c.Request.Context(), claims.Subject); err == nil && user != nil {
-				superAdmin = user.IsSuperAdmin
+			user, err := userRepo.GetByID(c.Request.Context(), claims.Subject)
+			if err != nil {
+				response.HandleError(c, err)
+				c.Abort()
+				return
 			}
+			if user == nil {
+				response.HandleError(c, apperrors.ErrUnauthorized)
+				c.Abort()
+				return
+			}
+			superAdmin = user.IsSuperAdmin
 		}
 
 		c.Set(ContextUserIDKey, claims.Subject)

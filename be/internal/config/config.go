@@ -34,7 +34,9 @@ type Config struct {
 	RedisURL string
 	Cache    CacheConfig
 
-	Elasticsearch ElasticsearchConfig
+	// AutoMigrate runs migrations and seeders on API start (AUTO_MIGRATE, default true).
+	// Set false in multi-replica deploys and run ./cmd/migrate + ./cmd/seed as a release step.
+	AutoMigrate bool
 
 	// UploadDir is the local filesystem root for uploaded media (avatars). Owned by be/.env.
 	UploadDir string
@@ -43,11 +45,6 @@ type Config struct {
 	MapGeocodeProvider    string
 	MapNominatimURL       string
 	MapNominatimUserAgent string
-}
-
-type ElasticsearchConfig struct {
-	Enabled bool
-	URL     string
 }
 
 type CacheConfig struct {
@@ -94,10 +91,6 @@ type fileConfig struct {
 		RedirectURL      string   `yaml:"redirectUrl"`
 		AllowedProviders []string `yaml:"allowedProviders"`
 	} `yaml:"oauth"`
-	Elasticsearch struct {
-		Enabled bool   `yaml:"enabled"`
-		URL     string `yaml:"url"`
-	} `yaml:"elasticsearch"`
 }
 
 // Load reads public settings from config.yaml, then applies env overrides.
@@ -170,14 +163,7 @@ func Load() Config {
 		7*24*time.Hour,
 	)
 
-	cfg.Elasticsearch = ElasticsearchConfig{
-		Enabled: parseBoolEnv(os.Getenv("ELASTICSEARCH_ENABLED"), fc.Elasticsearch.Enabled),
-		URL: firstNonEmpty(
-			os.Getenv("ELASTICSEARCH_URL"),
-			fc.Elasticsearch.URL,
-			"http://localhost:9200",
-		),
-	}
+	cfg.AutoMigrate = parseBoolEnv(os.Getenv("AUTO_MIGRATE"), true)
 
 	cfg.UploadDir = firstNonEmpty(os.Getenv("UPLOAD_DIR"), "data/uploads")
 

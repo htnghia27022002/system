@@ -31,25 +31,4 @@ type PaginationResponse struct {
 type SearchResponse struct {
 	Hits       []SearchHitResponse `json:"hits"`
 	Pagination PaginationResponse  `json:"pagination"`
-	Degraded   bool                `json:"degraded,omitempty"`
-}
-
-type ReindexRequest struct {
-	EntityType string `json:"entityType"`
-}
-
-type ReindexResponse struct {
-	EntityType string `json:"entityType"`
-	Indexed    int    `json:"indexed"`
-	Status     string `json:"status"`
-}
-
-type OutboxStatsResponse struct {
-	PendingCount            int64 `json:"pendingCount"`
-	FailedCount             int64 `json:"failedCount"`
-	OldestPendingAgeSeconds int64 `json:"oldestPendingAgeSeconds"`
-}
-
-type ReplayOutboxRequest struct {
-	ID string `json:"id"`
 }

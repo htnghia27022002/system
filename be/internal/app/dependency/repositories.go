@@ -14,6 +14,11 @@ func newUserRepository(db *postgres.Postgres) interfaces.UserRepository {
 	return repository.NewUserRepository(db)
 }
 
+// NewUserRepository exposes the user repository for auth middleware wiring.
+func NewUserRepository(infra *Infra) interfaces.UserRepository {
+	return newUserRepository(infra.DB)
+}
+
 func newRoleRepository(db *postgres.Postgres) interfaces.RoleRepository {
 	return repository.NewRoleRepository(db)
 }

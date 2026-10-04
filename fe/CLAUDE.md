@@ -1,6 +1,6 @@
 # FE Agent Rules (Next.js + React + TypeScript)
 
-This file defines strict implementation rules for AI agents working in `fe/`.
+This file defines strict implementation rules for Claude when working in `fe/`. Claude Code loads it automatically for any file under `fe/`; project-wide rules live in `.claude/rules/`, skills in `.claude/skills/` (`fe-develop`, `design-taste-frontend`), and subagents in `.claude/agents/` (`fe`).
 Follow these rules before creating, editing, moving, or deleting files.
 
 ## 0) Self-contained package
@@ -124,7 +124,7 @@ When adding an admin page or sidebar entry:
 4. Gate mutate actions with `PermissionGate` + **modify** key.
 5. Align with `docs/features/.../contracts/permissions.md`.
 
-See `.cursor/rules/feature-permissions.mdc`.
+See `.claude/rules/feature-permissions.md`.
 
 ## 8) File Placement Rules
 
@@ -141,7 +141,7 @@ See `.cursor/rules/feature-permissions.mdc`.
 | Zustand stores | `src/store/` |
 | API client / interceptors | `src/services/` |
 | Env config | `src/config/env.ts` |
-| i18n JSON | `src/locales/` (`en/` English; `vi/` UTF-8 Vietnamese **with diacritics** — see `.cursor/rules/locale-vi-utf8.mdc`) |
+| i18n JSON | `src/locales/` (`en/` English; `vi/` UTF-8 Vietnamese **with diacritics** — see `.claude/rules/locale-vi-utf8.md`) |
 | Global styles | `src/styles/index.css` |
 | Tests | Colocated `*.test.ts` / `*.test.tsx` |
 
@@ -186,5 +186,5 @@ Do not introduce `PascalCase.tsx` page files. Existing `LandingPage.tsx` / `Tool
 3. Does a new public `app/page.tsx` export `metadata`?
 4. Are feature boundaries respected?
 5. Is content written in English?
-6. Does UI follow [`DESIGN.md`](./DESIGN.md) and `.cursor/rules/fe-ux-product.mdc`? (theme tokens, matching page padding, mobile, clickable cells as links, loading/empty/error, shadcn first)
-7. Does a new feature follow `.cursor/rules/fe-feature-module.mdc`?
+6. Does UI follow [`DESIGN.md`](./DESIGN.md) and `.claude/rules/fe-ux-product.md`? (theme tokens, matching page padding, mobile, clickable cells as links, loading/empty/error, shadcn first)
+7. Does a new feature follow `.claude/rules/fe-feature-module.md`?

@@ -50,12 +50,11 @@ docker/nginx/
 | queue | `queue` | — | `go run ./cmd/queue` — JetStream consumers |
 | postgres | `postgres` | 5432 | Data: `docker/data/postgres/` |
 | redis | `redis` | 6379 | Data: `docker/data/redis/` |
-| elasticsearch | `elasticsearch` | 9200 | Search index; data: `docker/data/elasticsearch/` |
 | nats | `nats` | 4222 (client), 8222 (monitor) | JetStream message broker |
 
 ### Prod profile (`make prod`)
 
-API edge only — FE, Postgres, and Elasticsearch are **not** in this stack (configure hosts in `be/.env`).
+API edge only — FE and Postgres are **not** in this stack (configure hosts in `be/.env`).
 
 Go services **pull a pre-built image from Docker Hub** (`GO_APP_IMAGE` in root `.env`). The prod host does not copy Go sources or run `docker build`.
 
@@ -67,7 +66,7 @@ Go services **pull a pre-built image from Docker Hub** (`GO_APP_IMAGE` in root `
 | redis | `redis` | Shared with prod profile |
 | nats | `nats` | Shared with prod profile |
 
-Point `DB_HOST`, `ELASTICSEARCH_URL`, etc. in `be/.env` at external services before `make prod`.
+Point `DB_HOST`, `REDIS_URL`, etc. in `be/.env` at external services before `make prod`.
 
 ### Publish Go image (CI / laptop)
 
@@ -125,7 +124,7 @@ Three files — **no app config in root `.env`**.
 | File | Purpose |
 |------|---------|
 | `.env` | `NGINX_HTTP_PORT`, `GO_APP_IMAGE` (compose auto-loads) |
-| `be/.env` | Full BE + queue: `DB_*`, `REDIS_URL`, `ELASTICSEARCH_*`, `NATS_*`, JWT, OAuth, CORS |
+| `be/.env` | Full BE + queue: `DB_*`, `REDIS_URL`, `NATS_*`, `AUTO_MIGRATE`, JWT, OAuth, CORS |
 | `fe/.env` | Full FE: `NEXT_PUBLIC_*` (dev profile) |
 
 Setup: `make env` or copy `.env.example`, `be/.env.example`, `fe/.env.example`.
@@ -140,7 +139,6 @@ Database and cache data are stored under [`data/`](data/) as bind mounts:
 docker/data/
 ├── postgres/       # PostgreSQL files
 ├── redis/          # Redis AOF/RDB (if enabled)
-├── elasticsearch/  # Elasticsearch index data
 └── nats/           # NATS JetStream data
 ```
 

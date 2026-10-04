@@ -167,7 +167,6 @@ export function MapFilters({
                   >
                     {preview ? (
                       // Preview tiles already used by the map adapter.
-                      // eslint-disable-next-line @next/next/no-img-element
                       <img
                         src={preview}
                         alt=""

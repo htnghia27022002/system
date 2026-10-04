@@ -11,12 +11,12 @@ export function getOAuthCallbackUri(): string {
   if (typeof window !== 'undefined' && window.location?.origin) {
     return `${window.location.origin.replace(/\/$/, '')}${OAUTH_CALLBACK_PATH}`
   }
-  const base = env.VITE_SITE_URL.replace(/\/$/, '')
+  const base = env.SITE_URL.replace(/\/$/, '')
   return `${base}${OAUTH_CALLBACK_PATH}`
 }
 
 export function getGoogleOAuthStartUrl(): string {
-  const apiBase = env.VITE_API_BASE_URL.replace(/\/$/, '')
+  const apiBase = env.API_BASE_URL.replace(/\/$/, '')
   const redirectUri = encodeURIComponent(getOAuthCallbackUri())
   return `${apiBase}/auth/oauth/google/start?redirect_uri=${redirectUri}`
 }

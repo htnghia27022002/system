@@ -43,23 +43,6 @@ services:
     networks:
       - system_net
 
-  elasticsearch:
-    profiles: [dev]
-    image: docker.elastic.co/elasticsearch/elasticsearch:8.15.0
-    restart: unless-stopped
-    environment:
-      discovery.type: single-node
-      xpack.security.enabled: "false"
-      ES_JAVA_OPTS: -Xms512m -Xmx512m
-    volumes:
-      - ./docker/data/elasticsearch:/usr/share/elasticsearch/data
-    healthcheck:
-      test: ["CMD-SHELL", "curl -fs http://localhost:9200/_cluster/health || exit 1"]
-      interval: 10s
-      timeout: 5s
-      retries: 10
-    networks:
-      - system_net
 
   nats:
     profiles: [dev, prod]
@@ -91,8 +74,6 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
-      elasticsearch:
-        condition: service_healthy
       nats:
         condition: service_healthy
     networks:
@@ -111,8 +92,6 @@ services:
       - ./be:/app
     depends_on:
       postgres:
-        condition: service_healthy
-      elasticsearch:
         condition: service_healthy
       nats:
         condition: service_healthy

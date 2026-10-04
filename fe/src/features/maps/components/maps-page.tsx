@@ -78,6 +78,8 @@ export function MapsPage() {
   const [hoverPin, setHoverPin] = useState<{
     pinId: string
     screen: MapScreenPoint
+    /** Map frame size captured at hover time (refs must not be read during render). */
+    frame: { width: number; height: number }
   } | null>(null)
   const [managePanel, setManagePanel] = useState<ManagePanel>(null)
   const [userLocation, setUserLocation] = useState<LatLng | null>(null)
@@ -205,8 +207,7 @@ export function MapsPage() {
   }, [hoverPin, locationsQuery.data?.items, pins])
   const hoverOffset = useMemo(() => {
     if (!hoverPin) return null
-    const width = mapFrameRef.current?.clientWidth ?? 800
-    const height = mapFrameRef.current?.clientHeight ?? 600
+    const { width, height } = hoverPin.frame
     return {
       x: Math.min(Math.max(12, hoverPin.screen.x + 14), width - 260),
       y: Math.min(Math.max(12, hoverPin.screen.y - 12), height - 180),
@@ -354,7 +355,14 @@ export function MapsPage() {
             setHoverPin(null)
             return
           }
-          setHoverPin({ pinId, screen })
+          setHoverPin({
+            pinId,
+            screen,
+            frame: {
+              width: mapFrameRef.current?.clientWidth ?? 800,
+              height: mapFrameRef.current?.clientHeight ?? 600,
+            },
+          })
         }}
         onMapClick={handleMapClick}
         className="absolute inset-0 h-full min-h-0"

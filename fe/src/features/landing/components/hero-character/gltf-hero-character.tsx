@@ -7,6 +7,13 @@ import * as THREE from 'three'
 
 import { heroCharacterConfig } from './hero-character-config'
 
+type HeroParts = {
+  torso?: THREE.Object3D
+  head?: THREE.Object3D
+  leftArm?: THREE.Object3D
+  rightArm?: THREE.Object3D
+}
+
 type GltfHeroCharacterProps = {
   url?: string
   lookStrength?: number
@@ -23,15 +30,17 @@ export function GltfHeroCharacter({
 
   const cloned = useMemo(() => scene.clone(true), [scene])
 
-  const parts = useMemo(
-    () => ({
+  // Bones are animated imperatively in useFrame; keep them in a ref (not memoized
+  // render state) so per-frame mutation stays outside React's render model.
+  const partsRef = useRef<HeroParts>({})
+  useEffect(() => {
+    partsRef.current = {
       torso: cloned.getObjectByName('Torso'),
       head: cloned.getObjectByName('Head'),
       leftArm: cloned.getObjectByName('LeftArm'),
       rightArm: cloned.getObjectByName('RightArm'),
-    }),
-    [cloned],
-  )
+    }
+  }, [cloned])
 
   useEffect(() => {
     cloned.traverse((obj) => {
@@ -61,6 +70,7 @@ export function GltfHeroCharacter({
     if (animations.length > 0) return
 
     const t = state.clock.elapsedTime
+    const parts = partsRef.current
     if (root.current) {
       root.current.position.y = Math.sin(t * 1.25) * 0.025
       root.current.rotation.y = Math.sin(t * 0.45) * 0.05

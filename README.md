@@ -7,15 +7,15 @@ pnpm workspace with a **Next.js frontend** (`fe/`), **Go backend** (`be/`), and 
 ```text
 Browser → nginx (:8080) → /api/* → be (Go + Gin)
                        → /*     → fe (Next.js 15)
-be → postgres, redis, elasticsearch, nats (publish)
-queue (cmd/queue) → nats (consume) → elasticsearch
+be → postgres, redis, nats (publish)
+queue (cmd/queue) → nats (consume) → postgres (maps ingest)
 ```
 
 | Layer | Path | Stack |
 |-------|------|-------|
 | Frontend | [`fe/`](fe/) | Next.js 15, React 19, TypeScript, Tailwind v4 |
 | Backend | [`be/`](be/) | Go 1.22, Gin, pgx, squirrel, PostgreSQL, JWT, RBAC |
-| Infrastructure | [`docker/`](docker/) | nginx, postgres, redis, elasticsearch, nats, compose profiles |
+| Infrastructure | [`docker/`](docker/) | nginx, postgres, redis, nats, compose profiles |
 
 **Request flow (BE):** `route → handler → service → repository → database`
 
@@ -61,7 +61,7 @@ Set `NEXT_PUBLIC_USE_MOCK_API=false` and `NEXT_PUBLIC_API_BASE_URL=http://localh
 | [`docs/workflow/overview.md`](docs/workflow/overview.md) | Speckit SDD cycle |
 | [`docs/workflow/agent-prompts.md`](docs/workflow/agent-prompts.md) | Prompts per agent (BA/BE/FE/QA) |
 | [`AGENTS.md`](AGENTS.md) | Root agent rules, GitNexus, monorepo policy |
-| [`fe/AGENTS.md`](fe/AGENTS.md) | FE architecture and import rules (authoritative) |
+| [`fe/CLAUDE.md`](fe/CLAUDE.md) | FE architecture and import rules (authoritative) |
 | [`fe/README.md`](fe/README.md) | FE structure, routes, commands |
 | [`be/README.md`](be/README.md) | BE API, layers, env, conventions |
 | [`docker/README.md`](docker/README.md) | Docker compose, nginx routing, profiles |

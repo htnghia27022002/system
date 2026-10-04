@@ -125,15 +125,9 @@ const SEED_USERS: ManagedUser[] = [
   },
 ]
 
-export class MockAccessControlError extends Error {
-  status: number
+import { MockAccessControlError } from './mock-errors'
 
-  constructor(message: string, status: number) {
-    super(message)
-    this.name = 'MockAccessControlError'
-    this.status = status
-  }
-}
+export { MockAccessControlError }
 
 function readJson<T>(key: string): T | null {
   try {
@@ -340,7 +334,7 @@ function countAdminUsers(users: ManagedUser[], roles: Role[]): number {
 }
 
 async function withDelay<T>(run: () => T | Promise<T>): Promise<T> {
-  await mockDelay(env.VITE_MOCK_API_DELAY_MS)
+  await mockDelay(env.MOCK_API_DELAY_MS)
   return run()
 }
 

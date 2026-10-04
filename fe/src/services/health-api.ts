@@ -1,5 +1,5 @@
 import { env } from '@/config/env'
-import { mockHealthApi } from '@/services/mock/health.mock'
+import { loadHealthMock } from '@/services/mock'
 
 import { apiClient } from './api-client'
 
@@ -8,8 +8,8 @@ export type HealthResponse = {
 }
 
 export async function fetchHealth(): Promise<HealthResponse> {
-  if (env.VITE_USE_MOCK_API) {
-    return mockHealthApi.getHealth()
+  if (env.USE_MOCK_API) {
+    return (await loadHealthMock()).getHealth()
   }
 
   try {

@@ -1,6 +1,6 @@
 'use client'
 
-import { AlertTriangleIcon, SearchIcon } from 'lucide-react'
+import { SearchIcon } from 'lucide-react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useTranslation } from 'react-i18next'
 import { useEffect, useMemo, useState, type FormEvent } from 'react'
@@ -167,19 +167,6 @@ export function AdminSearchPage() {
           </Button>
         </div>
       </form>
-
-      {data?.degraded ? (
-        <div
-          className="flex gap-3 rounded-lg border border-amber-500/30 bg-amber-500/10 p-4 text-sm"
-          role="status"
-        >
-          <AlertTriangleIcon className="mt-0.5 size-4 shrink-0 text-amber-600 dark:text-amber-400" />
-          <div className="space-y-1">
-            <p className="font-medium">{t('search.degradedTitle')}</p>
-            <p className="text-muted-foreground">{t('search.degradedDescription')}</p>
-          </div>
-        </div>
-      ) : null}
 
       {!hasQuery ? (
         <p className="rounded-lg border border-dashed px-4 py-10 text-center text-sm text-muted-foreground">

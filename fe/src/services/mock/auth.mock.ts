@@ -17,18 +17,12 @@ import { authTokenService } from '@/services/auth-token-service'
 import { mockDelay } from '@/utils/mock-delay'
 import { createMockAuthTokens } from '@/utils/mock-jwt'
 
-export class MockAuthError extends Error {
-  status: number
+import { MockAuthError } from './mock-errors'
 
-  constructor(message: string, status: number) {
-    super(message)
-    this.name = 'MockAuthError'
-    this.status = status
-  }
-}
+export { MockAuthError }
 
 async function withDelay<T>(run: () => T | Promise<T>): Promise<T> {
-  await mockDelay(env.VITE_MOCK_API_DELAY_MS)
+  await mockDelay(env.MOCK_API_DELAY_MS)
   return run()
 }
 

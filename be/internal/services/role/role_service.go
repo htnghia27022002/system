@@ -6,25 +6,18 @@ import (
 	"strings"
 
 	apperrors "be/common/errors"
-	"be/pkg/query"
 	roledto "be/internal/dto/role"
 	rolemodel "be/internal/models/role"
-	searchpkg "be/internal/search"
 	"be/internal/repository/interfaces"
+	"be/pkg/query"
 )
 
-type OutboxEnqueuer interface {
-	EnqueueUpsert(ctx context.Context, entityType, entityID string) error
-	EnqueueDelete(ctx context.Context, entityType, entityID string) error
-}
-
 type Service struct {
-	repo   interfaces.RoleRepository
-	outbox OutboxEnqueuer
+	repo interfaces.RoleRepository
 }
 
-func NewService(repo interfaces.RoleRepository, outbox OutboxEnqueuer) *Service {
-	return &Service{repo: repo, outbox: outbox}
+func NewService(repo interfaces.RoleRepository) *Service {
+	return &Service{repo: repo}
 }
 
 func (s *Service) Create(ctx context.Context, req roledto.CreateRoleRequest) (*roledto.RoleResponse, error) {
@@ -46,7 +39,6 @@ func (s *Service) Create(ctx context.Context, req roledto.CreateRoleRequest) (*r
 	if err := s.repo.AssignPermissions(ctx, role.ID, permissionIDs); err != nil {
 		return nil, err
 	}
-	s.enqueueUpsert(ctx, searchpkg.EntityRole, role.ID)
 	return s.toResponse(ctx, role)
 }
 
@@ -135,7 +127,6 @@ func (s *Service) Update(ctx context.Context, id string, req roledto.UpdateRoleR
 		}
 	}
 
-	s.enqueueUpsert(ctx, searchpkg.EntityRole, role.ID)
 	return s.toResponse(ctx, role)
 }
 
@@ -150,7 +141,6 @@ func (s *Service) Delete(ctx context.Context, id string) error {
 	if err := s.repo.Delete(ctx, id); err != nil {
 		return err
 	}
-	s.enqueueDelete(ctx, searchpkg.EntityRole, id)
 	return nil
 }
 
@@ -168,18 +158,4 @@ func (s *Service) toResponse(ctx context.Context, role *rolemodel.Role) (*roledt
 		Slug:           role.Slug,
 		PermissionKeys: keys,
 	}, nil
-}
-
-func (s *Service) enqueueUpsert(ctx context.Context, entityType, entityID string) {
-	if s.outbox == nil {
-		return
-	}
-	_ = s.outbox.EnqueueUpsert(ctx, entityType, entityID)
-}
-
-func (s *Service) enqueueDelete(ctx context.Context, entityType, entityID string) {
-	if s.outbox == nil {
-		return
-	}
-	_ = s.outbox.EnqueueDelete(ctx, entityType, entityID)
 }

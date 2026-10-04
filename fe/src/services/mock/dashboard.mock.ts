@@ -4,7 +4,7 @@ import { mockDelay } from '@/utils/mock-delay'
 
 export const mockDashboardApi = {
   async getOverview(): Promise<DashboardOverview> {
-    await mockDelay(env.VITE_MOCK_API_DELAY_MS)
+    await mockDelay(env.MOCK_API_DELAY_MS)
 
     return {
       updatedAt: new Date().toISOString(),

@@ -4,6 +4,7 @@ import (
 	addresssvc "be/internal/services/address"
 	"be/internal/services/media"
 	permissionsvc "be/internal/services/permission"
+	searchsvc "be/internal/services/search"
 	usersvc "be/internal/services/user"
 	webhooksvc "be/internal/services/webhook"
 	"be/public/handlers"
@@ -27,7 +28,7 @@ func NewHTTPHandlers(
 	user *usersvc.Service,
 	role *RoleServices,
 	permission *permissionsvc.Service,
-	search *SearchStack,
+	search *searchsvc.Service,
 	mediaSvc *media.Service,
 	webhook *webhooksvc.Service,
 	maps *MapsServices,
@@ -38,7 +39,7 @@ func NewHTTPHandlers(
 		User:       handlers.NewUserHandler(user),
 		Role:       handlers.NewRoleHandler(role.Service),
 		Permission: handlers.NewPermissionHandler(permission),
-		Search:     handlers.NewSearchHandler(search.Service, search.Processor, search.Outbox),
+		Search:     handlers.NewSearchHandler(search),
 		Media:      handlers.NewMediaHandler(mediaSvc),
 		Webhook:    handlers.NewWebhookHandler(webhook),
 		Maps:       handlers.NewMapsHandler(maps.Places, maps.Locations, maps.Sources, maps.Ingest, maps.Search),

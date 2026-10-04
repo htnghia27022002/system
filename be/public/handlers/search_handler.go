@@ -13,17 +13,11 @@ import (
 )
 
 type SearchHandler struct {
-	search    *searchsvc.Service
-	processor *searchsvc.IndexProcessor
-	outbox    *searchsvc.OutboxService
+	search *searchsvc.Service
 }
 
-func NewSearchHandler(
-	search *searchsvc.Service,
-	processor *searchsvc.IndexProcessor,
-	outbox *searchsvc.OutboxService,
-) *SearchHandler {
-	return &SearchHandler{search: search, processor: processor, outbox: outbox}
+func NewSearchHandler(search *searchsvc.Service) *SearchHandler {
+	return &SearchHandler{search: search}
 }
 
 func (h *SearchHandler) Search(c *gin.Context) {
@@ -40,54 +34,4 @@ func (h *SearchHandler) Search(c *gin.Context) {
 
 	result, err := h.search.Search(c.Request.Context(), form, permissions)
 	httpx.OK(c, result, err)
-}
-
-func (h *SearchHandler) Reindex(c *gin.Context) {
-	var req searchdto.ReindexRequest
-	if err := c.ShouldBindJSON(&req); err != nil && err.Error() != "EOF" {
-		response.Error(c, http.StatusBadRequest, err.Error())
-		return
-	}
-
-	entityType := req.EntityType
-	if entityType == "" {
-		entityType = "all"
-	}
-
-	count, err := h.processor.Reindex(c.Request.Context(), entityType)
-	if err != nil {
-		response.HandleError(c, err)
-		return
-	}
-
-	response.JSON(c, http.StatusOK, searchdto.ReindexResponse{
-		EntityType: entityType,
-		Indexed:    count,
-		Status:     "completed",
-	})
-}
-
-func (h *SearchHandler) OutboxStats(c *gin.Context) {
-	stats, err := h.processor.OutboxStats(c.Request.Context())
-	if err != nil {
-		response.HandleError(c, err)
-		return
-	}
-	httpx.OK(c, searchdto.OutboxStatsResponse{
-		PendingCount:            stats.PendingCount,
-		FailedCount:             stats.FailedCount,
-		OldestPendingAgeSeconds: stats.OldestPendingAgeSeconds,
-	}, nil)
-}
-
-func (h *SearchHandler) ReplayOutbox(c *gin.Context) {
-	var req searchdto.ReplayOutboxRequest
-	if !httpx.BindJSON(c, &req) {
-		return
-	}
-	if req.ID == "" {
-		response.Error(c, http.StatusBadRequest, "id is required")
-		return
-	}
-	httpx.NoContent(c, h.outbox.Replay(c.Request.Context(), req.ID))
 }

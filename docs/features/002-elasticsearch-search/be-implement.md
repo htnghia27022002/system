@@ -152,5 +152,5 @@ sequenceDiagram
 ## Related docs
 
 - [spec.md](spec.md) — requirements
-- [be/AGENTS.md](../../../be/AGENTS.md) §12 — queue rules for agents
+- [be/CLAUDE.md](../../../be/CLAUDE.md) §12 — queue rules for agents
 - [be/README.md](../../../be/README.md) — commands and env

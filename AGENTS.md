@@ -1,7 +1,7 @@
 <!-- gitnexus:start -->
 # GitNexus — Code Intelligence
 
-This project is indexed by GitNexus as **system** (3455 symbols, 9013 relationships, 279 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
+This project is indexed by GitNexus as **system** (8193 symbols, 21844 relationships, 300 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
 
 > If any GitNexus tool warns the index is stale, run `npx gitnexus analyze` in terminal first.
 
@@ -137,7 +137,7 @@ Prompt cheat sheet: [`docs/workflow/agent-prompts.md`](docs/workflow/agent-promp
 - Domain logic: `src/features/<feature>/`
 - Env: `NEXT_PUBLIC_*` via `src/config/env.ts`
 - Design: [`fe/DESIGN.md`](fe/DESIGN.md) · tokens in `src/styles/index.css`
-- Full architecture rules: [`fe/AGENTS.md`](fe/AGENTS.md)
+- Full architecture rules: [`fe/CLAUDE.md`](fe/CLAUDE.md)
 
 ## Backend (`be/`)
 
@@ -147,7 +147,7 @@ Prompt cheat sheet: [`docs/workflow/agent-prompts.md`](docs/workflow/agent-promp
 - API prefix: `/api/auth`, `/api/admin`
 - JSON: camelCase (matches FE contract)
 - Module imports: `be/internal/...` (from `be/go.mod`, self-contained)
-- Full rules: [`be/AGENTS.md`](be/AGENTS.md), [`be/README.md`](be/README.md)
+- Full rules: [`be/CLAUDE.md`](be/CLAUDE.md), [`be/README.md`](be/README.md)
 
 ## Cross-cutting rules
 

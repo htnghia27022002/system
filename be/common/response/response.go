@@ -2,6 +2,7 @@ package response
 
 import (
 	"errors"
+	"log"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -30,6 +31,8 @@ func HandleError(c *gin.Context, err error) {
 	case errors.Is(err, apperrors.ErrBadRequest):
 		Error(c, http.StatusBadRequest, err.Error())
 	default:
-		Error(c, http.StatusInternalServerError, err.Error())
+		// Never echo unexpected errors (SQL, driver, upstream) to clients.
+		log.Printf("internal error: %s %s: %v", c.Request.Method, c.FullPath(), err)
+		Error(c, http.StatusInternalServerError, "internal server error")
 	}
 }

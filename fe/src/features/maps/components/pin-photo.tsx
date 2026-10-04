@@ -16,7 +16,6 @@ export function PinPhoto({ position, alt, className }: PinPhotoProps) {
   }
   return (
     // Preview snapshot of the pin area; OSM tiles already load in the map adapter.
-    // eslint-disable-next-line @next/next/no-img-element
     <img src={src} alt={alt} className={className} draggable={false} />
   )
 }

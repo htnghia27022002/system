@@ -42,7 +42,7 @@ function copyWithExecCommand(text: string): void {
   textarea.select()
   textarea.setSelectionRange(0, text.length)
 
-  let ok = false
+  let ok: boolean
   try {
     ok = document.execCommand('copy')
   } finally {

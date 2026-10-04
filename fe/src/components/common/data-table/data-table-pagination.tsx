@@ -35,8 +35,10 @@ export function DataTablePagination<TData>({
   const from = total === 0 ? 0 : pageIndex * pageSize + 1
   const to = Math.min((pageIndex + 1) * pageSize, total)
 
-  const defaultLabel = (f: number, t: number, tot: number) =>
-    tot === 0 ? t('table.noResults') : t('table.range', { from: f, to: t, total: tot })
+  const defaultLabel = (rangeFrom: number, rangeTo: number, rangeTotal: number) =>
+    rangeTotal === 0
+      ? t('table.noResults')
+      : t('table.range', { from: rangeFrom, to: rangeTo, total: rangeTotal })
 
   const label = totalLabel
     ? totalLabel(from, to, total)

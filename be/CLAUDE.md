@@ -1,6 +1,6 @@
 # BE Agent Rules (Go + Gin)
 
-This file defines strict implementation rules for AI agents working in `be/`.
+This file defines strict implementation rules for Claude when working in `be/`. Claude Code loads it automatically for any file under `be/`; project-wide rules live in `.claude/rules/`, skills in `.claude/skills/` (`be-develop`), and subagents in `.claude/agents/` (`be`, `be-test`).
 Follow these rules before creating, editing, moving, or deleting files.
 
 ## 1) Self-contained module
@@ -27,7 +27,7 @@ Go 1.22 · Gin · pgx · squirrel · PostgreSQL · JWT · OAuth2 · golangci-lin
 ## 3.1) Migrations
 
 - SQL files: `migrations/{version}_{name}.up.sql` and `.down.sql` via [golang-migrate](https://github.com/golang-migrate/migrate)
-- Startup: `database.RunMigrations(cfg)` in `public/api.go`
+- Startup: `database.RunMigrations(cfg)` + seeders in `public/api.go`, gated by `AUTO_MIGRATE` (default `true`). Multi-replica deploys set `AUTO_MIGRATE=false` and run `cmd/migrate` + `cmd/seed` as a release step.
 - CLI: `go run ./cmd/migrate up|down|version|force|steps|drop`
 - Dev seed data: `internal/database/seeders/` — `DatabaseSeeder`, `PermissionSeeder`, `RoleSeeder`, … (idempotent, runs after migrations)
 - CLI: `go run ./cmd/seed` or `go run ./cmd/seed --class=PermissionSeeder`
@@ -65,14 +65,12 @@ be/
 │   ├── queue/              # NATS JetStream infra (constants, nats.json, client)
 │   ├── repository/
 │   │   └── interfaces/     # Persistence contracts (feature-specific)
-│   ├── search/             # Elasticsearch client
 │   ├── services/
 │   └── common/             # App-private shared helpers (JWT, errors, response, httpx, …)
 ├── cmd/
 │   ├── migrate/
 │   ├── seed/
-│   ├── queue/              # Queue worker (consumers)
-│   └── reindex/            # Bulk reindex CLI
+│   └── queue/              # Queue worker (consumers)
 └── migrations/
 ```
 
@@ -118,7 +116,7 @@ Keep the layered layout above. Do **not** introduce extra top-level trees (`biz`
 | Principle | Rule |
 |-----------|------|
 | SRP | Handlers bind HTTP and map errors; services own rules; repositories own SQL. Feature repos embed `pkg/repo.Repository[T]` and add **only** feature queries. |
-| OCP / DIP | Services depend on `internal/repository/interfaces` (and small ports like `media.AvatarStorage`, `OutboxEnqueuer`), never on concrete `*Repository` types. New OAuth providers implement `oauth.Provider` — no `switch` in `OAuthService`. |
+| OCP / DIP | Services depend on `internal/repository/interfaces` (and small ports like `media.AvatarStorage`), never on concrete `*Repository` types. New OAuth providers implement `oauth.Provider` — no `switch` in `OAuthService`. |
 | ISP | Repository interfaces stay narrow. User rows go through `UserRepository`; tokens/OAuth accounts through `AuthRepository`. |
 | Reuse | Prefer an existing helper over a copy. Domain-agnostic code belongs in `pkg/`; Gin/JWT/RBAC helpers belong in `common/`. Time/string format helpers belong in `common/utils`. |
 
@@ -169,7 +167,7 @@ When adding a protected admin/API feature:
 3. Admin role receives new keys automatically via `RolePermissionSeeder` (iterates catalog).
 4. Align with `docs/features/.../contracts/permissions.md`.
 
-Do not ship admin routes without catalog entries. See `.cursor/rules/feature-permissions.mdc`.
+Do not ship admin routes without catalog entries. See `.claude/rules/feature-permissions.md`.
 
 Integration with the frontend is **HTTP only**. Do not import FE code or share types across repos.
 
@@ -254,19 +252,20 @@ cmd/queue/                   # Separate process — bootstrap streams/consumers 
 | Rule | Detail |
 |------|--------|
 | Names | All stream, subject, consumer, handler names in `internal/queue/constants.go` — **no string literals** elsewhere |
-| JSON config | `internal/queue/nats.json` holds JetStream **options** only; keys (`search`, `search_outbox`) map to constants via `config.go` |
+| JSON config | `internal/queue/nats.json` holds JetStream **options** only; keys (`maps`, `maps_ingest`) map to constants via `config.go` |
 | Env | `NATS_ENABLED`, `NATS_URL`, optional `QUEUE_CONFIG_FILE` |
 | HTTP vs worker | `be/main.go` (API) wires publisher only; **never** call `StartConsumers` in the API process |
 | Services | After DB write, call `handlers/publisher` — do not import `subscribers` from services |
 | Subscribers | Import `publisher` for payload decode; call `internal/services/*` for business logic |
 
-**Adding a consumer:** constants → `nats.json` options → `resolveStream`/`resolveConsumer` → publisher method → subscriber + registry → service hook. See `docs/features/002-elasticsearch-search/be-implement.md`.
+**Adding a consumer:** constants → `nats.json` options → `resolveStream`/`resolveConsumer` → publisher method → subscriber + registry → service hook. Reference implementation: maps ingest (`process_maps_ingest`).
 
 **Commands:**
 
 ```bash
 go run ./cmd/queue      # queue worker
-go run ./cmd/reindex    # one-shot ES reindex
 ```
 
-Docker: `queue` service runs `go run ./cmd/queue`. When NATS is disabled, `cmd/queue` polls `search_outbox` instead.
+Docker: `queue` service runs `go run ./cmd/queue`. When NATS is disabled, `cmd/queue` polls queued maps ingest runs instead.
+
+There is **no search index**: `GET /api/admin/search` queries Postgres directly (`internal/repository/search_repository.go`). Do not reintroduce an outbox/indexer for it.

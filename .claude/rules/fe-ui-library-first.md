@@ -1,0 +1,32 @@
+---
+description: "FE UI must use shadcn/ui and project libraries; theme via index.css CSS variables."
+paths:
+  - "fe/**/*"
+---
+
+# FE UI: library-first, theme via CSS variables
+
+## Before any custom UI markup
+
+1. Check `fe/src/components/ui/` for an existing shadcn component.
+2. If missing, add from the registry first: `cd fe && pnpm dlx shadcn@latest add <component> -y` (see [shadcn components](https://ui.shadcn.com/docs/components)).
+3. Only then compose in `src/components/common/` or features — **wrap shadcn primitives**, do not reimplement them with raw `<div>` / `<button>`.
+
+## Examples
+
+| Need | Use |
+|------|-----|
+| Top nav / page loading bar | `Progress` (`indeterminate`) |
+| Buttons, forms | `Button`, `Input`, `Label`, `Card` |
+| Menus | `DropdownMenu` |
+| Theme | `next-themes` + existing `ThemeToggle` pattern |
+
+## Do not
+
+- Build parallel components when shadcn/registry has a match (e.g. custom div loading bar instead of `Progress`).
+- Add parallel CSS token layers; customize via `:root` / `.dark` in `src/styles/index.css`.
+- Skip the registry check because a wrapper lives in `components/common/`.
+
+## Theming
+
+Customize the whole app in `src/styles/index.css` — edit `--primary`, `--background`, `--radius`, etc. in `:root` and `.dark`. See [shadcn theming](https://ui.shadcn.com/docs/theming).

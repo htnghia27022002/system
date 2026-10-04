@@ -2,15 +2,19 @@ package public
 
 import (
 	"context"
+	"errors"
 	"log"
+	"net/http"
+	"os/signal"
+	"syscall"
 	"time"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	goredis "github.com/redis/go-redis/v9"
 
-	"be/internal/app"
 	"be/common/cache"
+	"be/internal/app"
 	"be/internal/config"
 	"be/internal/database"
 	"be/internal/middleware"
@@ -18,12 +22,19 @@ import (
 	"be/public/routes"
 )
 
+const shutdownTimeout = 15 * time.Second
+
 func Run(cfg config.Config, db *postgres.Postgres, redis *goredis.Client) error {
-	if err := database.RunMigrations(cfg); err != nil {
-		return err
-	}
-	if err := database.Seed(context.Background(), db); err != nil {
-		return err
+	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
+	defer stop()
+
+	if cfg.AutoMigrate {
+		if err := database.RunMigrations(cfg); err != nil {
+			return err
+		}
+		if err := database.Seed(ctx, db); err != nil {
+			return err
+		}
 	}
 
 	if err := cache.Init(cfg.Cache, redis); err != nil {
@@ -33,13 +44,6 @@ func Run(cfg config.Config, db *postgres.Postgres, redis *goredis.Client) error 
 
 	container := app.NewContainer(cfg, db)
 	defer container.Close()
-
-	ctx := context.Background()
-	if container.SearchClient != nil && container.SearchClient.Enabled() {
-		if err := container.SearchService.EnsureIndex(ctx); err != nil {
-			log.Printf("search index ensure failed: %v", err)
-		}
-	}
 
 	r := gin.Default()
 	// Permissive CORS for public webhook capture (no credentials) must run before
@@ -61,5 +65,28 @@ func Run(cfg config.Config, db *postgres.Postgres, redis *goredis.Client) error 
 	routes.RegisterMediaRoutes(api, container)
 	routes.RegisterWebhookRoutes(api, container)
 
-	return r.Run(":" + cfg.Port)
+	srv := &http.Server{
+		Addr:              ":" + cfg.Port,
+		Handler:           r,
+		ReadHeaderTimeout: 10 * time.Second,
+	}
+
+	serveErr := make(chan error, 1)
+	go func() {
+		if err := srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+			serveErr <- err
+		}
+		close(serveErr)
+	}()
+
+	select {
+	case err := <-serveErr:
+		return err
+	case <-ctx.Done():
+	}
+
+	log.Printf("shutting down HTTP server")
+	shutdownCtx, cancel := context.WithTimeout(context.Background(), shutdownTimeout)
+	defer cancel()
+	return srv.Shutdown(shutdownCtx)
 }

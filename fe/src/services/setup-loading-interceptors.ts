@@ -10,7 +10,7 @@ function shouldTrackRequest(config: InternalAxiosRequestConfig): boolean {
     return false
   }
 
-  if (env.VITE_USE_MOCK_API) {
+  if (env.USE_MOCK_API) {
     return false
   }
 

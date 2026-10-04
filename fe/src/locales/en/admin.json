@@ -50,9 +50,6 @@
     "pageSummary": "Page {{page}} of {{totalPages}}",
     "previous": "Previous",
     "next": "Next",
-    "degradedTitle": "Limited search mode",
-    "degradedDescription": "The search index is unavailable. Results may only include users from the database fallback.",
-    "degraded": "Search index unavailable — results may be limited.",
     "filters": {
       "all": "All entities",
       "users": "Users",

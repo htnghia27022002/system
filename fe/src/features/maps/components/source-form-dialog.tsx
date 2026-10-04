@@ -4,7 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation } from '@tanstack/react-query'
 import { Trash2Icon } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
-import { useFieldArray, useForm } from 'react-hook-form'
+import { useFieldArray, useForm, useWatch } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 
@@ -98,7 +98,6 @@ export function SourceFormDialog({
     formState: { errors },
     reset,
     setValue,
-    watch,
     getValues,
     trigger,
   } = useForm<SourceFormValues>({
@@ -117,13 +116,15 @@ export function SourceFormDialog({
     remove: removeParam,
   } = useFieldArray({ control, name: 'queryParams' })
 
-  const enabled = watch('enabled')
-  const httpMethod = watch('httpMethod')
-  const listPath = watch('listPath')
-  const locationMap = watch('location')
-  const placeMap = watch('place')
-  const newsMap = watch('news')
-  const detailsMap = watch('details')
+  const enabled = useWatch({ control, name: 'enabled' })
+  const httpMethod = useWatch({ control, name: 'httpMethod' })
+  const listPath = useWatch({ control, name: 'listPath' })
+  const locationMap = useWatch({ control, name: 'location' })
+  const placeMap = useWatch({ control, name: 'place' })
+  const newsMap = useWatch({ control, name: 'news' })
+  const detailsMap = useWatch({ control, name: 'details' })
+  const body = useWatch({ control, name: 'body' })
+  const url = useWatch({ control, name: 'url' })
 
   useEffect(() => {
     if (!open) return
@@ -389,7 +390,7 @@ export function SourceFormDialog({
                     </FieldDescription>
                     <JsonEditor
                       id="maps-src-body"
-                      value={watch('body')}
+                      value={body}
                       invalid={Boolean(errors.body)}
                       onChange={(next) =>
                         setValue('body', next, {
@@ -551,7 +552,7 @@ export function SourceFormDialog({
                   </span>
                 </label>
                 <p className="text-sm">
-                  {watch('httpMethod')} · {watch('url')}
+                  {httpMethod} · {url}
                 </p>
                 <p className="text-sm text-muted-foreground">
                   {t('maps.sources.wizard.mapHint', {

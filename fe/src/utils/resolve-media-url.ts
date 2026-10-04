@@ -12,11 +12,11 @@ export function resolveMediaUrl(
   if (!trimmed) return undefined
   if (/^https?:\/\//i.test(trimmed)) return trimmed
 
-  const siteOrigin = env.VITE_SITE_URL.replace(/\/$/, '')
+  const siteOrigin = env.SITE_URL.replace(/\/$/, '')
   if (trimmed.startsWith('/')) {
     return `${siteOrigin}${trimmed}`
   }
 
-  const apiBase = env.VITE_API_BASE_URL.replace(/\/$/, '')
+  const apiBase = env.API_BASE_URL.replace(/\/$/, '')
   return `${apiBase}/${trimmed}`
 }

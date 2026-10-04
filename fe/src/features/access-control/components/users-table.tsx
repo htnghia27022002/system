@@ -92,7 +92,7 @@ function UsersTableContent() {
   const [editingUser, setEditingUser] = useState<ManagedUser | undefined>()
   const [deleteTarget, setDeleteTarget] = useState<ManagedUser | undefined>()
 
-  const roles = rolesQuery.data ?? []
+  const roles = useMemo(() => rolesQuery.data ?? [], [rolesQuery.data])
   const roleById = useMemo(
     () => new Map(roles.map((r) => [r.id, r])),
     [roles],

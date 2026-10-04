@@ -14,9 +14,17 @@ type LeafletClickEvent = {
 }
 
 type LeafletModule = {
-  map: (...args: never[]) => LeafletMap
-  marker: (...args: never[]) => LeafletMarker
-  divIcon: (...args: never[]) => unknown
+  map: (container: HTMLElement, options?: { zoomControl?: boolean }) => LeafletMap
+  marker: (
+    latlng: [number, number],
+    options?: { icon?: unknown; title?: string; keyboard?: boolean },
+  ) => LeafletMarker
+  divIcon: (options: {
+    className?: string
+    html?: string
+    iconSize?: [number, number]
+    iconAnchor?: [number, number]
+  }) => unknown
   tileLayer: (
     url: string,
     options?: { attribution?: string; maxZoom?: number },
@@ -267,9 +275,8 @@ export function createOsmMapProvider(): MapProvider {
 
   async function mountAsync(container: HTMLElement, viewport?: MapViewport) {
     const generation = ++mountGeneration
-    const leaflet = (await import('leaflet')) as LeafletModule & {
-      default: LeafletModule
-    }
+    // Narrow structural view of Leaflet: only the API this provider uses.
+    const leaflet = (await import('leaflet')) as unknown as LeafletModule
     await import('leaflet/dist/leaflet.css')
     if (generation !== mountGeneration) return
 

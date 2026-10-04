@@ -26,5 +26,4 @@ export type SearchPagination = {
 export type SearchResponse = {
   hits: SearchHit[]
   pagination: SearchPagination
-  degraded?: boolean
 }

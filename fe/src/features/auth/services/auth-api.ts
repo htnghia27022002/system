@@ -1,7 +1,7 @@
 import { env } from '@/config/env'
 import { apiClient } from '@/services/api-client'
 import { authTokenService } from '@/services/auth-token-service'
-import { mockAuthApi, MockAuthError } from '@/services/mock/auth.mock'
+import { loadAuthMock, MockAuthError } from '@/services/mock'
 
 import type { AuthResponse, LoginRequest, RegisterRequest } from '../types'
 import type { AuthUser } from '@/types/auth'
@@ -14,8 +14,8 @@ type OAuthProvidersResponse = {
 
 export const authApi = {
   async login(payload: LoginRequest): Promise<AuthResponse> {
-    if (env.VITE_USE_MOCK_API) {
-      return mockAuthApi.login(payload)
+    if (env.USE_MOCK_API) {
+      return (await loadAuthMock()).login(payload)
     }
 
     const { data } = await apiClient.post<AuthResponse>('/auth/login', payload)
@@ -23,8 +23,8 @@ export const authApi = {
   },
 
   async register(payload: RegisterRequest): Promise<AuthResponse> {
-    if (env.VITE_USE_MOCK_API) {
-      return mockAuthApi.register(payload)
+    if (env.USE_MOCK_API) {
+      return (await loadAuthMock()).register(payload)
     }
 
     const { data } = await apiClient.post<AuthResponse>(
@@ -35,8 +35,8 @@ export const authApi = {
   },
 
   async me(): Promise<AuthUser> {
-    if (env.VITE_USE_MOCK_API) {
-      return mockAuthApi.me()
+    if (env.USE_MOCK_API) {
+      return (await loadAuthMock()).me()
     }
 
     const { data } = await apiClient.get<AuthUser>('/auth/me')
@@ -44,7 +44,7 @@ export const authApi = {
   },
 
   async logout(): Promise<void> {
-    if (env.VITE_USE_MOCK_API) {
+    if (env.USE_MOCK_API) {
       return
     }
 
@@ -57,7 +57,7 @@ export const authApi = {
   },
 
   async getOAuthProviders(): Promise<string[]> {
-    if (env.VITE_USE_MOCK_API) {
+    if (env.USE_MOCK_API) {
       return []
     }
 
@@ -72,7 +72,7 @@ export const authApi = {
     code: string,
     redirectUri: string,
   ): Promise<AuthResponse> {
-    if (env.VITE_USE_MOCK_API) {
+    if (env.USE_MOCK_API) {
       throw new Error('OAuth is not available in mock mode')
     }
 

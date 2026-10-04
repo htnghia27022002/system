@@ -1,0 +1,14 @@
+<!-- Require English for all file edits and creations — including docs/features and Speckit outputs -->
+
+# English-only file content
+
+- Write **all** created or modified file content in **English**.
+- Applies to: source code, comments, `docs/**`, `docs/features/**` (spec.md, tasks.md, plan.md, contracts/**, *-tasks-verify.md, qa-checklist.md), README, agent rules, and UI copy in source files.
+- **User prompts may be in Vietnamese** — still output English in every file. Do not mirror the user's language in written artifacts.
+- **Exception — Vietnamese locales:** `fe/src/locales/vi/**` MUST use real Vietnamese with **UTF-8 diacritics** (see `.claude/rules/locale-vi-utf8.md`). Do not write tone-stripped ASCII Vietnamese there.
+- Do not write Vietnamese or mixed-language content in other files unless the user **explicitly** asks for a translation or multilingual output (e.g. `fe/src/locales/vi/`).
+- If existing content is non-English and must be updated, convert the edited portion to clear English (except when editing `fe/src/locales/vi/**`, which must stay proper Vietnamese UTF-8).
+
+## Speckit / agent docs
+
+When `@agent-ba`, `@agent-technical-architect`, `@agent-be`, `@agent-fe`, or `@agent-qa` generate feature documentation under `docs/features/`, every section (user stories, acceptance criteria, tasks, design notes, contracts, verify reports, checklists) must be **English only**.

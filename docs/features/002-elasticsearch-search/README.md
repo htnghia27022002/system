@@ -1,7 +1,7 @@
 # Feature: Elasticsearch Search (Admin Unified Search)
 
 **ID:** `002-elasticsearch-search`  
-**Status:** Implemented (BE + FE)
+**Status:** Superseded — Elasticsearch, the search outbox, and reindex/outbox admin endpoints were removed (migration `000011_drop_search_outbox`). `GET /api/admin/search` keeps the same request/response contract and now queries Postgres directly (`be/internal/repository/search_repository.go`). Kept for history.
 
 ## Workflow progress
 

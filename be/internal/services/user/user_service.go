@@ -11,16 +11,10 @@ import (
 	userdto "be/internal/dto/user"
 	usermodel "be/internal/models/user"
 	"be/internal/repository/interfaces"
-	searchpkg "be/internal/search"
 	"be/internal/services/media"
 	"be/pkg/hash"
 	"be/pkg/query"
 )
-
-type OutboxEnqueuer interface {
-	EnqueueUpsert(ctx context.Context, entityType, entityID string) error
-	EnqueueDelete(ctx context.Context, entityType, entityID string) error
-}
 
 // Actor is the signed-in operator performing an admin user mutation.
 type Actor struct {
@@ -29,19 +23,17 @@ type Actor struct {
 }
 
 type Service struct {
-	repo   interfaces.UserRepository
-	auth   interfaces.AuthRepository
-	outbox OutboxEnqueuer
-	media  media.AvatarStorage
+	repo  interfaces.UserRepository
+	auth  interfaces.AuthRepository
+	media media.AvatarStorage
 }
 
 func NewService(
 	repo interfaces.UserRepository,
 	auth interfaces.AuthRepository,
-	outbox OutboxEnqueuer,
 	mediaSvc media.AvatarStorage,
 ) *Service {
-	return &Service{repo: repo, auth: auth, outbox: outbox, media: mediaSvc}
+	return &Service{repo: repo, auth: auth, media: mediaSvc}
 }
 
 func (s *Service) Create(ctx context.Context, req userdto.CreateUserRequest, actor Actor) (*usermodel.User, error) {
@@ -89,7 +81,6 @@ func (s *Service) Create(ctx context.Context, req userdto.CreateUserRequest, act
 	if err := s.repo.Create(ctx, user); err != nil {
 		return nil, err
 	}
-	s.enqueueUpsert(ctx, searchpkg.EntityUser, user.ID)
 	return user, nil
 }
 
@@ -187,7 +178,6 @@ func (s *Service) Update(ctx context.Context, id string, req userdto.UpdateUserR
 	if err := s.repo.Update(ctx, user); err != nil {
 		return nil, err
 	}
-	s.enqueueUpsert(ctx, searchpkg.EntityUser, user.ID)
 	return user, nil
 }
 
@@ -218,7 +208,6 @@ func (s *Service) UploadAvatar(ctx context.Context, id string, file multipart.Fi
 	if prev != "" && prev != publicPath {
 		s.media.DeleteByPublicPath(prev)
 	}
-	s.enqueueUpsert(ctx, searchpkg.EntityUser, user.ID)
 	return user, nil
 }
 
@@ -241,7 +230,6 @@ func (s *Service) Delete(ctx context.Context, id string, actor Actor) error {
 	if err := s.repo.Delete(ctx, id); err != nil {
 		return err
 	}
-	s.enqueueDelete(ctx, searchpkg.EntityUser, id)
 	return nil
 }
 
@@ -261,20 +249,6 @@ func (s *Service) guardLastSuperAdmin(ctx context.Context) error {
 		return fmt.Errorf("%w: cannot remove the last super admin", apperrors.ErrForbidden)
 	}
 	return nil
-}
-
-func (s *Service) enqueueUpsert(ctx context.Context, entityType, entityID string) {
-	if s.outbox == nil {
-		return
-	}
-	_ = s.outbox.EnqueueUpsert(ctx, entityType, entityID)
-}
-
-func (s *Service) enqueueDelete(ctx context.Context, entityType, entityID string) {
-	if s.outbox == nil {
-		return
-	}
-	_ = s.outbox.EnqueueDelete(ctx, entityType, entityID)
 }
 
 func ToResponse(user *usermodel.User, oauthProviders ...string) userdto.UserResponse {

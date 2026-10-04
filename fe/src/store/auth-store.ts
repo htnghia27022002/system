@@ -94,7 +94,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       return
     }
 
-    if (env.VITE_USE_MOCK_API) {
+    if (env.USE_MOCK_API) {
       set({
         ...buildState(accessToken, get().user, true),
         hasHydrated: true,

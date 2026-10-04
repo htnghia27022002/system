@@ -1,7 +1,7 @@
 <!-- gitnexus:start -->
 # GitNexus — Code Intelligence
 
-This project is indexed by GitNexus as **system** (3455 symbols, 9013 relationships, 279 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
+This project is indexed by GitNexus as **system** (8193 symbols, 21844 relationships, 300 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
 
 > If any GitNexus tool warns the index is stale, run `npx gitnexus analyze` in terminal first.
 
@@ -41,3 +41,11 @@ This project is indexed by GitNexus as **system** (3455 symbols, 9013 relationsh
 | Index, status, clean, wiki CLI commands | `.claude/skills/gitnexus/gitnexus-cli/SKILL.md` |
 
 <!-- gitnexus:end -->
+
+## Project guide
+
+Monorepo overview, workspace boundaries, and run environments (shared with Cursor):
+
+@AGENTS.md
+
+Path-scoped rules live in `.claude/rules/`, skills in `.claude/skills/`, subagents in `.claude/agents/` (ba → technical-architect → be/fe → qa).

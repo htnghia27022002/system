@@ -8,7 +8,7 @@ const { getSessionId, apiGet, apiDelete, apiPost } = vi.hoisted(() => ({
 }))
 
 vi.mock('@/config/env', () => ({
-  env: { VITE_USE_MOCK_API: false },
+  env: { USE_MOCK_API: false },
 }))
 
 vi.mock('@/services/auth-token-service', () => ({

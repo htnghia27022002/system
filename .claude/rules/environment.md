@@ -1,0 +1,41 @@
+<!-- Workspace root, env files, and shell commands for agents. Run tests from repo root — not ad-hoc cd into WSL subfolders. -->
+
+# Environment & commands
+
+## Workspace root
+
+All agent shell commands start from the **repository root** (the folder that contains `docker-compose.yml`, `be/`, `fe/`, `docs/`).
+
+## Env files — one owner each
+
+| File | Owner | Contains | Used by |
+|------|-------|----------|---------|
+| **`.env`** (root) | Docker wiring | `NGINX_HTTP_PORT`, `GO_APP_IMAGE` (Hub tag for prod Go) | compose auto-load |
+| **`be/.env`** | BE app | DB, Redis, ES, NATS, JWT, OAuth, CORS, queue worker | `env_file` on `be` / `queue` / `go-app` / `go-queue`; local `cd be && make run`; `--env-file be/.env` for postgres `${DB_*}` |
+| **`fe/.env`** | FE app | `NEXT_PUBLIC_*` | `env_file` on `fe`; local `pnpm dev` |
+
+**Root `.env` does NOT hold OAuth, JWT, or `NEXT_PUBLIC_*`.** Those belong in the app package that owns them.
+
+Deploy BE alone on a server → copy `be/` + set `be/.env` (point `DB_HOST` at that server's Postgres).  
+Deploy FE alone → copy `fe/` + set `fe/.env`.  
+Monorepo Docker dev → `make up-d` reads all three files; compose only wires containers.
+
+Templates: `.env.example`, `be/.env.example`, `fe/.env.example`. Setup: `make env`.
+
+## How to run (from repo root)
+
+| Task | Command |
+|------|---------|
+| Start stack | `make up-d` |
+| Stop stack | `make down` |
+| BE tests | `make test-be` |
+| FE tests | `make test-fe` |
+| Local BE (no Docker) | set `be/.env` with `DB_HOST=localhost`, then `cd be && make run` |
+| Local FE (no Docker) | set `fe/.env` for `localhost:3000`, then `pnpm dev` |
+
+Do **not** use `cd be && make test` on WSL host unless Go is installed locally — use `make test-be`.
+
+## URLs
+
+When `NGINX_HTTP_PORT=8080` in root `.env`: app at `http://system.local:8080`, API at `http://system.local:8080/api`.  
+Match `CORS_ORIGINS` and `OAUTH_REDIRECT_URL` in **`be/.env`**, and `NEXT_PUBLIC_*` in **`fe/.env`**, to that origin.

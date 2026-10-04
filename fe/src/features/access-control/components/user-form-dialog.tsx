@@ -2,7 +2,7 @@
 
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useEffect, useMemo, useState } from 'react'
-import { useFieldArray, useForm } from 'react-hook-form'
+import { useFieldArray, useForm, useWatch } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 
 import { FormOverlay } from '@/components/common/form-overlay'
@@ -57,7 +57,6 @@ export function UserFormDialog({
     formState: { errors },
     reset,
     setValue,
-    watch,
   } = useForm<CreateUserFormValues | UpdateUserFormValues>({
     resolver: zodResolver(schema),
     defaultValues: {
@@ -80,10 +79,10 @@ export function UserFormDialog({
     name: 'socialLinks',
   })
 
-  const roleId = watch('roleId')
-  const status = watch('status')
-  const name = watch('name')
-  const superAdmin = Boolean(watch('superAdmin'))
+  const roleId = useWatch({ control, name: 'roleId' })
+  const status = useWatch({ control, name: 'status' })
+  const name = useWatch({ control, name: 'name' })
+  const superAdmin = Boolean(useWatch({ control, name: 'superAdmin' }))
   const title = isEdit
     ? t('access.users.editTitle')
     : t('access.users.createTitle')

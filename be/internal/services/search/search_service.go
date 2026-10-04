@@ -2,24 +2,31 @@ package searchsvc
 
 import (
 	"context"
-	"fmt"
 	"strings"
 
-	listquery "be/pkg/query"
 	"be/common/rbac"
 	searchdto "be/internal/dto/search"
-	searchpkg "be/internal/search"
 	"be/internal/repository/interfaces"
+	listquery "be/pkg/query"
 )
 
+// Service is admin global search over users, roles, and permissions, backed by Postgres.
 type Service struct {
-	client  *searchpkg.Client
-	users   interfaces.UserRepository
-	builder *DocumentBuilder
+	repo interfaces.SearchRepository
 }
 
-func NewService(client *searchpkg.Client, users interfaces.UserRepository, builder *DocumentBuilder) *Service {
-	return &Service{client: client, users: users, builder: builder}
+func NewService(repo interfaces.SearchRepository) *Service {
+	return &Service{repo: repo}
+}
+
+// entityPermission maps each searchable entity type to the RBAC resource that gates it.
+var entityPermission = []struct {
+	entityType string
+	resource   string
+}{
+	{interfaces.SearchEntityUser, "users"},
+	{interfaces.SearchEntityRole, "roles"},
+	{interfaces.SearchEntityPermission, "permissions"},
 }
 
 func (s *Service) Search(ctx context.Context, form searchdto.SearchQuery, permissions []string) (*searchdto.SearchResponse, error) {
@@ -29,129 +36,49 @@ func (s *Service) Search(ctx context.Context, form searchdto.SearchQuery, permis
 		return emptyResponse(page, pageSize), nil
 	}
 
-	allowed := viewPermissions(permissions)
-	types := parseTypes(form.Types)
-	types = filterTypesByPermission(types, permissions)
-	if len(types) == 0 && len(allowed) == 0 {
+	types := filterTypesByPermission(parseTypes(form.Types), permissions)
+	if len(types) == 0 {
 		return emptyResponse(page, pageSize), nil
 	}
 
-	if s.client != nil && s.client.Enabled() {
-		if err := s.client.Ping(ctx); err == nil {
-			result, err := s.client.Search(ctx, searchpkg.SearchRequest{
-				Query:              q,
-				EntityTypes:        types,
-				AllowedPermissions: allowed,
-				From:               listquery.Offset(page, pageSize),
-				Size:               pageSize,
-			})
-			if err == nil {
-				return toResponse(result, page, pageSize, false), nil
-			}
-		}
-	}
-
-	return s.fallbackUsers(ctx, q, types, permissions, page, pageSize)
-}
-
-func (s *Service) fallbackUsers(
-	ctx context.Context,
-	q string,
-	types []string,
-	permissions []string,
-	page, pageSize int,
-) (*searchdto.SearchResponse, error) {
-	resp := emptyResponse(page, pageSize)
-	resp.Degraded = true
-
-	if !rbac.Allowed(permissions, rbac.Key("users", rbac.ActionView)) {
-		return resp, nil
-	}
-	if len(types) > 0 && !containsType(types, searchpkg.EntityUser) {
-		return resp, nil
-	}
-
-	listQ := listquery.New(page, pageSize).
-		OrderBy("created_at DESC").
-		WhereLikeAny([]string{"email", "full_name"}, q)
-	users, total, err := s.users.List(ctx, listQ)
+	hits, total, err := s.repo.Search(ctx, q, types, listquery.Offset(page, pageSize), pageSize)
 	if err != nil {
 		return nil, err
 	}
 
-	hits := make([]searchdto.SearchHitResponse, 0, len(users))
-	for _, user := range users {
-		doc, err := s.builder.Build(ctx, searchpkg.EntityUser, user.ID)
-		if err != nil || doc == nil {
-			continue
-		}
-		hits = append(hits, searchdto.SearchHitResponse{
-			EntityType: doc.EntityType,
-			EntityID:   doc.EntityID,
-			Title:      doc.Title,
-			Snippet:    doc.SearchableText,
-			Metadata:   doc.Metadata,
-			UpdatedAt:  doc.UpdatedAt,
+	out := make([]searchdto.SearchHitResponse, 0, len(hits))
+	for _, hit := range hits {
+		out = append(out, searchdto.SearchHitResponse{
+			EntityType: hit.EntityType,
+			EntityID:   hit.EntityID,
+			Title:      hit.Title,
+			Snippet:    hit.Snippet,
+			Metadata:   hit.Metadata,
+			UpdatedAt:  hit.UpdatedAt,
 		})
 	}
 
 	return &searchdto.SearchResponse{
-		Hits: hits,
+		Hits: out,
 		Pagination: searchdto.PaginationResponse{
 			Page:       page,
 			PageSize:   pageSize,
 			Total:      total,
 			TotalPages: listquery.TotalPages(total, pageSize),
 		},
-		Degraded: true,
 	}, nil
 }
 
-func viewPermissions(permissions []string) []string {
-	keys := []string{
-		rbac.Key("users", rbac.ActionView),
-		rbac.Key("roles", rbac.ActionView),
-		rbac.Key("permissions", rbac.ActionView),
-	}
-	out := make([]string, 0, len(keys))
-	for _, key := range keys {
-		if rbac.Allowed(permissions, key) {
-			out = append(out, key)
+// filterTypesByPermission keeps only entity types the caller may view.
+// An empty request means "all types the caller may view".
+func filterTypesByPermission(requested []string, permissions []string) []string {
+	out := make([]string, 0, len(entityPermission))
+	for _, item := range entityPermission {
+		if len(requested) > 0 && !contains(requested, item.entityType) {
+			continue
 		}
-	}
-	return out
-}
-
-func filterTypesByPermission(types []string, permissions []string) []string {
-	if len(types) == 0 {
-		out := make([]string, 0, 3)
-		if rbac.Allowed(permissions, rbac.Key("users", rbac.ActionView)) {
-			out = append(out, searchpkg.EntityUser)
-		}
-		if rbac.Allowed(permissions, rbac.Key("roles", rbac.ActionView)) {
-			out = append(out, searchpkg.EntityRole)
-		}
-		if rbac.Allowed(permissions, rbac.Key("permissions", rbac.ActionView)) {
-			out = append(out, searchpkg.EntityPermission)
-		}
-		return out
-	}
-
-	out := make([]string, 0, len(types))
-	for _, t := range types {
-		switch t {
-		case searchpkg.EntityUser:
-			if rbac.Allowed(permissions, rbac.Key("users", rbac.ActionView)) {
-				out = append(out, t)
-			}
-		case searchpkg.EntityRole:
-			if rbac.Allowed(permissions, rbac.Key("roles", rbac.ActionView)) {
-				out = append(out, t)
-			}
-		case searchpkg.EntityPermission:
-			if rbac.Allowed(permissions, rbac.Key("permissions", rbac.ActionView)) {
-				out = append(out, t)
-			}
+		if rbac.Allowed(permissions, rbac.Key(item.resource, rbac.ActionView)) {
+			out = append(out, item.entityType)
 		}
 	}
 	return out
@@ -165,17 +92,16 @@ func parseTypes(raw string) []string {
 	parts := strings.Split(raw, ",")
 	out := make([]string, 0, len(parts))
 	for _, part := range parts {
-		trimmed := strings.TrimSpace(part)
-		if trimmed != "" {
+		if trimmed := strings.TrimSpace(part); trimmed != "" {
 			out = append(out, trimmed)
 		}
 	}
 	return out
 }
 
-func containsType(types []string, target string) bool {
-	for _, t := range types {
-		if t == target {
+func contains(items []string, target string) bool {
+	for _, item := range items {
+		if item == target {
 			return true
 		}
 	}
@@ -186,48 +112,8 @@ func emptyResponse(page, pageSize int) *searchdto.SearchResponse {
 	return &searchdto.SearchResponse{
 		Hits: []searchdto.SearchHitResponse{},
 		Pagination: searchdto.PaginationResponse{
-			Page:       page,
-			PageSize:   pageSize,
-			Total:      0,
-			TotalPages: 0,
+			Page:     page,
+			PageSize: pageSize,
 		},
 	}
-}
-
-func toResponse(result *searchpkg.SearchResult, page, pageSize int, degraded bool) *searchdto.SearchResponse {
-	hits := make([]searchdto.SearchHitResponse, 0, len(result.Hits))
-	for _, hit := range result.Hits {
-		hits = append(hits, searchdto.SearchHitResponse{
-			EntityType: hit.EntityType,
-			EntityID:   hit.EntityID,
-			Title:      hit.Title,
-			Snippet:    hit.Snippet,
-			Metadata:   hit.Metadata,
-			UpdatedAt:  hit.UpdatedAt,
-		})
-	}
-
-	totalPages := listquery.TotalPages(result.Total, pageSize)
-
-	return &searchdto.SearchResponse{
-		Hits: hits,
-		Pagination: searchdto.PaginationResponse{
-			Page:       page,
-			PageSize:   pageSize,
-			Total:      result.Total,
-			TotalPages: totalPages,
-		},
-		Degraded: degraded,
-	}
-}
-
-func (s *Service) Enabled() bool {
-	return s.client != nil && s.client.Enabled()
-}
-
-func (s *Service) EnsureIndex(ctx context.Context) error {
-	if s.client == nil || !s.client.Enabled() {
-		return fmt.Errorf("search is disabled")
-	}
-	return s.client.EnsureIndex(ctx)
 }

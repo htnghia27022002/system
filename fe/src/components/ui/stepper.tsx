@@ -998,7 +998,7 @@ function StepperTrigger({
   } = useStepperItemContext("StepperTrigger");
   const { steps, getTriggerId } = useStepperContext("StepperTrigger");
   const isDisabled = itemDisabled || disabled;
-  const Comp = asChild ? Slot : "button";
+  const Comp = asChild ? Slot.Root : "button";
 
   return (
     <Comp
@@ -1211,7 +1211,7 @@ function StepperContent<TValue extends StepperValue = StepperValue>({
     return null;
   }
 
-  const Comp = asChild ? Slot : "div";
+  const Comp = asChild ? Slot.Root : "div";
 
   return (
     <Comp
@@ -1253,7 +1253,7 @@ function StepperPrevious({
     navigate: goPrevious,
     onBeforeNavigate: onBeforePrevious,
   });
-  const Comp = asChild ? Slot : "button";
+  const Comp = asChild ? Slot.Root : "button";
 
   return (
     <Comp
@@ -1303,7 +1303,7 @@ function StepperNext({
     navigate: goNext,
     onBeforeNavigate: onBeforeNext,
   });
-  const Comp = asChild ? Slot : "button";
+  const Comp = asChild ? Slot.Root : "button";
 
   return (
     <Comp

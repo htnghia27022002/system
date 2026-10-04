@@ -6,16 +6,14 @@ import (
 	"be/internal/config"
 	"be/internal/handlers/publisher"
 	"be/internal/queue"
-	"be/internal/repository"
 	"be/internal/repository/interfaces"
-	searchpkg "be/internal/search"
 	authsvc "be/internal/services/auth"
+	ingestsvc "be/internal/services/maps/ingest"
 	"be/internal/services/media"
 	permissionsvc "be/internal/services/permission"
 	rolesvc "be/internal/services/role"
 	searchsvc "be/internal/services/search"
 	usersvc "be/internal/services/user"
-	ingestsvc "be/internal/services/maps/ingest"
 	webhooksvc "be/internal/services/webhook"
 	"be/pkg/postgres"
 	"be/public/handlers"
@@ -35,11 +33,8 @@ type Container struct {
 	RoleService       *rolesvc.Service
 	PermissionService *permissionsvc.Service
 	SearchService     *searchsvc.Service
-	SearchProcessor   *searchsvc.IndexProcessor
-	OutboxService     *searchsvc.OutboxService
 	WebhookService    *webhooksvc.Service
 	IngestService     *ingestsvc.Service
-	SearchClient      *searchpkg.Client
 	RoleRepo          interfaces.RoleRepository
 	UserRepo          interfaces.UserRepository
 	AuthHandler       *handlers.AuthHandler
@@ -55,11 +50,12 @@ type Container struct {
 
 func NewContainer(cfg config.Config, db *postgres.Postgres) *Container {
 	infra := dependency.NewInfra(cfg, db)
-	searchStack := dependency.NewSearchStack(infra)
+	searchService := dependency.NewSearchService(infra)
 	mediaSvc := dependency.NewMediaService(infra)
+	userRepo := dependency.NewUserRepository(infra)
 	authServices := dependency.NewAuthServices(infra, mediaSvc)
-	userService := dependency.NewUserService(infra, searchStack.Outbox, mediaSvc)
-	roleServices := dependency.NewRoleServices(infra, searchStack.Outbox)
+	userService := dependency.NewUserService(infra, mediaSvc)
+	roleServices := dependency.NewRoleServices(infra)
 	permissionService := dependency.NewPermissionService(infra)
 	webhookService := dependency.NewWebhookService(infra)
 	addressService := dependency.NewAddressService(infra)
@@ -69,7 +65,7 @@ func NewContainer(cfg config.Config, db *postgres.Postgres) *Container {
 		userService,
 		roleServices,
 		permissionService,
-		searchStack,
+		searchService,
 		mediaSvc,
 		webhookService,
 		mapsServices,
@@ -89,14 +85,11 @@ func NewContainer(cfg config.Config, db *postgres.Postgres) *Container {
 		UserService:       userService,
 		RoleService:       roleServices.Service,
 		PermissionService: permissionService,
-		SearchService:     searchStack.Service,
-		SearchProcessor:   searchStack.Processor,
-		OutboxService:     searchStack.Outbox,
+		SearchService:     searchService,
 		WebhookService:    webhookService,
 		IngestService:     mapsServices.Ingest,
-		SearchClient:      infra.SearchClient,
 		RoleRepo:          roleServices.Repo,
-		UserRepo:          repository.NewUserRepository(db),
+		UserRepo:          userRepo,
 		AuthHandler:       httpHandlers.Auth,
 		UserHandler:       httpHandlers.User,
 		RoleHandler:       httpHandlers.Role,

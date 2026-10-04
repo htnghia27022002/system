@@ -2,7 +2,7 @@
 
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useEffect, useMemo } from 'react'
-import { useForm } from 'react-hook-form'
+import { useForm, useWatch } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 
 import { FormOverlay } from '@/components/common/form-overlay'
@@ -57,10 +57,10 @@ export function RoleFormDialog({
   const {
     register,
     handleSubmit,
+    control,
     formState: { errors },
     reset,
     setValue,
-    watch,
   } = useForm<CreateRoleFormValues>({
     resolver: zodResolver(schema),
     defaultValues: {
@@ -70,7 +70,7 @@ export function RoleFormDialog({
     },
   })
 
-  const selectedKeys = watch('permissionKeys') ?? []
+  const selectedKeys = useWatch({ control, name: 'permissionKeys' }) ?? []
   const permissions = permissionsQuery.data ?? []
 
   useEffect(() => {

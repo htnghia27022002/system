@@ -2,141 +2,145 @@ package search_test
 
 import (
 	"context"
-	"strings"
+	"errors"
 	"testing"
+	"time"
 
-	"be/pkg/query"
 	"be/common/rbac"
 	searchdto "be/internal/dto/search"
-	usermodel "be/internal/models/user"
-	searchpkg "be/internal/search"
+	"be/internal/repository/interfaces"
 	searchsvc "be/internal/services/search"
+	"be/pkg/query"
 )
 
-type stubUserRepo struct {
-	users []usermodel.User
+type searchCall struct {
+	term   string
+	types  []string
+	offset int
+	limit  int
 }
 
-func (s *stubUserRepo) Create(context.Context, *usermodel.User) error { return nil }
-func (s *stubUserRepo) GetByID(_ context.Context, id string) (*usermodel.User, error) {
-	for _, user := range s.users {
-		if user.ID == id {
-			copy := user
-			return &copy, nil
-		}
-	}
-	return nil, nil
-}
-func (s *stubUserRepo) GetByEmail(context.Context, string) (*usermodel.User, error) {
-	return nil, nil
-}
-func (s *stubUserRepo) List(_ context.Context, q *query.Query) ([]usermodel.User, int64, error) {
-	term := ""
-	offset, limit := 0, len(s.users)
-	if q != nil {
-		term = strings.ToLower(strings.TrimSpace(q.LikeSearchTerm()))
-		offset = q.Offset
-		limit = q.Limit
-	}
-
-	items := make([]usermodel.User, 0, len(s.users))
-	for _, user := range s.users {
-		if term != "" {
-			email := strings.ToLower(user.Email)
-			name := strings.ToLower(user.FullName)
-			if !strings.Contains(email, term) && !strings.Contains(name, term) {
-				continue
-			}
-		}
-		items = append(items, user)
-	}
-	total := int64(len(items))
-	if offset >= len(items) {
-		return []usermodel.User{}, total, nil
-	}
-	end := offset + limit
-	if end > len(items) {
-		end = len(items)
-	}
-	return items[offset:end], total, nil
-}
-func (s *stubUserRepo) ListAll(context.Context) ([]usermodel.User, error) { return s.users, nil }
-func (s *stubUserRepo) Update(context.Context, *usermodel.User) error       { return nil }
-func (s *stubUserRepo) Delete(context.Context, string) error                 { return nil }
-func (s *stubUserRepo) CountSuperAdmins(context.Context) (int64, error) {
-	var n int64
-	for _, user := range s.users {
-		if user.IsSuperAdmin {
-			n++
-		}
-	}
-	return n, nil
+type stubSearchRepo struct {
+	hits  []interfaces.SearchHit
+	total int64
+	err   error
+	calls []searchCall
 }
 
-func TestSearchEmptyQueryReturnsEmpty(t *testing.T) {
+func (s *stubSearchRepo) Search(_ context.Context, term string, types []string, offset, limit int) ([]interfaces.SearchHit, int64, error) {
+	s.calls = append(s.calls, searchCall{term: term, types: types, offset: offset, limit: limit})
+	return s.hits, s.total, s.err
+}
+
+func viewKeys(resources ...string) []string {
+	keys := make([]string, 0, len(resources))
+	for _, r := range resources {
+		keys = append(keys, rbac.Key(r, rbac.ActionView))
+	}
+	return keys
+}
+
+func TestSearchEmptyQueryReturnsEmptyWithoutQuerying(t *testing.T) {
 	t.Parallel()
+	repo := &stubSearchRepo{}
+	svc := searchsvc.NewService(repo)
 
-	client, _ := searchpkg.NewClient("http://localhost:9200", false)
-	builder := searchsvc.NewDocumentBuilder(&stubUserRepo{}, nil, nil)
-	svc := searchsvc.NewService(client, &stubUserRepo{}, builder)
-
-	resp, err := svc.Search(context.Background(), searchdto.SearchQuery{Q: "   "}, []string{
-		rbac.Key("users", rbac.ActionView),
-	})
+	resp, err := svc.Search(context.Background(), searchdto.SearchQuery{Q: "   "}, viewKeys("users"))
 	if err != nil {
 		t.Fatalf("search: %v", err)
 	}
-	if len(resp.Hits) != 0 {
-		t.Fatalf("expected empty hits, got %d", len(resp.Hits))
+	if len(resp.Hits) != 0 || len(repo.calls) != 0 {
+		t.Fatalf("expected no hits and no repo call, got hits=%d calls=%d", len(resp.Hits), len(repo.calls))
 	}
 }
 
-func TestSearchFallbackFiltersByPermission(t *testing.T) {
+func TestSearchWithoutViewPermissionsSkipsRepo(t *testing.T) {
 	t.Parallel()
-
-	repo := &stubUserRepo{
-		users: []usermodel.User{
-			{ID: "u1", Email: "admin@example.com", FullName: "Admin User", Status: usermodel.StatusActive},
-		},
-	}
-	client, _ := searchpkg.NewClient("http://localhost:9200", false)
-	builder := searchsvc.NewDocumentBuilder(repo, nil, nil)
-	svc := searchsvc.NewService(client, repo, builder)
+	repo := &stubSearchRepo{}
+	svc := searchsvc.NewService(repo)
 
 	resp, err := svc.Search(context.Background(), searchdto.SearchQuery{Q: "admin"}, []string{})
 	if err != nil {
 		t.Fatalf("search: %v", err)
 	}
-	if len(resp.Hits) != 0 {
-		t.Fatalf("expected no hits without users.view, got %d", len(resp.Hits))
-	}
-	if resp.Degraded {
-		t.Fatal("expected non-degraded empty result when entity view permission is missing")
+	if len(resp.Hits) != 0 || len(repo.calls) != 0 {
+		t.Fatalf("expected empty result without *:view, got hits=%d calls=%d", len(resp.Hits), len(repo.calls))
 	}
 }
 
-func TestSearchFallbackReturnsUsersWhenSearchDisabled(t *testing.T) {
+func TestSearchRestrictsTypesToPermittedEntities(t *testing.T) {
 	t.Parallel()
+	repo := &stubSearchRepo{}
+	svc := searchsvc.NewService(repo)
 
-	repo := &stubUserRepo{
-		users: []usermodel.User{
-			{ID: "u1", Email: "admin@example.com", FullName: "Admin User", Status: usermodel.StatusActive},
-		},
-	}
-	client, _ := searchpkg.NewClient("http://localhost:9200", false)
-	builder := searchsvc.NewDocumentBuilder(repo, nil, nil)
-	svc := searchsvc.NewService(client, repo, builder)
-
-	resp, err := svc.Search(context.Background(), searchdto.SearchQuery{Q: "admin"}, []string{
-		rbac.Key("users", rbac.ActionView),
-	})
+	// Caller asks for users+roles but may only view roles.
+	_, err := svc.Search(context.Background(), searchdto.SearchQuery{Q: "admin", Types: "user, role"}, viewKeys("roles"))
 	if err != nil {
 		t.Fatalf("search: %v", err)
 	}
-	if len(resp.Hits) != 1 {
-		t.Fatalf("expected 1 hit, got %d", len(resp.Hits))
+	if len(repo.calls) != 1 {
+		t.Fatalf("expected 1 repo call, got %d", len(repo.calls))
 	}
-	if !resp.Degraded {
-		t.Fatal("expected degraded fallback response")
+	got := repo.calls[0].types
+	if len(got) != 1 || got[0] != interfaces.SearchEntityRole {
+		t.Fatalf("expected types [role], got %v", got)
+	}
+}
+
+func TestSearchDefaultsToAllPermittedTypes(t *testing.T) {
+	t.Parallel()
+	repo := &stubSearchRepo{}
+	svc := searchsvc.NewService(repo)
+
+	_, err := svc.Search(context.Background(), searchdto.SearchQuery{Q: "x"}, viewKeys("users", "roles", "permissions"))
+	if err != nil {
+		t.Fatalf("search: %v", err)
+	}
+	if got := repo.calls[0].types; len(got) != 3 {
+		t.Fatalf("expected 3 types, got %v", got)
+	}
+}
+
+func TestSearchMapsHitsAndPagination(t *testing.T) {
+	t.Parallel()
+	now := time.Now().UTC()
+	repo := &stubSearchRepo{
+		hits: []interfaces.SearchHit{{
+			EntityType: interfaces.SearchEntityUser,
+			EntityID:   "u1",
+			Title:      "Admin User",
+			Snippet:    "admin@example.com",
+			Metadata:   map[string]string{"email": "admin@example.com"},
+			UpdatedAt:  now,
+		}},
+		total: 41,
+	}
+	svc := searchsvc.NewService(repo)
+
+	resp, err := svc.Search(context.Background(), searchdto.SearchQuery{
+		PageParams: query.PageParams{Page: 3, PageSize: 20},
+		Q:          " admin ",
+	}, viewKeys("users"))
+	if err != nil {
+		t.Fatalf("search: %v", err)
+	}
+	if call := repo.calls[0]; call.term != "admin" || call.offset != 40 || call.limit != 20 {
+		t.Fatalf("unexpected repo call %+v", call)
+	}
+	if len(resp.Hits) != 1 || resp.Hits[0].EntityID != "u1" || resp.Hits[0].Title != "Admin User" {
+		t.Fatalf("unexpected hits %+v", resp.Hits)
+	}
+	if resp.Pagination.Total != 41 || resp.Pagination.TotalPages != 3 || resp.Pagination.Page != 3 {
+		t.Fatalf("unexpected pagination %+v", resp.Pagination)
+	}
+}
+
+func TestSearchPropagatesRepoError(t *testing.T) {
+	t.Parallel()
+	repo := &stubSearchRepo{err: errors.New("db down")}
+	svc := searchsvc.NewService(repo)
+
+	if _, err := svc.Search(context.Background(), searchdto.SearchQuery{Q: "a"}, viewKeys("users")); err == nil {
+		t.Fatal("expected error")
 	}
 }

@@ -34,12 +34,11 @@ const mockHits = (q: string): SearchResponse => ({
     total: 1,
     totalPages: 1,
   },
-  degraded: true,
 })
 
 export const searchApi = {
   search(params: SearchQueryParams): Promise<SearchResponse> {
-    if (env.VITE_USE_MOCK_API) {
+    if (env.USE_MOCK_API) {
       const q = params.q.trim()
       if (!q) {
         return Promise.resolve({

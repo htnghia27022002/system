@@ -7,11 +7,16 @@ import * as THREE from 'three'
 
 import { GltfHeroCharacter } from './gltf-hero-character'
 
+// Set to true to render the WebGL hero character again (currently disabled).
+const HERO_CANVAS_ENABLED = false
+
 function FramedCamera() {
-  const camera = useThree((s) => s.camera)
+  const get = useThree((s) => s.get)
   const size = useThree((s) => s.size)
 
   useLayoutEffect(() => {
+    // Read the live three.js camera inside the effect: it is mutated imperatively.
+    const { camera } = get()
     // Pull back so full body fits with padding inside the frame
     camera.position.set(0, 1.0, 4.6)
     camera.near = 0.1
@@ -22,19 +27,20 @@ function FramedCamera() {
       camera.updateProjectionMatrix()
     }
     camera.lookAt(0, 0.9, 0)
-  }, [camera, size.height, size.width])
+  }, [get, size.height, size.width])
 
   return null
 }
 
 function TransparentScene() {
-  const { gl, scene } = useThree()
+  const get = useThree((s) => s.get)
 
   useLayoutEffect(() => {
+    const { gl, scene } = get()
     // Three.js has no "transparent" Color — that string becomes white.
     scene.background = null
     gl.setClearColor(0x000000, 0)
-  }, [gl, scene])
+  }, [get])
 
   return null
 }
@@ -49,7 +55,7 @@ function CharacterScene() {
       <directionalLight position={[-2.5, 1.5, -1.5]} intensity={0.25} />
       <hemisphereLight args={['#dbeafe', '#1e293b', 0.35]} />
 
-       <GltfHeroCharacter /> 
+      <GltfHeroCharacter />
 
       <ContactShadows position={[0, 0.01, 0]} opacity={0.35} scale={6} blur={2.2} far={3.5} />
       <Environment preset="apartment" environmentIntensity={0.2} />
@@ -65,20 +71,22 @@ type HeroCharacterCanvasProps = {
 export function HeroCharacterCanvas({ className }: HeroCharacterCanvasProps) {
   return (
     <div className={className}>
-      {/* <Canvas
-        shadows
-        dpr={[1, 1.75]}
-        camera={{ position: [0, 1.0, 4.6], fov: 30 }}
-        gl={{ antialias: true, alpha: true, premultipliedAlpha: true }}
-        onCreated={({ gl, scene }) => {
-          scene.background = null
-          gl.setClearColor(0x000000, 0)
-        }}
-      >
-        <Suspense fallback={null}>
-          <CharacterScene />
-        </Suspense>
-      </Canvas> */}
+      {HERO_CANVAS_ENABLED ? (
+        <Canvas
+          shadows
+          dpr={[1, 1.75]}
+          camera={{ position: [0, 1.0, 4.6], fov: 30 }}
+          gl={{ antialias: true, alpha: true, premultipliedAlpha: true }}
+          onCreated={({ gl, scene }) => {
+            scene.background = null
+            gl.setClearColor(0x000000, 0)
+          }}
+        >
+          <Suspense fallback={null}>
+            <CharacterScene />
+          </Suspense>
+        </Canvas>
+      ) : null}
     </div>
   )
 }

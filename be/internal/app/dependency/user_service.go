@@ -5,10 +5,10 @@ import (
 	usersvc "be/internal/services/user"
 )
 
-func NewUserService(infra *Infra, outbox usersvc.OutboxEnqueuer, mediaSvc *media.Service) *usersvc.Service {
+func NewUserService(infra *Infra, mediaSvc *media.Service) *usersvc.Service {
 	userRepo := newUserRepository(infra.DB)
 	authRepo := newAuthRepository(infra.DB)
-	return usersvc.NewService(userRepo, authRepo, outbox, mediaSvc)
+	return usersvc.NewService(userRepo, authRepo, mediaSvc)
 }
 
 func NewMediaService(infra *Infra) *media.Service {

@@ -26,7 +26,7 @@ export const profileApi = {
   },
 
   async updateProfile(input: UpdateProfileInput): Promise<AuthUser> {
-    if (env.VITE_USE_MOCK_API) {
+    if (env.USE_MOCK_API) {
       return mockUpdateProfile(input)
     }
     const { data } = await apiClient.patch<AuthUser>('/auth/profile', input)
@@ -34,7 +34,7 @@ export const profileApi = {
   },
 
   async uploadAvatar(file: File): Promise<AuthUser> {
-    if (env.VITE_USE_MOCK_API) {
+    if (env.USE_MOCK_API) {
       const user = await authApi.me()
       const objectUrl = URL.createObjectURL(file)
       return { ...user, avatarUrl: objectUrl }
@@ -52,7 +52,7 @@ export const profileApi = {
   },
 
   async changePassword(input: ChangePasswordInput): Promise<void> {
-    if (env.VITE_USE_MOCK_API) {
+    if (env.USE_MOCK_API) {
       return
     }
     await apiClient.post('/auth/change-password', input)

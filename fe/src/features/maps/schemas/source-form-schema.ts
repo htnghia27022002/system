@@ -253,7 +253,7 @@ function fillGroup<T extends Record<string, string>>(
   if (!stored) return next
   for (const key of Object.keys(empty) as Array<keyof T>) {
     const value = stored[key]
-    if (typeof value === 'string') next[key] = value
+    if (typeof value === 'string') next[key] = value as T[keyof T]
   }
   return next
 }

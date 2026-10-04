@@ -50,9 +50,6 @@
     "pageSummary": "Trang {{page}} / {{totalPages}}",
     "previous": "Trước",
     "next": "Sau",
-    "degradedTitle": "Chế độ tìm kiếm hạn chế",
-    "degradedDescription": "Chỉ mục tìm kiếm không khả dụng. Kết quả có thể chỉ gồm người dùng từ cơ sở dữ liệu.",
-    "degraded": "Chỉ mục tìm kiếm không khả dụng — kết quả có thể bị giới hạn.",
     "filters": {
       "all": "Tất cả",
       "users": "Người dùng",

@@ -10,7 +10,7 @@ export function useOAuthProviders() {
   return useQuery({
     queryKey: ['auth', 'oauth-providers'],
     queryFn: () => authApi.getOAuthProviders(),
-    enabled: !env.VITE_USE_MOCK_API,
+    enabled: !env.USE_MOCK_API,
     staleTime: 60_000,
   })
 }

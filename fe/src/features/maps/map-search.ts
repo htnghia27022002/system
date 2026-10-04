@@ -13,8 +13,10 @@ export type MapSearchHit = {
   locationId?: string
 }
 
-function hasCoords(lat?: number | null, lng?: number | null): lat is number {
-  return lat != null && lng != null && Number.isFinite(lat) && Number.isFinite(lng)
+function hasCoords<T extends { lat?: number | null; lng?: number | null }>(
+  item: T,
+): item is T & { lat: number; lng: number } {
+  return item.lat != null && item.lng != null && Number.isFinite(item.lat) && Number.isFinite(item.lng)
 }
 
 function needle(query: string) {
@@ -37,7 +39,7 @@ export function matchSavedPlaces(
   const hits: MapSearchHit[] = []
   for (const place of places) {
     if (hits.length >= limit) break
-    if (!hasCoords(place.lat, place.lng)) continue
+    if (!hasCoords(place)) continue
     if (
       !includesQuery(place.name, q) &&
       !includesQuery(place.locationName, q) &&
@@ -68,7 +70,7 @@ export function matchSavedLocations(
   const hits: MapSearchHit[] = []
   for (const location of locations) {
     if (hits.length >= limit) break
-    if (!hasCoords(location.lat, location.lng)) continue
+    if (!hasCoords(location)) continue
     if (
       !includesQuery(location.name, q) &&
       !includesQuery(location.formatted, q) &&

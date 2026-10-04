@@ -8,8 +8,8 @@ import (
 )
 
 type Config struct {
-	Connection ConnectionConfig          `json:"connection"`
-	Streams    map[string]StreamOptions  `json:"streams"`
+	Connection ConnectionConfig         `json:"connection"`
+	Streams    map[string]StreamOptions `json:"streams"`
 }
 
 type ConnectionConfig struct {
@@ -21,14 +21,14 @@ type ConnectionConfig struct {
 }
 
 type StreamOptions struct {
-	Retention       string                      `json:"retention"`
-	Storage         string                      `json:"storage"`
-	MaxAge          string                      `json:"max_age"`
-	MaxMsgs         int64                       `json:"max_msgs"`
-	MaxBytes        int64                       `json:"max_bytes"`
-	Discard         string                      `json:"discard"`
-	DuplicateWindow string                      `json:"duplicate_window"`
-	Consumers       map[string]ConsumerOptions  `json:"consumers"`
+	Retention       string                     `json:"retention"`
+	Storage         string                     `json:"storage"`
+	MaxAge          string                     `json:"max_age"`
+	MaxMsgs         int64                      `json:"max_msgs"`
+	MaxBytes        int64                      `json:"max_bytes"`
+	Discard         string                     `json:"discard"`
+	DuplicateWindow string                     `json:"duplicate_window"`
+	Consumers       map[string]ConsumerOptions `json:"consumers"`
 }
 
 type ConsumerOptions struct {
@@ -86,25 +86,6 @@ func defaultConfig() Config {
 			ReconnectWait: "2s",
 		},
 		Streams: map[string]StreamOptions{
-			StreamKeySearch: {
-				Retention:       "limits",
-				Storage:         "file",
-				MaxAge:          "168h",
-				MaxMsgs:         100000,
-				MaxBytes:        1073741824,
-				Discard:         "old",
-				DuplicateWindow: "2m",
-				Consumers: map[string]ConsumerOptions{
-					ConsumerKeySearchOutbox: {
-						AckPolicy:     "explicit",
-						AckWait:       "30s",
-						MaxDeliver:    5,
-						MaxAckPending: 64,
-						DeliverPolicy: "all",
-						ReplayPolicy:  "instant",
-					},
-				},
-			},
 			StreamKeyMaps: {
 				Retention:       "limits",
 				Storage:         "file",
@@ -154,11 +135,6 @@ func applyEnvOverrides(cfg *Config) {
 
 func resolveStream(key string) (StreamDefinition, error) {
 	switch key {
-	case StreamKeySearch:
-		return StreamDefinition{
-			Name:     StreamSearch,
-			Subjects: []string{SubjectSearchWildcard},
-		}, nil
 	case StreamKeyMaps:
 		return StreamDefinition{
 			Name:     StreamMaps,
@@ -171,15 +147,6 @@ func resolveStream(key string) (StreamDefinition, error) {
 
 func resolveConsumer(streamKey, consumerKey string) (ConsumerDefinition, error) {
 	switch streamKey {
-	case StreamKeySearch:
-		switch consumerKey {
-		case ConsumerKeySearchOutbox:
-			return ConsumerDefinition{
-				Name:          ConsumerSearchOutbox,
-				FilterSubject: SubjectSearchOutbox,
-				Handler:       HandlerSearchOutbox,
-			}, nil
-		}
 	case StreamKeyMaps:
 		switch consumerKey {
 		case ConsumerKeyMapsIngest:

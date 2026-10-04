@@ -15,7 +15,7 @@ import (
 
 func TestCreateHashesPassword(t *testing.T) {
 	repo := &testutil.MemoryUserRepo{Users: map[string]*usermodel.User{}}
-	svc := usersvc.NewService(repo, nil, nil, nil)
+	svc := usersvc.NewService(repo, nil, nil)
 
 	user, err := svc.Create(context.Background(), userdto.CreateUserRequest{
 		Email:    "demo@example.com",
@@ -37,7 +37,7 @@ func TestDeleteBlocksSelfDelete(t *testing.T) {
 			"self-id": {ID: "self-id", Email: "self@example.com", FullName: "Self"},
 		},
 	}
-	svc := usersvc.NewService(repo, nil, nil, nil)
+	svc := usersvc.NewService(repo, nil, nil)
 
 	err := svc.Delete(context.Background(), "self-id", usersvc.Actor{ID: "self-id"})
 	if err == nil || !apperrors.IsForbidden(err) {
@@ -62,7 +62,7 @@ func TestUpdateKeepsPasswordWhenBlank(t *testing.T) {
 			},
 		},
 	}
-	svc := usersvc.NewService(repo, nil, nil, nil)
+	svc := usersvc.NewService(repo, nil, nil)
 	blank := ""
 	phone := "555"
 	user, err := svc.Update(context.Background(), "u1", userdto.UpdateUserRequest{
@@ -112,7 +112,7 @@ func TestToResponseIncludesPersonalFields(t *testing.T) {
 
 func TestCreateRejectsSuperAdminFlagFromNonSuperAdmin(t *testing.T) {
 	repo := &testutil.MemoryUserRepo{Users: map[string]*usermodel.User{}}
-	svc := usersvc.NewService(repo, nil, nil, nil)
+	svc := usersvc.NewService(repo, nil, nil)
 	flag := true
 	_, err := svc.Create(context.Background(), userdto.CreateUserRequest{
 		Email:      "x@example.com",
@@ -132,7 +132,7 @@ func TestUpdateBlocksLastSuperAdminDemotion(t *testing.T) {
 			"sa": {ID: "sa", Email: "sa@example.com", FullName: "SA", IsSuperAdmin: true, Status: usermodel.StatusActive},
 		},
 	}
-	svc := usersvc.NewService(repo, nil, nil, nil)
+	svc := usersvc.NewService(repo, nil, nil)
 	flag := false
 	_, err := svc.Update(context.Background(), "sa", userdto.UpdateUserRequest{
 		SuperAdmin: &flag,
@@ -149,7 +149,7 @@ func TestDeleteBlocksLastSuperAdmin(t *testing.T) {
 			"u2": {ID: "u2", Email: "u2@example.com", FullName: "U2"},
 		},
 	}
-	svc := usersvc.NewService(repo, nil, nil, nil)
+	svc := usersvc.NewService(repo, nil, nil)
 	err := svc.Delete(context.Background(), "sa", usersvc.Actor{ID: "u2", SuperAdmin: true})
 	if err == nil || !apperrors.IsForbidden(err) {
 		t.Fatalf("expected forbidden, got %v", err)
@@ -163,7 +163,7 @@ func TestSuperAdminCanGrantFlag(t *testing.T) {
 			"u2": {ID: "u2", Email: "u2@example.com", FullName: "U2", Status: usermodel.StatusActive},
 		},
 	}
-	svc := usersvc.NewService(repo, nil, nil, nil)
+	svc := usersvc.NewService(repo, nil, nil)
 	flag := true
 	user, err := svc.Update(context.Background(), "u2", userdto.UpdateUserRequest{
 		SuperAdmin: &flag,

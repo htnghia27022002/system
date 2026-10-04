@@ -27,19 +27,7 @@ func main() {
 	defer container.Close()
 
 	ctx := context.Background()
-	if container.SearchClient != nil && container.SearchClient.Enabled() {
-		if err := container.SearchService.EnsureIndex(ctx); err != nil {
-			log.Printf("search index ensure failed: %v", err)
-		}
-	}
-
-	if count, err := container.SearchProcessor.ProcessBatch(ctx, 100); err != nil {
-		log.Printf("queue worker initial drain failed: %v", err)
-	} else if count > 0 {
-		log.Printf("queue worker drained %d pending outbox entries", count)
-	}
-
-	registry := subscribers.NewRegistry(container.SearchProcessor, container.IngestService)
+	registry := subscribers.NewRegistry(container.IngestService)
 
 	if container.QueueClient != nil && container.QueueClient.Enabled() {
 		if err := container.QueueClient.EnsureInfrastructure(ctx); err != nil {
@@ -60,25 +48,18 @@ func main() {
 func runPollingWorker(container *app.Container) {
 	ticker := time.NewTicker(2 * time.Second)
 	defer ticker.Stop()
-	log.Printf("queue worker polling outbox and maps ingest (NATS disabled)")
+	log.Printf("queue worker polling maps ingest (NATS disabled)")
+	if container.IngestService == nil {
+		return
+	}
 	for range ticker.C {
-		count, err := container.SearchProcessor.ProcessBatch(context.Background(), 25)
+		ingested, err := container.IngestService.ProcessQueued(context.Background(), 10)
 		if err != nil {
-			log.Printf("queue worker poll failed: %v", err)
+			log.Printf("queue worker maps ingest poll failed: %v", err)
 			continue
 		}
-		if count > 0 {
-			log.Printf("queue worker processed %d outbox entries", count)
-		}
-		if container.IngestService != nil {
-			ingested, ingestErr := container.IngestService.ProcessQueued(context.Background(), 10)
-			if ingestErr != nil {
-				log.Printf("queue worker maps ingest poll failed: %v", ingestErr)
-				continue
-			}
-			if ingested > 0 {
-				log.Printf("queue worker processed %d maps ingest runs", ingested)
-			}
+		if ingested > 0 {
+			log.Printf("queue worker processed %d maps ingest runs", ingested)
 		}
 	}
 }

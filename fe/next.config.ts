@@ -27,11 +27,6 @@ const withSerwist = withSerwistInit({
 })
 
 const nextConfig: NextConfig = {
-  eslint: {
-    // Next.js React Compiler rules flag pre-existing patterns in shadcn/ui and
-    // react-hook-form that are intentional. Run linting separately with pnpm lint.
-    ignoreDuringBuilds: true,
-  },
   async headers() {
     return [
       {

@@ -201,12 +201,6 @@ export function AdminSearchBar() {
               </Link>
             </div>
           ) : null}
-
-          {data?.degraded ? (
-            <p className="border-t px-3 py-2 text-xs text-amber-600 dark:text-amber-400">
-              {t('search.degraded')}
-            </p>
-          ) : null}
         </div>
       ) : null}
     </div>

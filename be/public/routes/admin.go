@@ -31,11 +31,8 @@ func RegisterAdminRoutes(r *gin.RouterGroup, c *app.Container) {
 		users.POST("/:id/avatar", middleware.RequireModify("users"), c.UserHandler.UploadAvatar)
 		users.DELETE("/:id", middleware.RequireModify("users"), c.UserHandler.Delete)
 
-		search := admin.Group("/search")
-		search.GET("", c.SearchHandler.Search)
-		search.POST("/reindex", c.SearchHandler.Reindex)
-		search.GET("/outbox/stats", c.SearchHandler.OutboxStats)
-		search.POST("/outbox/replay", c.SearchHandler.ReplayOutbox)
+		// Results are filtered per entity type by the caller's *:view permissions in the service.
+		admin.GET("/search", c.SearchHandler.Search)
 
 		RegisterMapsRoutes(admin, c)
 	}

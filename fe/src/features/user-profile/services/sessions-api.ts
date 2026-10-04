@@ -61,7 +61,7 @@ function mockListSessions(): AccountSessionList {
 
 export const sessionsApi = {
   async listSessions(): Promise<AccountSessionList> {
-    if (env.VITE_USE_MOCK_API) {
+    if (env.USE_MOCK_API) {
       return mockListSessions()
     }
 
@@ -73,7 +73,7 @@ export const sessionsApi = {
   },
 
   async revokeSession(id: string): Promise<void> {
-    if (env.VITE_USE_MOCK_API) {
+    if (env.USE_MOCK_API) {
       return
     }
 
@@ -83,7 +83,7 @@ export const sessionsApi = {
   },
 
   async revokeOthers(sessionId: string): Promise<AccountSessionList> {
-    if (env.VITE_USE_MOCK_API) {
+    if (env.USE_MOCK_API) {
       return mockListSessions()
     }
 

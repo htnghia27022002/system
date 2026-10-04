@@ -11,10 +11,10 @@ type RoleServices struct {
 	Repo    interfaces.RoleRepository
 }
 
-func NewRoleServices(infra *Infra, outbox rolesvc.OutboxEnqueuer) *RoleServices {
+func NewRoleServices(infra *Infra) *RoleServices {
 	roleRepo := newRoleRepository(infra.DB)
 	return &RoleServices{
-		Service: rolesvc.NewService(roleRepo, outbox),
+		Service: rolesvc.NewService(roleRepo),
 		Repo:    roleRepo,
 	}
 }
