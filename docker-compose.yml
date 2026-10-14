@@ -47,6 +47,17 @@ services:
       - system_net
 
 
+  # Dev mail catcher: set MAIL_DRIVER=smtp, SMTP_HOST=mailpit, SMTP_PORT=1025,
+  # SMTP_TLS=none in be/.env, then read mail at http://localhost:${MAILPIT_UI_PORT:-8025}.
+  mailpit:
+    profiles: [mail]
+    image: axllent/mailpit:v1.21
+    restart: unless-stopped
+    ports:
+      - "${MAILPIT_UI_PORT:-8025}:8025"
+    networks:
+      - system_net
+
   nats:
     profiles: [queue, prod-queue]
     image: nats:2.10-alpine

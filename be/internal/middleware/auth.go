@@ -146,3 +146,10 @@ func permissionsFromContext(c *gin.Context) ([]string, bool) {
 	}
 	return permissions, true
 }
+
+// GetUserEmail returns the signed-in user's email from the JWT, or "".
+func GetUserEmail(c *gin.Context) string {
+	value, _ := c.Get(ContextUserEmailKey)
+	email, _ := value.(string)
+	return email
+}

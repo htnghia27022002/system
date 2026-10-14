@@ -39,6 +39,7 @@ type UserResponse struct {
 	RoleID         string          `json:"roleId"`
 	SuperAdmin     bool            `json:"superAdmin"`
 	Status         string          `json:"status"`
+	EmailVerified  bool            `json:"emailVerified"`
 	Phone          string          `json:"phone"`
 	AvatarURL      string          `json:"avatarUrl"`
 	General        string          `json:"general"`
@@ -54,7 +55,7 @@ type ListUsersQuery struct {
 	Search string `form:"search" binding:"omitempty,max=200"`
 	RoleID string `form:"roleId" binding:"omitempty,uuid"`
 	ID     string `form:"id" binding:"omitempty,uuid"`
-	Status string `form:"status" binding:"omitempty,oneof=active inactive"`
+	Status string `form:"status" binding:"omitempty,oneof=active inactive invited"`
 }
 
 type PaginatedUsersResponse = query.Page[UserResponse]

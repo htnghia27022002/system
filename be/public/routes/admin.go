@@ -28,6 +28,8 @@ func RegisterAdminRoutes(r *gin.RouterGroup, c *app.Container) *gin.RouterGroup 
 		users := admin.Group("/users")
 		users.GET("", middleware.RequireView("users"), c.UserHandler.List)
 		users.POST("", middleware.RequireModify("users"), c.UserHandler.Create)
+		users.POST("/invite", middleware.RequireModify("users"), c.AccountHandler.InviteUser)
+		users.POST("/:id/invite", middleware.RequireModify("users"), c.AccountHandler.ResendInvite)
 		users.GET("/:id", middleware.RequireView("users"), c.UserHandler.Get)
 		users.PATCH("/:id", middleware.RequireModify("users"), c.UserHandler.Update)
 		users.POST("/:id/avatar", middleware.RequireModify("users"), c.UserHandler.UploadAvatar)

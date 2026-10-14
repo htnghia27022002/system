@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log/slog"
 	"mime/multipart"
 	"sort"
 	"strings"
@@ -35,10 +36,35 @@ type Service struct {
 	loginAttempts   interfaces.LoginAttemptRepository
 	maxFailedLogins int
 	lockoutDuration time.Duration
+
+	// Optional email verification (account service).
+	verifier      EmailVerifier
+	requireVerify bool
+}
+
+// EmailVerifier sends a verification link (implemented by services/account).
+type EmailVerifier interface {
+	SendVerification(ctx context.Context, userID string) error
+}
+
+// SetEmailVerification sends a verification email after Register and, when
+// require is true, refuses password login until the email is verified.
+func (s *Service) SetEmailVerification(v EmailVerifier, require bool) {
+	s.verifier = v
+	s.requireVerify = require
 }
 
 // ErrAccountLocked is returned while an account is temporarily locked (HTTP 429).
-var ErrAccountLocked = fmt.Errorf("%w: too many failed sign-in attempts, try again later", apperrors.ErrTooManyRequests)
+var ErrAccountLocked = apperrors.WithCode(
+	fmt.Errorf("%w: too many failed sign-in attempts, try again later", apperrors.ErrTooManyRequests),
+	"account_locked",
+)
+
+// ErrEmailNotVerified is returned by Login when verification is required (HTTP 403).
+var ErrEmailNotVerified = apperrors.WithCode(
+	fmt.Errorf("%w: verify your email address before signing in", apperrors.ErrForbidden),
+	"email_not_verified",
+)
 
 // SetLoginLockout enables lockout: after maxFailures consecutive wrong passwords the
 // account rejects password logins for lockFor. maxFailures <= 0 disables it.
@@ -102,20 +128,21 @@ func (s *Service) buildAuthUser(ctx context.Context, user *usermodel.User) (*aut
 	}
 
 	return &authdto.AuthUserResponse{
-		ID:          user.ID,
-		Email:       user.Email,
-		Name:        user.FullName,
-		Role:        roleSlug,
-		RoleID:      user.RoleID,
-		Permissions: permissions,
-		SuperAdmin:  user.IsSuperAdmin,
-		Phone:       user.Phone,
-		AvatarURL:   user.AvatarURL,
-		General:     user.General,
-		Birthday:    utils.FormatDate(user.Birthday),
-		Address:     user.Address,
-		SocialLinks: userdto.SocialLinksToDTO(user.SocialLinks),
-		HasPassword: user.PasswordHash != "",
+		ID:            user.ID,
+		Email:         user.Email,
+		Name:          user.FullName,
+		Role:          roleSlug,
+		RoleID:        user.RoleID,
+		Permissions:   permissions,
+		SuperAdmin:    user.IsSuperAdmin,
+		Phone:         user.Phone,
+		AvatarURL:     user.AvatarURL,
+		General:       user.General,
+		Birthday:      utils.FormatDate(user.Birthday),
+		Address:       user.Address,
+		SocialLinks:   userdto.SocialLinksToDTO(user.SocialLinks),
+		HasPassword:   user.PasswordHash != "",
+		EmailVerified: user.EmailVerifiedAt != nil,
 	}, nil
 }
 
@@ -192,6 +219,9 @@ func (s *Service) Login(ctx context.Context, email, password, ip, userAgent stri
 	if user.Status != usermodel.StatusActive {
 		return nil, fmt.Errorf("%w: account is not active", apperrors.ErrForbidden)
 	}
+	if s.requireVerify && user.EmailVerifiedAt == nil {
+		return nil, ErrEmailNotVerified
+	}
 	if s.lockoutEnabled() {
 		if err := s.loginAttempts.Reset(ctx, user.ID); err != nil {
 			return nil, err
@@ -231,6 +261,15 @@ func (s *Service) Register(ctx context.Context, name, email, password, ip, userA
 	}
 	if err := s.userRepo.Create(ctx, user); err != nil {
 		return nil, err
+	}
+	if s.verifier != nil {
+		// A mail problem must not fail sign-up; the user can resend from the profile.
+		if err := s.verifier.SendVerification(ctx, user.ID); err != nil {
+			slog.ErrorContext(ctx, "send verification email", "user_id", user.ID, "err", err)
+		}
+	}
+	if s.requireVerify {
+		return nil, ErrEmailNotVerified
 	}
 	return s.issueTokenPair(ctx, user, ip, userAgent)
 }

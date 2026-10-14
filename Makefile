@@ -2,11 +2,11 @@
 
 # be/.env for DB_* substitution (postgres) + be/queue containers.
 # Profiles: dev = postgres + be + fe + nginx; prod = nginx + go-app (pulls GO_APP_IMAGE).
-# Optional add-ons: cache (redis), queue (nats + worker), prod-queue (nats + go-queue).
+# Optional add-ons: cache (redis), queue (nats + worker), prod-queue (nats + go-queue), mail (mailpit).
 #   make up-d PROFILES="dev queue"      make prod PROD_PROFILES="prod prod-queue"
 PROFILES ?= dev
 PROD_PROFILES ?= prod
-ALL_PROFILES := --profile dev --profile prod --profile cache --profile queue --profile prod-queue
+ALL_PROFILES := --profile dev --profile prod --profile cache --profile queue --profile prod-queue --profile mail
 COMPOSE := docker compose --env-file be/.env $(addprefix --profile ,$(PROFILES))
 COMPOSE_PROD := docker compose --env-file be/.env $(addprefix --profile ,$(PROD_PROFILES))
 GO_APP_IMAGE ?= $(shell sed -n 's/^GO_APP_IMAGE=//p' .env 2>/dev/null)

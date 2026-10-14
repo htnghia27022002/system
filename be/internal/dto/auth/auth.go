@@ -56,6 +56,8 @@ type AuthUserResponse struct {
 	Address     string                  `json:"address"`
 	SocialLinks []userdto.SocialLinkDTO `json:"socialLinks"`
 	HasPassword bool                    `json:"hasPassword"`
+	// EmailVerified is false until the owner proves the mailbox.
+	EmailVerified bool `json:"emailVerified"`
 }
 
 type AuthResponse struct {

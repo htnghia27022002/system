@@ -5,11 +5,13 @@ import (
 	"be/internal/app/dependency"
 	"be/internal/config"
 	"be/internal/handlers/publisher"
+	"be/internal/mail"
 	"be/internal/middleware"
 	"be/internal/module"
 	"be/internal/modules"
 	"be/internal/queue"
 	"be/internal/repository/interfaces"
+	accountsvc "be/internal/services/account"
 	authsvc "be/internal/services/auth"
 	"be/internal/services/media"
 	permissionsvc "be/internal/services/permission"
@@ -33,6 +35,8 @@ type Container struct {
 	UserService       *usersvc.Service
 	RoleService       *rolesvc.Service
 	PermissionService *permissionsvc.Service
+	AccountService    *accountsvc.Service
+	Mailer            mail.Mailer
 	RoleRepo          interfaces.RoleRepository
 	UserRepo          interfaces.UserRepository
 	AuthHandler       *handlers.AuthHandler
@@ -40,6 +44,7 @@ type Container struct {
 	RoleHandler       *handlers.RoleHandler
 	PermissionHandler *handlers.PermissionHandler
 	MediaHandler      *handlers.MediaHandler
+	AccountHandler    *handlers.AccountHandler
 
 	// Kernel is the core infrastructure handed to modules.
 	Kernel *module.Kernel
@@ -47,16 +52,41 @@ type Container struct {
 	Modules module.Set
 }
 
-// NewContainer wires the core and builds the enabled modules. It fails only when
-// MODULES names an unknown module.
-func NewContainer(cfg config.Config, db *postgres.Postgres) (*Container, error) {
+// Option overrides a dependency (tests).
+type Option func(*options)
+
+type options struct {
+	mailer mail.Mailer
+}
+
+// WithMailer replaces the MAIL_DRIVER transport, e.g. with a recorder in tests.
+func WithMailer(m mail.Mailer) Option {
+	return func(o *options) { o.mailer = m }
+}
+
+// NewContainer wires the core and builds the enabled modules. It fails when
+// MODULES names an unknown module or the mail transport is misconfigured.
+func NewContainer(cfg config.Config, db *postgres.Postgres, opts ...Option) (*Container, error) {
+	var o options
+	for _, opt := range opts {
+		opt(&o)
+	}
 	infra := dependency.NewInfra(cfg, db)
+	mailer := o.mailer
+	if mailer == nil {
+		var err error
+		if mailer, err = dependency.NewMailer(infra); err != nil {
+			infra.Close()
+			return nil, err
+		}
+	}
 	mediaSvc := dependency.NewMediaService(infra)
 	userRepo := dependency.NewUserRepository(infra)
 	authServices := dependency.NewAuthServices(infra, mediaSvc)
 	userService := dependency.NewUserService(infra, mediaSvc)
 	roleServices := dependency.NewRoleServices(infra)
 	permissionService := dependency.NewPermissionService(infra)
+	accountService := dependency.NewAccountService(infra, authServices, mailer)
 	httpHandlers := dependency.NewHTTPHandlers(
 		infra.Config,
 		authServices,
@@ -64,6 +94,7 @@ func NewContainer(cfg config.Config, db *postgres.Postgres) (*Container, error) 
 		roleServices,
 		permissionService,
 		mediaSvc,
+		accountService,
 	)
 
 	kernel := &module.Kernel{
@@ -71,6 +102,7 @@ func NewContainer(cfg config.Config, db *postgres.Postgres) (*Container, error) 
 		DB:        infra.DB,
 		JWT:       infra.JWT,
 		Publisher: infra.Publisher,
+		Mailer:    mailer,
 		Auth:      middleware.Auth(infra.JWT, roleServices.Repo, userRepo),
 	}
 	mods, err := modules.Build(kernel)
@@ -92,6 +124,8 @@ func NewContainer(cfg config.Config, db *postgres.Postgres) (*Container, error) 
 		UserService:       userService,
 		RoleService:       roleServices.Service,
 		PermissionService: permissionService,
+		AccountService:    accountService,
+		Mailer:            mailer,
 		RoleRepo:          roleServices.Repo,
 		UserRepo:          userRepo,
 		AuthHandler:       httpHandlers.Auth,
@@ -99,6 +133,7 @@ func NewContainer(cfg config.Config, db *postgres.Postgres) (*Container, error) 
 		RoleHandler:       httpHandlers.Role,
 		PermissionHandler: httpHandlers.Permission,
 		MediaHandler:      httpHandlers.Media,
+		AccountHandler:    httpHandlers.Account,
 		Kernel:            kernel,
 		Modules:           mods,
 	}, nil

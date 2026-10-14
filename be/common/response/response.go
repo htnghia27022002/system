@@ -19,20 +19,29 @@ func Error(c *gin.Context, status int, message string) {
 	JSON(c, status, gin.H{"error": message})
 }
 
+// clientError writes {"error": message} plus {"code": ...} when err carries one.
+func clientError(c *gin.Context, status int, err error) {
+	body := gin.H{"error": err.Error()}
+	if code := apperrors.Code(err); code != "" {
+		body["code"] = code
+	}
+	JSON(c, status, body)
+}
+
 func HandleError(c *gin.Context, err error) {
 	switch {
 	case apperrors.IsNotFound(err):
-		Error(c, http.StatusNotFound, err.Error())
+		clientError(c, http.StatusNotFound, err)
 	case apperrors.IsUnauthorized(err):
-		Error(c, http.StatusUnauthorized, err.Error())
+		clientError(c, http.StatusUnauthorized, err)
 	case apperrors.IsForbidden(err):
-		Error(c, http.StatusForbidden, err.Error())
+		clientError(c, http.StatusForbidden, err)
 	case apperrors.IsConflict(err):
-		Error(c, http.StatusConflict, err.Error())
+		clientError(c, http.StatusConflict, err)
 	case errors.Is(err, apperrors.ErrBadRequest):
-		Error(c, http.StatusBadRequest, err.Error())
+		clientError(c, http.StatusBadRequest, err)
 	case errors.Is(err, apperrors.ErrTooManyRequests):
-		Error(c, http.StatusTooManyRequests, err.Error())
+		clientError(c, http.StatusTooManyRequests, err)
 	default:
 		// Never echo unexpected errors (SQL, driver, upstream) to clients.
 		slog.ErrorContext(c.Request.Context(), "internal error",

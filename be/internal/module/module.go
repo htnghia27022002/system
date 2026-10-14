@@ -17,6 +17,7 @@ import (
 	"be/internal/config"
 	"be/internal/database/seeders"
 	"be/internal/handlers/publisher"
+	"be/internal/mail"
 	"be/internal/queue"
 	"be/pkg/postgres"
 )
@@ -27,6 +28,8 @@ type Kernel struct {
 	DB        *postgres.Postgres
 	JWT       *jwtmanager.Manager
 	Publisher *publisher.Publisher
+	// Mailer sends transactional email (MAIL_DRIVER); nil only in CLIs.
+	Mailer mail.Mailer
 	// Auth authenticates the request (JWT) and loads the caller's permissions;
 	// use it on routes outside Routes.Admin. Routes.Admin already applies it.
 	Auth gin.HandlerFunc

@@ -51,6 +51,14 @@ type Config struct {
 
 	Auth AuthConfig
 
+	// AppName labels outgoing mail (APP_NAME, default "System App").
+	AppName string
+	// AppURL is the public FE origin used to build links in emails
+	// (APP_URL, e.g. https://app.example.com). It is a URL, not a code dependency.
+	AppURL string
+
+	Mail MailConfig
+
 	// Modules lists the enabled optional modules (MODULES env, comma-separated).
 	// ModulesSet is false when MODULES is unset, meaning "use registry defaults".
 	Modules    []string
@@ -74,6 +82,23 @@ type AuthConfig struct {
 	MaxFailedLogins int
 	// LockoutDuration is how long a locked account stays locked.
 	LockoutDuration time.Duration
+	// RequireEmailVerification blocks password login until the email is verified
+	// (AUTH_REQUIRE_EMAIL_VERIFICATION, default false).
+	RequireEmailVerification bool
+}
+
+// MailConfig selects the outgoing mail transport.
+type MailConfig struct {
+	// Driver: log (default — write mail to the log, for dev) or smtp.
+	Driver string
+	// From is the RFC 5322 sender, e.g. "System App <no-reply@example.com>".
+	From         string
+	SMTPHost     string
+	SMTPPort     int
+	SMTPUsername string
+	SMTPPassword string
+	// SMTPTLS: starttls (default), tls (implicit, usually port 465) or none.
+	SMTPTLS string
 }
 
 type CacheConfig struct {
@@ -210,6 +235,20 @@ func Load() Config {
 		RateLimitPerMinute: parseNonNegativeIntEnv(os.Getenv("AUTH_RATE_LIMIT_PER_MINUTE"), 20),
 		MaxFailedLogins:    parseNonNegativeIntEnv(os.Getenv("AUTH_MAX_FAILED_LOGINS"), 5),
 		LockoutDuration:    parseDuration(os.Getenv("AUTH_LOCKOUT_DURATION"), 15*time.Minute),
+
+		RequireEmailVerification: parseBoolEnv(os.Getenv("AUTH_REQUIRE_EMAIL_VERIFICATION"), false),
+	}
+
+	cfg.AppName = firstNonEmpty(os.Getenv("APP_NAME"), "System App")
+	cfg.AppURL = strings.TrimRight(firstNonEmpty(os.Getenv("APP_URL"), "http://localhost:3000"), "/")
+	cfg.Mail = MailConfig{
+		Driver:       strings.ToLower(firstNonEmpty(os.Getenv("MAIL_DRIVER"), "log")),
+		From:         firstNonEmpty(os.Getenv("MAIL_FROM"), cfg.AppName+" <no-reply@localhost>"),
+		SMTPHost:     strings.TrimSpace(os.Getenv("SMTP_HOST")),
+		SMTPPort:     parseNonNegativeIntEnv(os.Getenv("SMTP_PORT"), 587),
+		SMTPUsername: os.Getenv("SMTP_USERNAME"),
+		SMTPPassword: os.Getenv("SMTP_PASSWORD"),
+		SMTPTLS:      strings.ToLower(firstNonEmpty(os.Getenv("SMTP_TLS"), "starttls")),
 	}
 
 	if _, ok := os.LookupEnv("MODULES"); ok {

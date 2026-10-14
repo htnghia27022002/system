@@ -2,6 +2,7 @@ package dependency
 
 import (
 	"be/internal/config"
+	accountsvc "be/internal/services/account"
 	"be/internal/services/media"
 	permissionsvc "be/internal/services/permission"
 	usersvc "be/internal/services/user"
@@ -16,6 +17,7 @@ type HTTPHandlers struct {
 	Role       *handlers.RoleHandler
 	Permission *handlers.PermissionHandler
 	Media      *handlers.MediaHandler
+	Account    *handlers.AccountHandler
 }
 
 func NewHTTPHandlers(
@@ -25,6 +27,7 @@ func NewHTTPHandlers(
 	role *RoleServices,
 	permission *permissionsvc.Service,
 	mediaSvc *media.Service,
+	account *accountsvc.Service,
 ) *HTTPHandlers {
 	return &HTTPHandlers{
 		Auth: handlers.NewAuthHandler(auth.Auth, auth.OAuth, handlers.RefreshCookieConfig{
@@ -38,5 +41,6 @@ func NewHTTPHandlers(
 		Role:       handlers.NewRoleHandler(role.Service),
 		Permission: handlers.NewPermissionHandler(permission),
 		Media:      handlers.NewMediaHandler(mediaSvc),
+		Account:    handlers.NewAccountHandler(account, user),
 	}
 }

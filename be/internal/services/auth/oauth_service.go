@@ -3,6 +3,7 @@ package auth
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"golang.org/x/oauth2"
 
@@ -136,7 +137,7 @@ func (s *OAuthService) resolveOAuthUser(ctx context.Context, provider string, pr
 			return nil, apperrors.ErrNotFound
 		}
 		s.syncOAuthAccount(ctx, account, profile, token)
-		return user, nil
+		return s.trustProviderEmail(ctx, user)
 	}
 
 	user, err = s.userRepo.GetByEmail(ctx, profile.Email)
@@ -151,15 +152,19 @@ func (s *OAuthService) resolveOAuthUser(ctx context.Context, provider string, pr
 		if defaultRole == nil {
 			return nil, fmt.Errorf("default member role is not configured")
 		}
+		verifiedAt := time.Now().UTC()
 		user = &usermodel.User{
-			Email:    profile.Email,
-			FullName: profile.Name,
-			RoleID:   defaultRole.ID,
-			Status:   usermodel.StatusActive,
+			Email:           profile.Email,
+			FullName:        profile.Name,
+			RoleID:          defaultRole.ID,
+			Status:          usermodel.StatusActive,
+			EmailVerifiedAt: &verifiedAt,
 		}
 		if err := s.userRepo.Create(ctx, user); err != nil {
 			return nil, err
 		}
+	} else if user, err = s.trustProviderEmail(ctx, user); err != nil {
+		return nil, err
 	}
 
 	oauthAccount := &authmodel.OAuthAccount{
@@ -199,4 +204,25 @@ func (s *OAuthService) syncOAuthAccount(ctx context.Context, account *authmodel.
 // ValidateRedirectURI re-exports shared redirect validation for handlers.
 func ValidateRedirectURI(raw string) error {
 	return oauthprovider.ValidateRedirectURI(raw)
+}
+
+// trustProviderEmail treats a sign-in through the provider as proof of the
+// mailbox: it verifies the email and completes a pending invitation.
+func (s *OAuthService) trustProviderEmail(ctx context.Context, user *usermodel.User) (*usermodel.User, error) {
+	changed := false
+	if user.EmailVerifiedAt == nil {
+		now := time.Now().UTC()
+		user.EmailVerifiedAt = &now
+		changed = true
+	}
+	if user.Status == usermodel.StatusInvited {
+		user.Status = usermodel.StatusActive
+		changed = true
+	}
+	if changed {
+		if err := s.userRepo.Update(ctx, user); err != nil {
+			return nil, err
+		}
+	}
+	return user, nil
 }

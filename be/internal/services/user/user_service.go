@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"mime/multipart"
 	"strings"
+	"time"
 
 	apperrors "be/common/errors"
 	"be/common/utils"
@@ -64,14 +65,17 @@ func (s *Service) Create(ctx context.Context, req userdto.CreateUserRequest, act
 		status = usermodel.Status(req.Status)
 	}
 
+	// The admin vouches for the address, so it counts as verified.
+	verifiedAt := time.Now().UTC()
 	user := &usermodel.User{
-		Email:        req.Email,
-		PasswordHash: hashed,
-		FullName:     strings.TrimSpace(req.Name),
-		RoleID:       req.RoleID,
-		Status:       status,
-		IsSuperAdmin: req.SuperAdmin != nil && *req.SuperAdmin,
-		SocialLinks:  []usermodel.SocialLink{},
+		Email:           req.Email,
+		EmailVerifiedAt: &verifiedAt,
+		PasswordHash:    hashed,
+		FullName:        strings.TrimSpace(req.Name),
+		RoleID:          req.RoleID,
+		Status:          status,
+		IsSuperAdmin:    req.SuperAdmin != nil && *req.SuperAdmin,
+		SocialLinks:     []usermodel.SocialLink{},
 	}
 	normalized.Apply(user)
 	if req.AvatarURL != nil {
@@ -267,6 +271,7 @@ func ToResponse(user *usermodel.User, oauthProviders ...string) userdto.UserResp
 		RoleID:         user.RoleID,
 		SuperAdmin:     user.IsSuperAdmin,
 		Status:         string(user.Status),
+		EmailVerified:  user.EmailVerifiedAt != nil,
 		Phone:          user.Phone,
 		AvatarURL:      user.AvatarURL,
 		General:        user.General,
