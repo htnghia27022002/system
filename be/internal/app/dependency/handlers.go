@@ -1,6 +1,7 @@
 package dependency
 
 import (
+	"be/internal/config"
 	"be/internal/services/media"
 	permissionsvc "be/internal/services/permission"
 	usersvc "be/internal/services/user"
@@ -18,6 +19,7 @@ type HTTPHandlers struct {
 }
 
 func NewHTTPHandlers(
+	cfg config.Config,
 	auth *AuthServices,
 	user *usersvc.Service,
 	role *RoleServices,
@@ -25,7 +27,13 @@ func NewHTTPHandlers(
 	mediaSvc *media.Service,
 ) *HTTPHandlers {
 	return &HTTPHandlers{
-		Auth:       handlers.NewAuthHandler(auth.Auth, auth.OAuth),
+		Auth: handlers.NewAuthHandler(auth.Auth, auth.OAuth, handlers.RefreshCookieConfig{
+			Enabled:  cfg.Auth.RefreshCookie,
+			Domain:   cfg.Auth.CookieDomain,
+			SameSite: cfg.Auth.CookieSameSite,
+			Secure:   cfg.Auth.CookieSecure,
+			MaxAge:   cfg.JWTRefreshTTL,
+		}),
 		User:       handlers.NewUserHandler(user),
 		Role:       handlers.NewRoleHandler(role.Service),
 		Permission: handlers.NewPermissionHandler(permission),

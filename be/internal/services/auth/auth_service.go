@@ -30,6 +30,26 @@ type Service struct {
 	jwt        *jwtmanager.Manager
 	refreshTTL time.Duration
 	media      media.AvatarStorage
+
+	// Optional temporary lockout after repeated failed password logins.
+	loginAttempts   interfaces.LoginAttemptRepository
+	maxFailedLogins int
+	lockoutDuration time.Duration
+}
+
+// ErrAccountLocked is returned while an account is temporarily locked (HTTP 429).
+var ErrAccountLocked = fmt.Errorf("%w: too many failed sign-in attempts, try again later", apperrors.ErrTooManyRequests)
+
+// SetLoginLockout enables lockout: after maxFailures consecutive wrong passwords the
+// account rejects password logins for lockFor. maxFailures <= 0 disables it.
+func (s *Service) SetLoginLockout(repo interfaces.LoginAttemptRepository, maxFailures int, lockFor time.Duration) {
+	s.loginAttempts = repo
+	s.maxFailedLogins = maxFailures
+	s.lockoutDuration = lockFor
+}
+
+func (s *Service) lockoutEnabled() bool {
+	return s.loginAttempts != nil && s.maxFailedLogins > 0 && s.lockoutDuration > 0
 }
 
 func NewService(
@@ -121,12 +141,12 @@ func (s *Service) issueTokenPair(ctx context.Context, user *usermodel.User, ip, 
 	now := time.Now().UTC()
 	rawRefresh := uuid.NewString()
 	refresh := &authmodel.RefreshToken{
-		UserID:     user.ID,
-		RawToken:   rawRefresh,
-		TokenHash:  hash.SHA256Hex(rawRefresh),
-		ExpiresAt:  now.Add(s.refreshTTL),
-		CreatedAt:  now,
-		UpdatedAt:  now,
+		UserID:    user.ID,
+		RawToken:  rawRefresh,
+		TokenHash: hash.SHA256Hex(rawRefresh),
+		ExpiresAt: now.Add(s.refreshTTL),
+		CreatedAt: now,
+		UpdatedAt: now,
 	}
 	applySessionMeta(refresh, ip, userAgent, now)
 	if err := s.authRepo.CreateRefreshToken(ctx, refresh); err != nil {
@@ -152,11 +172,30 @@ func (s *Service) Login(ctx context.Context, email, password, ip, userAgent stri
 	if user.PasswordHash == "" {
 		return nil, fmt.Errorf("%w: invalid credentials", apperrors.ErrUnauthorized)
 	}
+	if s.lockoutEnabled() {
+		lockedUntil, err := s.loginAttempts.LockedUntil(ctx, user.ID)
+		if err != nil {
+			return nil, err
+		}
+		if lockedUntil != nil && time.Now().Before(*lockedUntil) {
+			return nil, ErrAccountLocked
+		}
+	}
 	if err := hash.ComparePassword(user.PasswordHash, password); err != nil {
+		if s.lockoutEnabled() {
+			if _, recErr := s.loginAttempts.RecordFailure(ctx, user.ID, s.maxFailedLogins, s.lockoutDuration); recErr != nil {
+				return nil, recErr
+			}
+		}
 		return nil, fmt.Errorf("%w: invalid credentials", apperrors.ErrUnauthorized)
 	}
 	if user.Status != usermodel.StatusActive {
 		return nil, fmt.Errorf("%w: account is not active", apperrors.ErrForbidden)
+	}
+	if s.lockoutEnabled() {
+		if err := s.loginAttempts.Reset(ctx, user.ID); err != nil {
+			return nil, err
+		}
 	}
 	return s.issueTokenPair(ctx, user, ip, userAgent)
 }
@@ -238,12 +277,12 @@ func (s *Service) Refresh(ctx context.Context, refreshToken, ip, userAgent strin
 	now := time.Now().UTC()
 	rawRefresh := uuid.NewString()
 	rotated := &authmodel.RefreshToken{
-		UserID:     stored.UserID,
-		RawToken:   rawRefresh,
-		TokenHash:  hash.SHA256Hex(rawRefresh),
-		ExpiresAt:  now.Add(s.refreshTTL),
-		CreatedAt:  sessionStartedAt(stored.CreatedAt, now),
-		UpdatedAt:  now,
+		UserID:    stored.UserID,
+		RawToken:  rawRefresh,
+		TokenHash: hash.SHA256Hex(rawRefresh),
+		ExpiresAt: now.Add(s.refreshTTL),
+		CreatedAt: sessionStartedAt(stored.CreatedAt, now),
+		UpdatedAt: now,
 	}
 	applySessionMeta(rotated, ip, userAgent, now)
 	if err := s.authRepo.CreateRefreshToken(ctx, rotated); err != nil {

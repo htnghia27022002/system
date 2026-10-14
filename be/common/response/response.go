@@ -31,6 +31,8 @@ func HandleError(c *gin.Context, err error) {
 		Error(c, http.StatusConflict, err.Error())
 	case errors.Is(err, apperrors.ErrBadRequest):
 		Error(c, http.StatusBadRequest, err.Error())
+	case errors.Is(err, apperrors.ErrTooManyRequests):
+		Error(c, http.StatusTooManyRequests, err.Error())
 	default:
 		// Never echo unexpected errors (SQL, driver, upstream) to clients.
 		slog.ErrorContext(c.Request.Context(), "internal error",

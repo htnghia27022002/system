@@ -111,3 +111,35 @@ func clearDeployEnv(t *testing.T) {
 		t.Setenv(key, "")
 	}
 }
+
+func TestLoadAuthHardeningEnv(t *testing.T) {
+	clearDeployEnv(t)
+	t.Setenv("CONFIG_FILE", filepath.Join(t.TempDir(), "missing.yaml"))
+	for _, key := range []string{"AUTH_REFRESH_COOKIE", "AUTH_COOKIE_SAMESITE", "AUTH_RATE_LIMIT_PER_MINUTE", "AUTH_MAX_FAILED_LOGINS", "AUTH_LOCKOUT_DURATION", "TRUSTED_PROXIES"} {
+		t.Setenv(key, "")
+	}
+
+	cfg := config.Load()
+	if !cfg.Auth.RefreshCookie || cfg.Auth.CookieSameSite != "lax" || cfg.Auth.CookieSecure != "auto" ||
+		cfg.Auth.RateLimitPerMinute != 20 || cfg.Auth.MaxFailedLogins != 5 || cfg.Auth.LockoutDuration != 15*time.Minute {
+		t.Fatalf("unexpected auth defaults: %+v", cfg.Auth)
+	}
+	if len(cfg.TrustedProxies) == 0 {
+		t.Fatal("expected default trusted proxies")
+	}
+
+	t.Setenv("AUTH_REFRESH_COOKIE", "false")
+	t.Setenv("AUTH_COOKIE_SAMESITE", "None")
+	t.Setenv("AUTH_RATE_LIMIT_PER_MINUTE", "0")
+	t.Setenv("AUTH_MAX_FAILED_LOGINS", "-3")
+	t.Setenv("AUTH_LOCKOUT_DURATION", "1h")
+	t.Setenv("TRUSTED_PROXIES", "10.1.0.0/16")
+	cfg = config.Load()
+	if cfg.Auth.RefreshCookie || cfg.Auth.CookieSameSite != "none" || cfg.Auth.RateLimitPerMinute != 0 ||
+		cfg.Auth.MaxFailedLogins != 5 || cfg.Auth.LockoutDuration != time.Hour {
+		t.Fatalf("unexpected auth overrides: %+v", cfg.Auth)
+	}
+	if len(cfg.TrustedProxies) != 1 || cfg.TrustedProxies[0] != "10.1.0.0/16" {
+		t.Fatalf("unexpected trusted proxies: %v", cfg.TrustedProxies)
+	}
+}

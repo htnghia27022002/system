@@ -244,3 +244,38 @@ func (m *MemoryUserRepo) CountSuperAdmins(_ context.Context) (int64, error) {
 	}
 	return n, nil
 }
+
+// MockLoginAttemptRepo is an in-memory LoginAttemptRepository.
+type MockLoginAttemptRepo struct {
+	Failed map[string]int
+	Locked map[string]time.Time
+}
+
+func NewMockLoginAttemptRepo() *MockLoginAttemptRepo {
+	return &MockLoginAttemptRepo{Failed: map[string]int{}, Locked: map[string]time.Time{}}
+}
+
+func (m *MockLoginAttemptRepo) LockedUntil(_ context.Context, userID string) (*time.Time, error) {
+	until, ok := m.Locked[userID]
+	if !ok {
+		return nil, nil
+	}
+	return &until, nil
+}
+
+func (m *MockLoginAttemptRepo) RecordFailure(_ context.Context, userID string, maxFailures int, lockFor time.Duration) (*time.Time, error) {
+	m.Failed[userID]++
+	if m.Failed[userID] < maxFailures {
+		return nil, nil
+	}
+	until := time.Now().Add(lockFor)
+	m.Locked[userID] = until
+	m.Failed[userID] = 0
+	return &until, nil
+}
+
+func (m *MockLoginAttemptRepo) Reset(_ context.Context, userID string) error {
+	delete(m.Failed, userID)
+	delete(m.Locked, userID)
+	return nil
+}

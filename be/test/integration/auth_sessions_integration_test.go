@@ -25,11 +25,11 @@ type authPayload struct {
 
 type sessionListPayload struct {
 	Items []struct {
-		ID         string  `json:"id"`
-		Current    bool    `json:"current"`
-		CreatedAt  string  `json:"createdAt"`
-		IPAddress  *string `json:"ipAddress"`
-		UserAgent  *string `json:"userAgent"`
+		ID        string  `json:"id"`
+		Current   bool    `json:"current"`
+		CreatedAt string  `json:"createdAt"`
+		IPAddress *string `json:"ipAddress"`
+		UserAgent *string `json:"userAgent"`
 	} `json:"items"`
 }
 
@@ -69,7 +69,7 @@ func TestAuthSessionsListMarksCurrentAndSurvivesRefresh(t *testing.T) {
 		t.Fatalf("seed rbac: %v", err)
 	}
 
-	router := testutil.NewTestRouter(t, testutil.NewTestContainer(t, db))
+	router := testutil.NewTestRouter(t, testutil.NewTestContainer(t, db, testutil.WithRefreshInBody))
 	first := loginHTTP(t, router, "admin@example.com", "admin1234", "203.0.113.10", "Browser/A")
 	second := loginHTTP(t, router, "admin@example.com", "admin1234", "198.51.100.20", "Browser/B")
 
@@ -152,7 +152,7 @@ func TestAuthSessionsRevokeOthersAndCurrentGuard(t *testing.T) {
 		t.Fatalf("seed rbac: %v", err)
 	}
 
-	router := testutil.NewTestRouter(t, testutil.NewTestContainer(t, db))
+	router := testutil.NewTestRouter(t, testutil.NewTestContainer(t, db, testutil.WithRefreshInBody))
 	keep := loginHTTP(t, router, "admin@example.com", "admin1234", "203.0.113.10", "Keep")
 	other := loginHTTP(t, router, "admin@example.com", "admin1234", "198.51.100.20", "Other")
 

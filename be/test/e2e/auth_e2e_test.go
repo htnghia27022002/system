@@ -11,6 +11,7 @@ import (
 	"testing"
 
 	"be/internal/database"
+	"be/public/handlers"
 	"be/test/testutil"
 )
 
@@ -47,8 +48,21 @@ func TestAuthLoginE2E(t *testing.T) {
 	if err := json.Unmarshal(rec.Body.Bytes(), &payload); err != nil {
 		t.Fatalf("decode response: %v", err)
 	}
-	if payload.AccessToken == "" || payload.RefreshToken == "" {
-		t.Fatal("expected token pair in response")
+	if payload.AccessToken == "" {
+		t.Fatal("expected access token in response")
+	}
+	// Default mode: the refresh token travels only as an httpOnly cookie.
+	if payload.RefreshToken != "" {
+		t.Fatal("refresh token must not be in the JSON body in cookie mode")
+	}
+	var cookie *http.Cookie
+	for _, c := range rec.Result().Cookies() {
+		if c.Name == handlers.RefreshCookieName {
+			cookie = c
+		}
+	}
+	if cookie == nil || cookie.Value == "" || !cookie.HttpOnly || cookie.Path != "/api/auth" {
+		t.Fatalf("expected httpOnly refresh cookie on /api/auth, got %+v", cookie)
 	}
 }
 
