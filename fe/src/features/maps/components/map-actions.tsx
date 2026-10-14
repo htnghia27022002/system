@@ -28,7 +28,7 @@ export function MapActions({
   const { t } = useTranslation('admin')
 
   return (
-    <div className="pointer-events-none absolute inset-x-3 top-3 z-[1100] flex justify-end">
+    <div className="pointer-events-none absolute inset-x-3 top-3 z-(--z-map-controls) flex justify-end">
       <div className="pointer-events-auto flex flex-col overflow-hidden rounded-lg border border-border bg-card/95 shadow-md backdrop-blur-sm">
         <PermissionGate permission={PermissionKeys.maps.modify}>
           <IconTipButton
@@ -73,7 +73,7 @@ function IconTipButton({
           {children}
         </Button>
       </TooltipTrigger>
-      <TooltipContent side="left" sideOffset={8} className="z-[1200]">
+      <TooltipContent side="left" sideOffset={8} className="z-(--z-map-popover)">
         {label}
       </TooltipContent>
     </Tooltip>

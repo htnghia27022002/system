@@ -30,7 +30,7 @@ export function DashboardStatGrid({ kpis, isLoading }: DashboardStatGridProps) {
         ? placeholders.map((key) => (
             <Card
               key={key}
-              className="gap-3 border border-border bg-card py-4 shadow-none ring-0"
+              className="gap-3"
             >
               <CardHeader className="px-4">
                 <Skeleton className="h-4 w-24" />
@@ -46,20 +46,20 @@ export function DashboardStatGrid({ kpis, isLoading }: DashboardStatGridProps) {
             return (
               <Card
                 key={kpi.key}
-                className="gap-3 border border-border bg-card py-4 shadow-none ring-0"
+                className="gap-3"
               >
                 <CardHeader className="px-4">
-                  <CardDescription className="text-[14px] font-semibold leading-[1.29] tracking-[-0.224px] text-muted-foreground">
+                  <CardDescription className="font-medium">
                     {t(`overview.kpis.${kpi.key}`)}
                   </CardDescription>
-                  <CardTitle className="text-[28px] font-semibold tabular-nums">
+                  <CardTitle className="text-2xl font-semibold tabular-nums">
                     {formatKpiValue(kpi.key, kpi.value)}
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="px-4">
                   <p
                     className={cn(
-                      'text-[14px] leading-[1.29] tracking-[-0.224px]',
+                      'text-sm',
                       positive ? 'text-primary' : 'text-destructive',
                     )}
                   >

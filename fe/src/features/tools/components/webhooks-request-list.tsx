@@ -26,10 +26,9 @@ type WebhooksRequestListProps = {
 
 function methodBadgeClass(method: string): string {
   const m = method.toUpperCase()
-  if (m === 'GET') return 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300'
-  if (m === 'POST') return 'bg-sky-500/15 text-sky-700 dark:text-sky-300'
-  if (m === 'PUT' || m === 'PATCH')
-    return 'bg-amber-500/15 text-amber-800 dark:text-amber-300'
+  if (m === 'GET') return 'bg-success/15 text-success'
+  if (m === 'POST') return 'bg-primary/15 text-primary'
+  if (m === 'PUT' || m === 'PATCH') return 'bg-warning/15 text-warning'
   if (m === 'DELETE') return 'bg-destructive/15 text-destructive'
   return 'bg-muted text-muted-foreground'
 }
@@ -127,7 +126,7 @@ export function WebhooksRequestList({
                 <Badge
                   variant="outline"
                   className={cn(
-                    'border-0 font-mono text-[10px]',
+                    'border-0 font-mono text-xs',
                     methodBadgeClass(item.method),
                   )}
                 >
@@ -135,13 +134,13 @@ export function WebhooksRequestList({
                 </Badge>
                 <Badge
                   variant={unread ? 'default' : 'secondary'}
-                  className="h-5 px-1.5 text-[10px] font-medium"
+                  className="h-5 px-1.5 text-xs font-medium"
                 >
                   {unread
                     ? t('tools.webhooks.badges.unread')
                     : t('tools.webhooks.badges.read')}
                 </Badge>
-                <span className="ml-auto shrink-0 text-[10px] text-muted-foreground tabular-nums">
+                <span className="ml-auto shrink-0 text-xs text-muted-foreground tabular-nums">
                   {formatTimestamp(item.createdAt, i18n.language)}
                 </span>
               </div>
@@ -153,7 +152,7 @@ export function WebhooksRequestList({
               >
                 {pathSnippet(item.url)}
               </p>
-              <div className="flex items-center gap-2 text-[10px] text-muted-foreground">
+              <div className="flex items-center gap-2 text-xs text-muted-foreground">
                 {item.clientIp ? (
                   <span className="shrink-0 font-mono">{item.clientIp}</span>
                 ) : null}

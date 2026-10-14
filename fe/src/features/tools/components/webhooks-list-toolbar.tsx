@@ -102,7 +102,7 @@ export function WebhooksListToolbar({
             {activeFilterCount > 0 ? (
               <Badge
                 variant="secondary"
-                className="h-4 min-w-4 px-1 text-[10px] tabular-nums"
+                className="h-4 min-w-4 px-1 text-xs tabular-nums"
               >
                 {activeFilterCount}
               </Badge>
@@ -184,7 +184,7 @@ export function WebhooksListToolbar({
         </PopoverContent>
       </Popover>
 
-      <p className="min-w-0 flex-1 truncate text-[11px] text-muted-foreground">
+      <p className="min-w-0 flex-1 truncate text-xs text-muted-foreground">
         {t('tools.webhooks.list.showing', { shown, total, page })}
       </p>
 

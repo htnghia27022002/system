@@ -33,11 +33,11 @@ export function MapCreatePopover({
   const coordLabel = `${point.lat.toFixed(5)}, ${point.lng.toFixed(5)}`
 
   return (
-    <div className="pointer-events-none absolute inset-x-3 bottom-4 z-[1200] flex justify-center">
+    <div className="pointer-events-none absolute inset-x-3 bottom-4 z-(--z-map-popover) flex justify-center">
       <div
         role="form"
         aria-label={t('maps.create.popoverTitle')}
-        className="pointer-events-auto w-full max-w-md rounded-2xl border border-border bg-card p-3 shadow-xl"
+        className="pointer-events-auto w-full max-w-md rounded-xl border border-border bg-card p-3 shadow-xl"
       >
         <p className="mb-1 text-sm font-semibold">{t('maps.create.popoverTitle')}</p>
         <p className="mb-3 text-xs text-muted-foreground">

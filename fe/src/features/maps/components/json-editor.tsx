@@ -46,10 +46,10 @@ function highlightJson(source: string) {
 }
 
 const TOKEN_CLASS: Record<string, string> = {
-  key: 'text-sky-700 dark:text-sky-300',
-  string: 'text-emerald-700 dark:text-emerald-300',
-  atom: 'text-violet-700 dark:text-violet-300',
-  number: 'text-amber-700 dark:text-amber-300',
+  key: 'text-primary',
+  string: 'text-success',
+  atom: 'text-chart-5',
+  number: 'text-warning',
   punct: 'text-muted-foreground',
   plain: 'text-foreground',
 }

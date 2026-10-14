@@ -34,12 +34,12 @@ export function DashboardCharts({
   const { t } = useTranslation('admin')
 
   return (
-    <Card className="mt-6 gap-0 border border-border bg-card py-0 shadow-none ring-0">
+    <Card className="gap-0 py-0">
       <CardHeader className="px-6 pt-6">
-        <CardTitle className="text-[21px] font-semibold leading-[1.19] tracking-[0.231px]">
+        <CardTitle className="text-lg font-semibold">
           {t('overview.chart.title')}
         </CardTitle>
-        <CardDescription className="text-[17px] leading-[1.47] tracking-[-0.374px]">
+        <CardDescription>
           {t('overview.chart.description')}
         </CardDescription>
       </CardHeader>

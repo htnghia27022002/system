@@ -66,7 +66,7 @@ export function AvatarUpload({ name, avatarUrl, onUploaded }: AvatarUploadProps)
     <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
       <Avatar className="h-20 w-20 overflow-hidden rounded-full">
         <AvatarImage src={src} alt={name} />
-        <AvatarFallback className="rounded-lg bg-neutral-200 text-lg text-black dark:bg-neutral-700 dark:text-white">
+        <AvatarFallback className="rounded-full bg-muted text-lg text-foreground">
           {getInitials(name)}
         </AvatarFallback>
       </Avatar>

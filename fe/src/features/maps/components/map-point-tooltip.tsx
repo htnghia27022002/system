@@ -27,11 +27,11 @@ export function MapPointTooltip({
   const title = t('maps.create.droppedPin')
 
   return (
-    <div className="pointer-events-none absolute inset-x-3 bottom-4 z-[1200] flex justify-center">
+    <div className="pointer-events-none absolute inset-x-3 bottom-4 z-(--z-map-popover) flex justify-center">
       <div
         role="dialog"
         aria-label={t('maps.create.pointTitle')}
-        className="pointer-events-auto flex w-full max-w-md items-center gap-3 rounded-2xl border border-border bg-card p-2 pr-2 shadow-xl"
+        className="pointer-events-auto flex w-full max-w-md items-center gap-3 rounded-xl border border-border bg-card p-2 pr-2 shadow-xl"
       >
         {preview ? (
           // Preview tiles already used by the map adapter.

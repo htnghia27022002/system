@@ -25,7 +25,7 @@ export function AuthLayout({ title, description, children }: AuthLayoutProps) {
         <ThemeToggle className="border-transparent bg-transparent text-muted-foreground hover:bg-muted hover:text-foreground" />
       </div>
       <div className="w-full max-w-md">
-        <Card className="border-border/60 shadow-sm">
+        <Card className="shadow-sm">
           <CardHeader className="items-center space-y-4 pb-2 text-center">
             <AppLogo />
             <div className="space-y-1">

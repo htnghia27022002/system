@@ -34,7 +34,7 @@ export function DataTableEmpty({
         className,
       )}
     >
-      <div className="flex size-14 items-center justify-center rounded-2xl border border-dashed bg-muted/30">
+      <div className="flex size-14 items-center justify-center rounded-xl border border-dashed bg-muted/30">
         <Icon
           className="size-7 text-muted-foreground/70"
           strokeWidth={1.5}

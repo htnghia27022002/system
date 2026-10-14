@@ -110,7 +110,7 @@ function PlaceDetailCard({
         : null
 
   return (
-    <article className="pointer-events-auto absolute inset-x-3 bottom-4 z-[1200] mx-auto flex max-h-[min(36rem,calc(100%-5.5rem))] w-full max-w-md flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-xl">
+    <article className="pointer-events-auto absolute inset-x-3 bottom-4 z-(--z-map-popover) mx-auto flex max-h-[min(36rem,calc(100%-5.5rem))] w-full max-w-md flex-col overflow-hidden rounded-xl border border-border bg-card shadow-xl">
       <CardClose onClose={onClose} label={t('access.actions.cancel')} />
       {detailQuery.isLoading ? (
         <div className="space-y-3 p-4">
@@ -310,7 +310,7 @@ function LocationDetailCard({
       : null
 
   return (
-    <article className="pointer-events-auto absolute inset-x-3 bottom-4 z-[1200] mx-auto flex max-h-[min(36rem,calc(100%-5.5rem))] w-full max-w-md flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-xl">
+    <article className="pointer-events-auto absolute inset-x-3 bottom-4 z-(--z-map-popover) mx-auto flex max-h-[min(36rem,calc(100%-5.5rem))] w-full max-w-md flex-col overflow-hidden rounded-xl border border-border bg-card shadow-xl">
       <CardClose onClose={onClose} label={t('access.actions.cancel')} />
       <div className="min-h-0 flex-1 overflow-y-auto">
         {position ? (

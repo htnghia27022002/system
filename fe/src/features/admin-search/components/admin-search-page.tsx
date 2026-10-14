@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { useTranslation } from 'react-i18next'
 import { useEffect, useMemo, useState, type FormEvent } from 'react'
 
+import { PageContainer, PageHeader, Panel } from '@/components/common/page-layout'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -116,57 +117,56 @@ export function AdminSearchPage() {
   const isRefetching = hasQuery && isFetching && !isLoading && Boolean(data)
 
   return (
-    <div className="flex flex-1 flex-col gap-6 p-4 md:p-6">
-      <div className="space-y-1">
-        <h1 className="text-2xl font-semibold tracking-tight">{t('search.title')}</h1>
-        <p className="text-sm text-muted-foreground">{t('search.description')}</p>
-      </div>
+    <PageContainer>
+      <PageHeader title={t('search.title')} description={t('search.description')} />
 
-      <form onSubmit={handleSubmit} className="space-y-4 rounded-xl border bg-card p-4">
-        <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_220px_auto] md:items-end">
-          <div className="space-y-2">
-            <Label htmlFor="admin-search-query">{t('search.queryLabel')}</Label>
-            <div className="relative">
-              <SearchIcon
-                className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground"
-                aria-hidden
-              />
-              <Input
-                id="admin-search-query"
-                value={query}
-                onChange={(event) => setQuery(event.target.value)}
-                placeholder={t('search.placeholder')}
-                className="pl-9"
-              />
+      <Panel asChild>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_220px_auto] md:items-end">
+            <div className="space-y-2">
+              <Label htmlFor="admin-search-query">{t('search.queryLabel')}</Label>
+              <div className="relative">
+                <SearchIcon
+                  className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground"
+                  aria-hidden
+                />
+                <Input
+                  id="admin-search-query"
+                  value={query}
+                  onChange={(event) => setQuery(event.target.value)}
+                  placeholder={t('search.placeholder')}
+                  className="pl-9"
+                />
+              </div>
             </div>
-          </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="admin-search-type">{t('search.typeLabel')}</Label>
-            <Select
-              value={entityFilter}
-              onValueChange={(value) =>
-                setEntityFilter(value as 'all' | SearchEntityType)
-              }
-            >
-              <SelectTrigger id="admin-search-type" className="w-full">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {availableEntityTypes.map((item) => (
-                  <SelectItem key={item.value} value={item.value}>
-                    {t(item.labelKey)}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+            <div className="space-y-2">
+              <Label htmlFor="admin-search-type">{t('search.typeLabel')}</Label>
+              <Select
+                value={entityFilter}
+                onValueChange={(value) =>
+                  setEntityFilter(value as 'all' | SearchEntityType)
+                }
+              >
+                <SelectTrigger id="admin-search-type" className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {availableEntityTypes.map((item) => (
+                    <SelectItem key={item.value} value={item.value}>
+                      {t(item.labelKey)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
 
-          <Button type="submit" className="w-full md:w-auto">
-            {t('search.submit')}
-          </Button>
-        </div>
-      </form>
+            <Button type="submit" className="w-full md:w-auto">
+              {t('search.submit')}
+            </Button>
+          </div>
+        </form>
+      </Panel>
 
       {!hasQuery ? (
         <p className="rounded-lg border border-dashed px-4 py-10 text-center text-sm text-muted-foreground">
@@ -244,6 +244,6 @@ export function AdminSearchPage() {
           ) : null}
         </div>
       ) : null}
-    </div>
+    </PageContainer>
   )
 }

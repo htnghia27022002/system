@@ -81,7 +81,7 @@ export function PlaceQuickCreate({
         <SelectTrigger aria-label={t('maps.create.category')}>
           <SelectValue />
         </SelectTrigger>
-        <SelectContent className="z-[1400]">
+        <SelectContent>
           {P1_PLACE_CATEGORIES.map((key) => (
             <SelectItem key={key} value={key}>
               {t(`maps.categories.${key}`)}

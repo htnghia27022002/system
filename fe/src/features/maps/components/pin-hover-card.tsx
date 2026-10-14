@@ -23,7 +23,7 @@ export function PinHoverCard({ preview, screen }: PinHoverCardProps) {
   return (
     <div
       role="tooltip"
-      className="pointer-events-none absolute z-[1150] w-[15.5rem] overflow-hidden rounded-xl border border-border bg-card shadow-lg"
+      className="pointer-events-none absolute z-(--z-map-hover) w-[15.5rem] overflow-hidden rounded-xl border border-border bg-card shadow-lg"
       style={{ left: screen.x + 16, top: screen.y - 8 }}
     >
       <div className="relative h-24 bg-muted">
