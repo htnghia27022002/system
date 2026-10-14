@@ -3,9 +3,9 @@
  *
  * Add a module: create `features/<name>/module.ts` exporting an `AppModule`, add its
  * `app/` routes, and append it below. Remove one: delete its feature folder, its
- * `app/` routes and its line here. Keep this list in step with the BE registry
- * (`be/internal/modules/registry.go`); the sidebar is also permission-gated, so a
- * module disabled on the BE (no permissions granted) stays hidden.
+ * `app/` routes and its line here. A module that sets `backendModule` only shows its
+ * admin entries when the BE lists that module in GET /api/app/info (BE MODULES env),
+ * on top of the usual permission gating.
  */
 // Module descriptors are the one allowed deep import into a feature: they are tiny,
 // free of components, and safe to load from server files such as sitemap.ts.
@@ -25,6 +25,21 @@ export function isModuleEnabled(id: string): boolean {
 }
 
 export const moduleNavItems: readonly ModuleNavItem[] = appModules.flatMap((m) => m.adminNav ?? [])
+
+/** BE module names the FE knows about (used by the mock /app/info). */
+export const backendModuleNames: readonly string[] = appModules.flatMap((m) =>
+  m.backendModule ? [m.backendModule] : [],
+)
+
+/**
+ * Admin nav entries of modules whose BE module is running. While the BE list is
+ * unknown (undefined), modules that need a BE module are left out.
+ */
+export function navItemsForBackend(backend: ReadonlySet<string> | undefined): ModuleNavItem[] {
+  return appModules
+    .filter((m) => !m.backendModule || backend?.has(m.backendModule))
+    .flatMap((m) => m.adminNav ?? [])
+}
 export const moduleBreadcrumbs: readonly ModuleBreadcrumb[] = appModules.flatMap(
   (m) => m.breadcrumbs ?? [],
 )

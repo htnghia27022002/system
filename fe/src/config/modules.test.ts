@@ -13,6 +13,7 @@ import { useAdminNavItems } from '@/features/access-control/hooks/use-admin-nav-
 
 import {
   appModules,
+  navItemsForBackend,
   moduleBreadcrumbs,
   moduleNavItems,
   modulePermissions,
@@ -41,5 +42,13 @@ describe('module registry', () => {
     granted.keys = new Set(['dashboard:view'])
     const { result: noAccess } = renderHook(() => useAdminNavItems(moduleNavItems))
     expect(noAccess.current.map((item) => item.title)).toEqual(['Dashboard'])
+  })
+
+  it('hides module nav when its BE module is off or still unknown', () => {
+    expect(navItemsForBackend(new Set(['webhooks'])).map((i) => i.href)).toEqual([
+      '/admin/tools/webhooks',
+    ])
+    expect(navItemsForBackend(new Set())).toEqual([])
+    expect(navItemsForBackend(undefined)).toEqual([])
   })
 })

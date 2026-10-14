@@ -2,6 +2,7 @@ package module_test
 
 import (
 	"net/http"
+	"net/http/httptest"
 	"strings"
 	"testing"
 
@@ -11,6 +12,7 @@ import (
 	"be/internal/database/seeders"
 	"be/internal/module"
 	"be/internal/modules"
+	"be/public/handlers"
 )
 
 func build(t *testing.T, cfg config.Config) module.Set {
@@ -94,6 +96,25 @@ func TestDisabledModuleRoutesAreNotMounted(t *testing.T) {
 		}
 		if mounted != tc.mounted {
 			t.Fatalf("%s: webhooks inbox route mounted=%v, want %v", name, mounted, tc.mounted)
+		}
+	}
+}
+
+func TestAppInfoListsEnabledModules(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	for name, tc := range map[string]struct {
+		set  module.Set
+		want string
+	}{
+		"default":   {build(t, config.Config{}), `{"modules":["webhooks"]}`},
+		"core only": {build(t, config.Config{ModulesSet: true}), `{"modules":[]}`},
+	} {
+		r := gin.New()
+		r.GET("/api/app/info", handlers.NewAppHandler(tc.set.Names()).Info)
+		w := httptest.NewRecorder()
+		r.ServeHTTP(w, httptest.NewRequest(http.MethodGet, "/api/app/info", nil))
+		if w.Code != http.StatusOK || w.Body.String() != tc.want {
+			t.Fatalf("%s: got %d %s, want %s", name, w.Code, w.Body.String(), tc.want)
 		}
 	}
 }

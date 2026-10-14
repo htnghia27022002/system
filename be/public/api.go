@@ -65,6 +65,7 @@ func Run(cfg config.Config, db *postgres.Postgres, redis *goredis.Client) error 
 	}))
 
 	api := r.Group("/api")
+	routes.RegisterAppRoutes(api, container)
 	routes.RegisterAuthRoutes(api, container)
 	admin := routes.RegisterAdminRoutes(api, container)
 	routes.RegisterMediaRoutes(api, container)

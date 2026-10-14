@@ -41,6 +41,12 @@ export type ModulePublicLink = {
  */
 export type AppModule = {
   id: string
+  /**
+   * BE module this UI needs (name in be/internal/modules/registry.go). Its admin
+   * entries are shown only when GET /api/app/info lists it, so a BE deployed with
+   * MODULES that exclude it never shows dead links — even to super admins.
+   */
+  backendModule?: string
   adminNav?: ModuleNavItem[]
   breadcrumbs?: ModuleBreadcrumb[]
   permissions?: ModulePermission[]

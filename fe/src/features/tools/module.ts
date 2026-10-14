@@ -9,6 +9,7 @@ const toolsGroup = { key: 'tools', titleKey: 'nav.tools', icon: WrenchIcon }
 /** Tools module descriptor — registered in src/config/modules.ts. */
 export const toolsModule: AppModule = {
   id: 'tools',
+  backendModule: 'webhooks',
   adminNav: [
     {
       titleKey: 'nav.webhooks',
