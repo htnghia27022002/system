@@ -27,7 +27,7 @@ func ConnectPostgres(t *testing.T) *postgres.Postgres {
 	return db
 }
 
-// MigrateTestSchema applies SQL migrations for integration and e2e tests.
+// MigrateTestSchema applies the core SQL migrations for integration and e2e tests.
 func MigrateTestSchema(t *testing.T, _ *postgres.Postgres) {
 	t.Helper()
 	cfg := config.Load()
@@ -51,7 +51,10 @@ func NewTestContainer(t *testing.T, db *postgres.Postgres) *app.Container {
 	t.Helper()
 	cfg := config.Load()
 	cfg.JWTSecret = "integration-test-secret"
-	container := app.NewContainer(cfg, db)
+	container, err := app.NewContainer(cfg, db)
+	if err != nil {
+		t.Fatalf("new container: %v", err)
+	}
 	t.Cleanup(func() { container.Close() })
 	return container
 }

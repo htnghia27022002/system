@@ -11,15 +11,6 @@ import (
 	"github.com/nats-io/nats.go/jetstream"
 )
 
-type Handler interface {
-	Name() string
-	Handle(ctx context.Context, payload []byte) error
-}
-
-type HandlerRegistry interface {
-	Get(name string) (Handler, error)
-}
-
 type Client struct {
 	cfg      Config
 	conn     *natsio.Conn
@@ -84,77 +75,56 @@ func (c *Client) Publish(ctx context.Context, subject string, data []byte) error
 	return err
 }
 
-func (c *Client) EnsureInfrastructure(ctx context.Context) error {
+// EnsureInfrastructure creates or updates every declared stream and its consumers.
+func (c *Client) EnsureInfrastructure(ctx context.Context, streams []Stream) error {
 	if !c.Enabled() {
 		return nil
 	}
 
-	for streamKey, streamOpts := range c.cfg.Streams {
-		streamDef, err := resolveStream(streamKey)
+	for _, stream := range streams {
+		streamCfg, err := buildStreamConfig(stream, c.streamOptions(stream))
 		if err != nil {
-			return err
-		}
-
-		streamCfg, err := buildStreamConfig(streamDef, streamOpts)
-		if err != nil {
-			return fmt.Errorf("stream %q: %w", streamKey, err)
+			return fmt.Errorf("stream %q: %w", stream.Key, err)
 		}
 
 		if _, err := c.js.CreateOrUpdateStream(ctx, streamCfg); err != nil {
-			return fmt.Errorf("ensure stream %s: %w", streamDef.Name, err)
+			return fmt.Errorf("ensure stream %s: %w", stream.Name, err)
 		}
-		log.Printf("queue stream ready name=%s subjects=%v", streamDef.Name, streamDef.Subjects)
+		log.Printf("queue stream ready name=%s subjects=%v", stream.Name, stream.Subjects)
 
-		for consumerKey, consumerOpts := range streamOpts.Consumers {
-			consumerDef, err := resolveConsumer(streamKey, consumerKey)
+		for _, consumer := range stream.Consumers {
+			consumerCfg, err := buildConsumerConfig(consumer, c.consumerOptions(stream, consumer))
 			if err != nil {
-				return err
+				return fmt.Errorf("consumer %q: %w", consumer.Key, err)
 			}
 
-			consumerCfg, err := buildConsumerConfig(consumerDef, consumerOpts)
-			if err != nil {
-				return fmt.Errorf("consumer %q: %w", consumerKey, err)
+			if _, err := c.js.CreateOrUpdateConsumer(ctx, stream.Name, consumerCfg); err != nil {
+				return fmt.Errorf("ensure consumer %s: %w", consumer.Name, err)
 			}
-
-			if _, err := c.js.CreateOrUpdateConsumer(ctx, streamDef.Name, consumerCfg); err != nil {
-				return fmt.Errorf("ensure consumer %s: %w", consumerDef.Name, err)
-			}
-			log.Printf("queue consumer ready stream=%s consumer=%s subject=%s handler=%s",
-				streamDef.Name, consumerDef.Name, consumerDef.FilterSubject, consumerDef.Handler)
+			log.Printf("queue consumer ready stream=%s consumer=%s subject=%s",
+				stream.Name, consumer.Name, consumer.FilterSubject)
 		}
 	}
 
 	return nil
 }
 
-func (c *Client) StartConsumers(ctx context.Context, registry HandlerRegistry) error {
+// StartConsumers attaches each consumer's Handler. Run only in the worker process.
+func (c *Client) StartConsumers(ctx context.Context, streams []Stream) error {
 	if !c.Enabled() {
 		return nil
 	}
-	if registry == nil {
-		return fmt.Errorf("queue: handler registry is required")
-	}
 
-	for streamKey, streamOpts := range c.cfg.Streams {
-		streamDef, err := resolveStream(streamKey)
-		if err != nil {
-			return err
-		}
-
-		for consumerKey := range streamOpts.Consumers {
-			consumerDef, err := resolveConsumer(streamKey, consumerKey)
-			if err != nil {
-				return err
+	for _, stream := range streams {
+		for _, def := range stream.Consumers {
+			if def.Handler == nil {
+				return fmt.Errorf("queue: consumer %s on stream %s has no handler", def.Name, stream.Name)
 			}
+			handler := def.Handler
 
-			handler, err := registry.Get(consumerDef.Handler)
+			consumer, err := c.js.Consumer(ctx, stream.Name, def.Name)
 			if err != nil {
-				return err
-			}
-
-			consumer, err := c.js.Consumer(ctx, streamDef.Name, consumerDef.Name)
-			if err != nil {
-				return fmt.Errorf("load consumer %s: %w", consumerDef.Name, err)
+				return fmt.Errorf("load consumer %s: %w", def.Name, err)
 			}
 
 			handlerName := handler.Name()
@@ -167,19 +137,19 @@ func (c *Client) StartConsumers(ctx context.Context, registry HandlerRegistry) e
 				_ = msg.Ack()
 			})
 			if err != nil {
-				return fmt.Errorf("consume %s: %w", consumerDef.Name, err)
+				return fmt.Errorf("consume %s: %w", def.Name, err)
 			}
 
 			c.consumes = append(c.consumes, consumeCtx)
 			log.Printf("queue consumer started stream=%s consumer=%s handler=%s",
-				streamDef.Name, consumerDef.Name, handlerName)
+				stream.Name, def.Name, handlerName)
 		}
 	}
 
 	return nil
 }
 
-func buildStreamConfig(def StreamDefinition, opts StreamOptions) (jetstream.StreamConfig, error) {
+func buildStreamConfig(def Stream, opts StreamOptions) (jetstream.StreamConfig, error) {
 	cfg := jetstream.StreamConfig{
 		Name:     def.Name,
 		Subjects: def.Subjects,
@@ -239,7 +209,7 @@ func buildStreamConfig(def StreamDefinition, opts StreamOptions) (jetstream.Stre
 	return cfg, nil
 }
 
-func buildConsumerConfig(def ConsumerDefinition, opts ConsumerOptions) (jetstream.ConsumerConfig, error) {
+func buildConsumerConfig(def Consumer, opts ConsumerOptions) (jetstream.ConsumerConfig, error) {
 	cfg := jetstream.ConsumerConfig{
 		Name:          def.Name,
 		Durable:       def.Name,

@@ -1,13 +1,15 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useMemo } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 
 import { AdminAppLogo } from '@/components/common/admin-app-logo'
 import { NavMain } from '@/components/common/nav-main'
 import { NavUser } from '@/components/common/nav-user'
+import { navItemsForBackend } from '@/config/modules'
 import { useAdminNavItems } from '@/features/access-control'
+import { useBackendModules } from '@/hooks/use-backend-modules'
 import {
   Sidebar,
   SidebarContent,
@@ -23,7 +25,9 @@ import {
 export function AppSidebar() {
   const pathname = usePathname()
   const { setOpenMobile } = useSidebar()
-  const mainNavItems = useAdminNavItems()
+  const backendModules = useBackendModules()
+  const moduleItems = useMemo(() => navItemsForBackend(backendModules), [backendModules])
+  const mainNavItems = useAdminNavItems(moduleItems)
 
   useEffect(() => {
     setOpenMobile(false)

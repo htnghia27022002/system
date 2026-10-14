@@ -1,38 +1,24 @@
+import { definePermissions } from '@/lib/permissions'
+
 export const PermissionAction = {
   view: 'view',
   modify: 'modify',
 } as const
 
-export type PermissionResource =
-  | 'dashboard'
-  | 'users'
-  | 'roles'
-  | 'permissions'
-  | 'webhooks'
-  | 'maps'
+/** Core resources. Modules define their own keys with `definePermissions` (`@/lib/permissions`). */
+export type CorePermissionResource = 'dashboard' | 'users' | 'roles' | 'permissions'
+
+/** Any RBAC resource — core or contributed by a module. */
+export type PermissionResource = CorePermissionResource | (string & {})
 
 export const PermissionKeys = {
   dashboard: {
-    view: 'dashboard:view',
+    view: definePermissions('dashboard').view,
   },
-  users: {
-    view: 'users:view',
-    modify: 'users:modify',
-  },
-  roles: {
-    view: 'roles:view',
-    modify: 'roles:modify',
-  },
+  users: definePermissions('users'),
+  roles: definePermissions('roles'),
   permissions: {
-    view: 'permissions:view',
-  },
-  webhooks: {
-    view: 'webhooks:view',
-    modify: 'webhooks:modify',
-  },
-  maps: {
-    view: 'maps:view',
-    modify: 'maps:modify',
+    view: definePermissions('permissions').view,
   },
 } as const
 

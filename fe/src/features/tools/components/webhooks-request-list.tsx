@@ -5,9 +5,10 @@ import { useTranslation } from 'react-i18next'
 
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { PermissionGate, PermissionKeys } from '@/features/access-control'
+import { PermissionGate } from '@/features/access-control'
 import { cn } from '@/lib/utils'
 
+import { WebhooksPermissions } from '../permissions'
 import type { WebhookRequestListItem } from '../types/webhooks'
 
 type WebhooksRequestListProps = {
@@ -190,7 +191,7 @@ export function WebhooksRequestList({
                   <MailIcon className="size-3.5" />
                 )}
               </Button>
-              <PermissionGate permission={PermissionKeys.webhooks.modify}>
+              <PermissionGate permission={WebhooksPermissions.modify}>
                 <Button
                   type="button"
                   variant="ghost"

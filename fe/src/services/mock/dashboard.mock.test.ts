@@ -27,8 +27,8 @@ describe('mockDashboardApi.getOverview', () => {
     expect(overview.kpis.map((kpi) => kpi.key)).toEqual([
       'totalUsers',
       'activeSessions',
-      'revenue',
-      'ordersToday',
+      'newUsers',
+      'roles',
     ])
   })
 })

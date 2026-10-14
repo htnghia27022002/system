@@ -3,11 +3,12 @@
   "private": true,
   "packageManager": "pnpm@10.12.1",
   "scripts": {
-    "dev": "pnpm --filter fe dev",
-    "build": "pnpm --filter fe build",
-    "test": "pnpm --filter fe test:run",
-    "lint": "pnpm --filter fe lint",
-    "docker:up": "docker compose up --build",
-    "docker:down": "docker compose down"
+    "setup": "pnpm -C fe install",
+    "dev": "pnpm -C fe dev",
+    "build": "pnpm -C fe build",
+    "test": "pnpm -C fe test:run",
+    "lint": "pnpm -C fe lint",
+    "docker:up": "docker compose --env-file be/.env --profile dev up --build",
+    "docker:down": "docker compose --env-file be/.env --profile dev --profile prod --profile cache --profile queue --profile prod-queue down"
   }
 }

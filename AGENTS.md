@@ -48,9 +48,11 @@ This project is indexed by GitNexus as **system** (8193 symbols, 21844 relations
 |---------|------|------|
 | Frontend | `fe/` | Next.js 15 App Router, React 19, TypeScript |
 | Backend | `be/` | Go + Gin API, JWT auth, RBAC |
-| Docker | `docker/` + `docker-compose.yml` | nginx, postgres, redis, dev/prod profiles |
+| Docker | `docker/` + `docker-compose.yml` | nginx, postgres; optional redis (`cache`), nats + worker (`queue`); dev/prod profiles |
 
 Read [`README.md`](README.md) for quick start and doc index.
+
+This repo is a **core base**: no business logic in the core. Optional features are **modules** — BE `be/internal/modules/<name>/` + `registry.go`, FE `fe/src/features/<name>/module.ts` + `src/config/modules.ts`. Read [`docs/modules.md`](docs/modules.md) before adding a feature; a business feature is always a module.
 
 ## Workspace boundaries
 
@@ -59,7 +61,7 @@ Read [`README.md`](README.md) for quick start and doc index.
 | Scope | Knows full stack? | Can move standalone? |
 |-------|-------------------|----------------------|
 | `be/` | No — HTTP API only | Yes — own `go.mod`, imports use module path `be/...` |
-| `fe/` | No — calls API via env URL | Yes — own `package.json`, imports use `@/*` |
+| `fe/` | No — calls API via env URL | Yes — own `package.json` + `pnpm-lock.yaml` (no pnpm workspace), imports use `@/*` |
 | Root (`docker/`, docs, `.cursor/`, rules) | Yes — wiring + architecture | N/A |
 
 **Import aliases stay inside each package:**
@@ -134,7 +136,7 @@ Prompt cheat sheet: [`docs/workflow/agent-prompts.md`](docs/workflow/agent-promp
 ## Frontend (`fe/`)
 
 - Routing: `src/app/` App Router only. No `react-router-dom`, no `src/pages/`.
-- Domain logic: `src/features/<feature>/`
+- Domain logic: `src/features/<feature>/`; optional features register an `AppModule` in `src/config/modules.ts`
 - Env: `NEXT_PUBLIC_*` via `src/config/env.ts`
 - Design: [`fe/DESIGN.md`](fe/DESIGN.md) · tokens in `src/styles/index.css`
 - Full architecture rules: [`fe/CLAUDE.md`](fe/CLAUDE.md)
@@ -142,9 +144,10 @@ Prompt cheat sheet: [`docs/workflow/agent-prompts.md`](docs/workflow/agent-promp
 ## Backend (`be/`)
 
 - Layers: `public/routes` → `public/handlers` → `internal/services` → `internal/repository` → DB
-- Queue: `internal/queue` → `internal/handlers/publisher` (API) / `internal/handlers/subscribers` (`cmd/queue`)
-- DI: `internal/app/container.go` + resolvers in `internal/app/dependency/`
-- API prefix: `/api/auth`, `/api/admin`
+- Modules: contract `internal/module/`, list `internal/modules/registry.go` (`MODULES` env), one vertical slice per module
+- Queue (optional): `internal/queue` + `internal/handlers/publisher` (API); module streams consumed by `cmd/queue`
+- DI: `internal/app/container.go` + core resolvers in `internal/app/dependency/`
+- API prefix: `/api/auth`, `/api/admin`, `/api/app/info`; modules mount their own (e.g. `/api/webhooks`)
 - JSON: camelCase (matches FE contract)
 - Module imports: `be/internal/...` (from `be/go.mod`, self-contained)
 - Full rules: [`be/CLAUDE.md`](be/CLAUDE.md), [`be/README.md`](be/README.md)

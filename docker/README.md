@@ -1,6 +1,8 @@
 # Docker Environment
 
-Run the stack with Docker Compose profiles: **dev** (full stack + hot reload) or **prod** (API edge only).
+Run the stack with Docker Compose profiles: **dev** (full stack + hot reload) or **prod** (API edge only), plus optional add-ons **cache** (Redis), **queue** (NATS + worker, dev) and **prod-queue** (NATS + worker, prod). The core needs only Postgres.
+
+Each app builds from its own folder — `be/Dockerfile(.dev)` and `fe/Dockerfile(.dev)` with the app folder as build context — so `be/` or `fe/` can also be built and deployed without this compose file.
 
 ## Quick start
 
@@ -46,11 +48,16 @@ docker/nginx/
 |---------|-----------|---------------|-------|
 | nginx | `nginx` | 80 → host `NGINX_HTTP_PORT` | Reverse proxy, `server_name system.local` |
 | frontend | `fe` | 3000 | Next.js dev server |
-| backend | `be` | 8080 | Go + Gin API (publishes to NATS, no consumers) |
-| queue | `queue` | — | `go run ./cmd/queue` — JetStream consumers |
+| backend | `be` | 8080 | Go + Gin API |
 | postgres | `postgres` | 5432 | Data: `docker/data/postgres/` |
-| redis | `redis` | 6379 | Data: `docker/data/redis/` |
-| nats | `nats` | 4222 (client), 8222 (monitor) | JetStream message broker |
+
+Add-ons (`make up-d PROFILES="dev cache queue"`):
+
+| Profile | Service | Port | Notes |
+|---------|---------|------|-------|
+| `cache` | `redis` | 6379 | Data: `docker/data/redis/`; set `REDIS_URL` in `be/.env` |
+| `queue` | `nats` | 4222 (client), 8222 (monitor) | JetStream broker; set `NATS_ENABLED=true` in `be/.env` |
+| `queue` | `queue` | — | `go run ./cmd/queue` — consumes streams declared by modules (idles if none) |
 
 ### Prod profile (`make prod`)
 
@@ -62,11 +69,10 @@ Go services **pull a pre-built image from Docker Hub** (`GO_APP_IMAGE` in root `
 |---------|-----------|-------|
 | nginx | `nginx-prod` | Proxies `/api/` + webhook capture rewrite |
 | backend | `go-app` | Pulls `GO_APP_IMAGE`, runs `./server` |
-| queue | `go-queue` | Same image, runs `./queue` |
-| redis | `redis` | Shared with prod profile |
-| nats | `nats` | Shared with prod profile |
+| queue | `go-queue` | Same image, runs `./queue` — profile `prod-queue` |
+| nats | `nats` | Profile `prod-queue` |
 
-Point `DB_HOST`, `REDIS_URL`, etc. in `be/.env` at external services before `make prod`.
+Point `DB_HOST` (and `REDIS_URL` / `NATS_URL` if used) in `be/.env` at external services before `make prod`. With a worker: `make prod PROD_PROFILES="prod prod-queue"`.
 
 ### Publish Go image (CI / laptop)
 
@@ -85,12 +91,12 @@ Final image contains `./server`, `./queue`, and `config.yaml` only — no Go sou
 |---------|-------------|
 | `make up` | Start **dev** stack (foreground, rebuild) |
 | `make up-d` | Start **dev** stack in background |
-| `make down` | Stop and remove containers (dev + prod profiles) |
+| `make down` | Stop and remove containers (every profile) |
 | `make logs` | Follow dev service logs |
 | `make build` | Build + push `GO_APP_IMAGE` to Docker Hub |
 | `make prod` | Pull `GO_APP_IMAGE` + start prod profile (no source build) |
 | `make psql` | Open psql shell (dev) |
-| `make redis` | Ping Redis |
+| `make redis` | Ping Redis (`cache` profile) |
 
 ## Profiles
 
@@ -101,7 +107,7 @@ docker compose --env-file be/.env --profile dev up --build
 # or: make up-d
 ```
 
-**Prod** — pull Hub image + redis + nats + nginx (no FE, no Go build on server):
+**Prod** — pull Hub image + nginx (no FE, no Go build on server); add `prod-queue` for NATS + worker:
 
 ```bash
 # .env must set GO_APP_IMAGE=youruser/go-app:1.0.0
@@ -124,7 +130,7 @@ Three files — **no app config in root `.env`**.
 | File | Purpose |
 |------|---------|
 | `.env` | `NGINX_HTTP_PORT`, `GO_APP_IMAGE` (compose auto-loads) |
-| `be/.env` | Full BE + queue: `DB_*`, `REDIS_URL`, `NATS_*`, `AUTO_MIGRATE`, JWT, OAuth, CORS |
+| `be/.env` | Full BE + queue: `DB_*`, `AUTO_MIGRATE`, `MODULES`, JWT, OAuth, CORS; optional `REDIS_URL`, `NATS_*` |
 | `fe/.env` | Full FE: `NEXT_PUBLIC_*` (dev profile) |
 
 Setup: `make env` or copy `.env.example`, `be/.env.example`, `fe/.env.example`.

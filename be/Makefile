@@ -26,24 +26,30 @@ lint:
 tidy:
 	go mod tidy
 
+# Migration sets: core (migrations/) and one per module (internal/modules/<name>/migrations).
+# Pass module=<name> to target a module set; default core.
+module ?= core
+migrations_dir = $(if $(filter core,$(module)),migrations,internal/modules/$(module)/migrations)
+
 migrate-up:
 	go run ./cmd/migrate up
 
 migrate-down:
-	go run ./cmd/migrate down
+	go run ./cmd/migrate -module $(module) down
 
 migrate-version:
 	go run ./cmd/migrate version
 
-# Usage: make migrate-create name=add_users_index
+# Usage: make migrate-create name=add_users_index [module=webhooks]
 migrate-create:
-	@if [ -z "$(name)" ]; then echo "Usage: make migrate-create name=your_migration_name"; exit 1; fi
-	@next=$$(ls migrations/*.up.sql 2>/dev/null | sed 's/.*\///;s/_.*//' | sort -n | tail -1); \
+	@if [ -z "$(name)" ]; then echo "Usage: make migrate-create name=your_migration_name [module=name]"; exit 1; fi
+	@test -d $(migrations_dir) || { echo "No migrations folder $(migrations_dir)"; exit 1; }
+	@next=$$(ls $(migrations_dir)/*.up.sql 2>/dev/null | sed 's/.*\///;s/_.*//' | sort -n | tail -1); \
 	if [ -z "$$next" ]; then next=0; fi; \
-	next=$$((10#$$next + 1)); \
+	next=$$(expr $$next + 1); \
 	padded=$$(printf "%06d" $$next); \
-	touch migrations/$${padded}_$(name).up.sql migrations/$${padded}_$(name).down.sql; \
-	echo "Created migrations/$${padded}_$(name).up.sql and .down.sql"
+	touch $(migrations_dir)/$${padded}_$(name).up.sql $(migrations_dir)/$${padded}_$(name).down.sql; \
+	echo "Created $(migrations_dir)/$${padded}_$(name).up.sql and .down.sql"
 
 seed:
 	go run ./cmd/seed

@@ -65,16 +65,12 @@
 }
 
 /*
- * Stacking scale. Map overlays must sit above Leaflet panes/controls (≤1000);
- * modals sit above map overlays; floating content (select, popover, dropdown,
- * tooltip) sits above modals so it stays usable inside a dialog.
+ * Stacking scale. Floating content (select, popover, dropdown, tooltip) sits above
+ * modals so it stays usable inside a dialog. A feature that needs its own layer
+ * (e.g. overlays above a third-party widget) adds a named step below --z-modal here.
  * Use as `z-(--z-modal)` — never hand-pick `z-[NNNN]`.
  */
 :root {
-  --z-map-controls: 1100;
-  --z-map-hover: 1150;
-  --z-map-popover: 1200;
-  --z-map-panel: 1300;
   --z-modal: 1400;
   --z-floating: 1500;
 }

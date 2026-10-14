@@ -1,6 +1,9 @@
 # BE — Go + Gin API
 
-Go backend with JWT auth, RBAC, user management, and OAuth2 SSO.
+Go backend with JWT auth, RBAC, user management, and OAuth2 SSO — the **core** of the
+base. Optional features plug in as **modules** (shipped: `webhooks`); see
+[`docs/modules.md`](../docs/modules.md). This folder builds and deploys on its own
+(`go.mod`, `Dockerfile`, `.env`).
 
 ## Architecture
 
@@ -22,12 +25,14 @@ be/
 │   └── routes/
 ├── internal/
 │   ├── app/
-│   │   ├── container.go      # DI orchestrator (public Container API)
-│   │   └── dependency/       # Service resolvers (repos + wiring per domain)
+│   │   ├── container.go      # Core DI + Kernel + enabled modules
+│   │   └── dependency/       # Core service resolvers (repos + wiring per domain)
+│   ├── module/               # Module contract (Module, Kernel, capabilities)
+│   ├── modules/              # registry.go + one folder per optional module (webhooks/)
 │   ├── config/
 │   ├── database/
-│   ├── handlers/             # Queue publisher + subscribers (not HTTP)
-│   ├── queue/                # NATS JetStream (constants, nats.json, client)
+│   ├── handlers/publisher/   # Queue publisher (not HTTP)
+│   ├── queue/                # NATS JetStream client + Stream/Consumer topology
 │   ├── middleware/
 │   ├── models/
 │   ├── dto/
@@ -37,20 +42,21 @@ be/
 ├── cmd/
 │   ├── migrate/
 │   ├── seed/
-│   └── queue/                # NATS consumer worker
-├── migrations/
+│   └── queue/                # Queue worker (module streams / pollers)
+├── migrations/               # Core schema (module SQL lives in each module)
 ├── test/                     # All unit, integration, and e2e tests
 │   ├── unit/
 │   ├── integration/
 │   ├── e2e/
 │   └── testutil/
+├── Dockerfile / Dockerfile.dev
 ├── Makefile
 └── .golangci.yml
 ```
 
 ## Stack
 
-Go 1.22 · Gin · pgx · squirrel · PostgreSQL · JWT · OAuth2 · NATS JetStream · golangci-lint
+Go 1.22 · Gin · pgx · squirrel · PostgreSQL · JWT · OAuth2 · golangci-lint · optional Redis cache and NATS JetStream
 
 ## API routes
 
@@ -59,7 +65,9 @@ Base URL: `/api` (via nginx `http://localhost:8080/api` in Docker, or `http://lo
 | Group | Paths |
 |-------|-------|
 | Auth | `POST /auth/login`, `/register`, `/refresh`, `/logout`; `GET /auth/me`; OAuth under `/auth/oauth/:provider/*` |
-| Admin | CRUD `/admin/users`, `/admin/roles`; `GET /admin/permissions`; `GET /admin/search` (Postgres ILIKE over users, roles, permissions; filtered by `*:view`) |
+| Admin | CRUD `/admin/users`, `/admin/roles`; `GET /admin/permissions` |
+| App | `GET /app/info` → `{"modules": [...]}` (public) |
+| Module: webhooks | `ANY /webhooks/capture/:uuid` (public); owner inbox under `/webhooks/inbox*` (`webhooks:view` / `webhooks:modify`) |
 
 JSON responses use **camelCase**. Admin routes require Bearer JWT + permissions.
 
@@ -72,7 +80,11 @@ Full route table and permissions: see existing handlers in `public/routes/`.
 | `admin@example.com` | `admin1234` | Administrator |
 | `demo@example.com` | `password123` | Member |
 
-Seeded on first startup via `internal/database/seeders/` (Laravel-style) after [golang-migrate](https://github.com/golang-migrate/migrate) SQL migrations.
+Seeded on first startup via `internal/database/seeders/` (Laravel-style) after [golang-migrate](https://github.com/golang-migrate/migrate) SQL migrations. Migrations come in sets: core (`migrations/`, table `schema_migrations`) and one per enabled module (table `schema_migrations_<module>`).
+
+## Modules
+
+`MODULES` in `.env` picks the optional modules: unset = registry defaults (`webhooks`), `MODULES=` = core only, a comma list = exactly those. Disabled modules mount no routes, run no migrations and seed no permissions. Add/remove guide: [`docs/modules.md`](../docs/modules.md).
 
 ## Environment
 
@@ -93,12 +105,12 @@ make test-e2e         # HTTP e2e tests (needs Postgres)
 make test-all         # all test tiers
 make lint             # golangci-lint
 make migrate-up       # apply SQL migrations (golang-migrate)
-make migrate-down     # roll back one migration
-make migrate-version  # print current migration version
-make migrate-create name=add_users_index  # scaffold up/down files
+make migrate-down     # roll back one core migration (module=<name> for a module set)
+make migrate-version  # print the version of core and every enabled module
+make migrate-create name=add_users_index [module=<name>]  # scaffold up/down files
 make seed             # run DatabaseSeeder
 make seed-class class=PermissionSeeder  # run one seeder class
-go run ./cmd/queue        # NATS queue worker (consumers; separate from API)
+go run ./cmd/queue        # queue worker (module streams / pollers; idles when none)
 ```
 
 ## Cache
@@ -114,24 +126,18 @@ Cache stores live in `be/pkg/cache` (Options + drivers). App Init/Default wiring
 
 Package API: `cache.Init(cfg.Cache, redisClient)` at startup, then `cache.Get`, `cache.Set`, `cache.Delete`, `cache.Purge`, `cache.Close`. Redis client comes from `database.ConnectRedisURL` in `main.go`.
 
-## Queue (NATS JetStream)
+## Queue (NATS JetStream) — optional
 
-NATS JetStream runs async background work (currently maps ingest). Admin search is a direct Postgres query — there is no search index to sync.
+Off by default (`NATS_ENABLED=false`). Modules declare JetStream streams and consumers (`module.StreamProvider`) and may offer a `Poller` for NATS-disabled setups.
 
 | Layer | Path | Role |
 |-------|------|------|
-| Infra | `internal/queue/` | Connect, stream/consumer bootstrap, publish |
-| Constants | `internal/queue/constants.go` | Stream, subject, consumer, handler names |
-| Options | `internal/queue/nats.json` | Retention, ack policy, etc. (not names) |
-| Publish | `internal/handlers/publisher/` | Outbound messages after DB write |
-| Consume | `internal/handlers/subscribers/` | Inbound handlers (`process_maps_ingest`, …) |
-| Worker | `cmd/queue/` | Runs consumers (Docker service `queue`) |
+| Infra | `internal/queue/` | Connect, ensure declared streams/consumers, publish |
+| Options | `internal/queue/nats.json` | Connection + optional per-stream overrides (defaults live in modules) |
+| Publish | `internal/handlers/publisher/` | `PublishJSON` after the DB write (no-op when disabled) |
+| Worker | `cmd/queue/` | Consumes module streams, polls module pollers, or idles |
 
-The API process publishes only. **`cmd/queue`** calls `EnsureInfrastructure` and `StartConsumers` on startup.
-
-Env: `NATS_ENABLED`, `NATS_URL`, optional `QUEUE_CONFIG_FILE` (default `internal/queue/nats.json`).
-
-When NATS is disabled, the publisher no-ops and `cmd/queue` polls queued maps ingest runs.
+Env: `NATS_ENABLED`, `NATS_URL`, optional `QUEUE_CONFIG_FILE` (default `internal/queue/nats.json`). Docker: `--profile queue`.
 
 From monorepo root: `make test-be`, `make test-be-integration`, `make test-be-e2e`, `make test-be-all`.
 
@@ -147,7 +153,6 @@ internal/app/
 └── dependency/
     ├── infra.go              # Queue, JWT, publisher
     ├── repositories.go       # newAuthRepository, newUserRepository, …
-    ├── search.go             # Admin search service (Postgres)
     ├── auth_service.go       # Auth + OAuth
     ├── user_service.go       # UserService (+ user repo)
     ├── role_service.go       # RoleService (+ role repo for auth middleware)
@@ -155,15 +160,15 @@ internal/app/
     └── handlers.go           # HTTP handler constructors
 ```
 
-**Resolve order in `NewContainer`:** `Infra` → domain services → `HTTPHandlers`.
+**Resolve order in `NewContainer`:** `Infra` → core services → `HTTPHandlers` → `Kernel` → enabled modules (`internal/modules.Build`).
 
-Add a new domain service by adding `dependency/<feature>_service.go` with a `New…` constructor, then register it in `container.go`. Keep business logic in `internal/services/<feature>/`; resolvers only wire dependencies.
+Core services get a `dependency/<feature>_service.go` resolver registered in `container.go`. Optional features do their own wiring in `internal/modules/<name>/module.go`.
 
 ## Conventions
 
 - HTTP in `public/handlers`, routes in `public/routes`
-- Queue publish/consume in `internal/handlers/publisher` and `internal/handlers/subscribers`
-- NATS infra in `internal/queue/` — subject names from `constants.go` only
+- Optional features in `internal/modules/<name>/` (same layers inside); core never imports a module
+- Queue publish via `internal/handlers/publisher`; stream/subject names are constants in the owning module
 - Business logic in `internal/services/<feature>`
 - DTOs separate from models
 - Errors via `common/errors` + `response.HandleError`

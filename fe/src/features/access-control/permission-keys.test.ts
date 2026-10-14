@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
+import { definePermissions } from '@/lib/permissions'
+
 import {
   PermissionKeys,
   canModifyResource,
@@ -20,13 +22,13 @@ describe('permission-keys', () => {
     expect(canModifyResource(granted, 'roles')).toBe(true)
   })
 
-  it('exposes additive maps view and modify keys', () => {
-    expect(PermissionKeys.maps.view).toBe('maps:view')
-    expect(PermissionKeys.maps.modify).toBe('maps:modify')
+  it('checks module resources defined with definePermissions', () => {
+    const widgets = definePermissions('widgets')
+    expect(widgets).toEqual({ view: 'widgets:view', modify: 'widgets:modify' })
 
-    const granted = new Set([PermissionKeys.maps.view])
-    expect(canViewResource(granted, 'maps')).toBe(true)
-    expect(canModifyResource(granted, 'maps')).toBe(false)
+    const granted = new Set([widgets.view])
+    expect(canViewResource(granted, 'widgets')).toBe(true)
+    expect(canModifyResource(granted, 'widgets')).toBe(false)
   })
 
   it('maps legacy read/crud keys during transition', () => {

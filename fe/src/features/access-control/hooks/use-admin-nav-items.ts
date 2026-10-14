@@ -1,30 +1,65 @@
 'use client'
 
-import {
-  LayoutGridIcon,
-  Link2Icon,
-  MapIcon,
-  ShieldCheckIcon,
-  UsersIcon,
-  WrenchIcon,
-} from 'lucide-react'
+import { LayoutGridIcon, ShieldCheckIcon, UsersIcon } from 'lucide-react'
 import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { PermissionKeys } from '../permission-keys'
 import { usePermissions } from './use-permissions'
 import type { NavItem } from '@/types/navigation'
+import type { ModuleNavItem } from '@/types/modules'
 
 export const ADMIN_HOME_HREF = '/admin'
 
 /**
- * Permission-filtered admin nav tree for the sidebar.
+ * Permission-filtered admin nav tree: Dashboard, then module entries (grouped by
+ * `group.key`), then Access control. Module entries come from the caller
+ * (`src/config/modules.ts`) so this core feature never imports a module.
  */
-export function useAdminNavItems(): NavItem[] {
+export function useAdminNavItems(moduleItems: readonly ModuleNavItem[] = []): NavItem[] {
   const { t } = useTranslation('admin')
   const { hasPermission } = usePermissions()
 
   return useMemo(() => {
+    const allowed = <T extends { permission?: string }>(item: T) =>
+      !item.permission || hasPermission(item.permission)
+
+    const items: NavItem[] = [
+      {
+        title: t('nav.dashboard'),
+        href: ADMIN_HOME_HREF,
+        icon: LayoutGridIcon,
+        permission: PermissionKeys.dashboard.view,
+      },
+    ]
+
+    const groups = new Map<string, NavItem>()
+    for (const entry of moduleItems.filter(allowed)) {
+      const item: NavItem = {
+        title: t(entry.titleKey),
+        href: entry.href,
+        icon: entry.icon,
+        permission: entry.permission,
+      }
+      if (!entry.group) {
+        items.push(item)
+        continue
+      }
+      const parent = groups.get(entry.group.key)
+      if (parent) {
+        parent.items = [...(parent.items ?? []), item]
+        continue
+      }
+      const group: NavItem = {
+        title: t(entry.group.titleKey),
+        href: item.href,
+        icon: entry.group.icon,
+        items: [item],
+      }
+      groups.set(entry.group.key, group)
+      items.push(group)
+    }
+
     const accessControlItems: NavItem[] = [
       {
         title: t('nav.users'),
@@ -38,43 +73,7 @@ export function useAdminNavItems(): NavItem[] {
         icon: ShieldCheckIcon,
         permission: PermissionKeys.roles.view,
       },
-    ].filter((item) => !item.permission || hasPermission(item.permission))
-
-    const toolsItems: NavItem[] = [
-      {
-        title: t('nav.webhooks'),
-        href: '/admin/tools/webhooks',
-        icon: Link2Icon,
-        permission: PermissionKeys.webhooks.view,
-      },
-    ].filter((item) => !item.permission || hasPermission(item.permission))
-
-    const items: NavItem[] = [
-      {
-        title: t('nav.dashboard'),
-        href: ADMIN_HOME_HREF,
-        icon: LayoutGridIcon,
-        permission: PermissionKeys.dashboard.view,
-      },
-    ]
-
-    if (hasPermission(PermissionKeys.maps.view)) {
-      items.push({
-        title: t('nav.maps'),
-        href: '/admin/maps',
-        icon: MapIcon,
-        permission: PermissionKeys.maps.view,
-      })
-    }
-
-    if (toolsItems.length > 0) {
-      items.push({
-        title: t('nav.tools'),
-        href: toolsItems[0].href,
-        icon: WrenchIcon,
-        items: toolsItems,
-      })
-    }
+    ].filter(allowed)
 
     if (accessControlItems.length > 0) {
       items.push({
@@ -85,8 +84,6 @@ export function useAdminNavItems(): NavItem[] {
       })
     }
 
-    return items.filter(
-      (item) => !item.permission || hasPermission(item.permission),
-    )
-  }, [hasPermission, t])
+    return items.filter(allowed)
+  }, [hasPermission, moduleItems, t])
 }

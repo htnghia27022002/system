@@ -7,7 +7,7 @@ Follow these rules before creating, editing, moving, or deleting files.
 
 `fe/` is a **standalone frontend package**. It can be moved out of this workspace without changing internal import paths.
 
-- Package root: `fe/package.json`
+- Package root: `fe/package.json` + `fe/pnpm-lock.yaml` + `fe/.npmrc` (not a pnpm workspace member) and `fe/Dockerfile` (build context = `fe/`)
 - Internal imports: `@/*` → `src/*` only
 - API integration: HTTP via `NEXT_PUBLIC_API_BASE_URL` — do **not** import from `be/`
 - Run all FE commands from `fe/` (or repo root scripts that delegate to `fe/`)
@@ -40,23 +40,22 @@ src/
     common/       ← shared presentational components (AuthLayout lives here)
     providers/    ← React context providers ('use client')
     ui/           ← shadcn/ui components
-  config/         ← env.ts (Zod-validated NEXT_PUBLIC_* vars), i18n.ts
+  config/         ← env.ts (Zod-validated NEXT_PUBLIC_* vars), i18n.ts, modules.ts (module registry)
   features/       ← all domain logic + page-level components
     auth/
     landing/      ← public `/`
-    tools/
     access-control/
     admin-dashboard/
-    admin-search/
     user-profile/
+    tools/        ← optional module (module.ts descriptor; Webhooks tool)
   hooks/          ← shared custom hooks ('use client')
   layouts/        ← AdminLayout (admin chrome only)
-  lib/            ← utils.ts (cn helper)
+  lib/            ← utils.ts (cn helper), permissions.ts (definePermissions)
   locales/        ← en/, vi/ i18n JSON
   services/       ← api-client, auth-token-service, mock/
   store/          ← Zustand stores ('use client')
   styles/         ← index.css (Tailwind + CSS variables)
-  types/          ← cross-feature TypeScript types
+  types/          ← cross-feature TypeScript types (modules.ts = AppModule contract)
   utils/          ← helper functions
 ```
 
@@ -86,7 +85,20 @@ src/app/
     page.tsx                ← imports AdminDashboardOverview + PermissionGuard
     users/page.tsx          ← imports UsersTable + PermissionGuard
     roles/page.tsx          ← imports RolesTable + PermissionGuard
+    profile/page.tsx        ← ProfilePage
+    tools/webhooks/page.tsx ← module route (tools)
 ```
+
+## 4.1) Modules (optional features)
+
+Core never imports a module. An optional/business feature is a module:
+
+1. `src/features/<name>/module.ts` exports an `AppModule` (`src/types/modules.ts`): admin nav entries, breadcrumbs, permission catalog rows, public links, sitemap paths, and `backendModule` (the BE module it needs).
+2. `src/features/<name>/permissions.ts` defines its keys with `definePermissions('<resource>')` (`@/lib/permissions`).
+3. Its routes live under `src/app/` (file routing cannot be registered dynamically) and use `PermissionGuard`.
+4. Append it to `src/config/modules.ts` — the only file that lists modules. Sidebar, breadcrumbs, public header, sitemap and the mock RBAC catalog are composed from it; the sidebar also hides a module whose `backendModule` is missing from `GET /api/app/info`.
+
+`src/config/modules.ts` is the one place allowed to deep-import `features/<name>/module.ts`. Remove a module by deleting its feature folder, its `app/` routes and its line there. Guide: [`../docs/modules.md`](../docs/modules.md).
 
 ## 5) Client vs. Server Components
 
@@ -118,9 +130,9 @@ All guards are Client Components in `src/features/auth/` (or `access-control/`):
 
 When adding an admin page or sidebar entry:
 
-1. Extend `PermissionKeys` / `PermissionResource` in `src/features/access-control/permission-keys.ts`.
+1. Core resource: extend `PermissionKeys` in `src/features/access-control/permission-keys.ts`. Module resource: `definePermissions` in the module's `permissions.ts`.
 2. Wrap the page with `PermissionGuard` using the **view** key.
-3. Add the nav item in `src/components/common/app-sidebar.tsx` with `permission: PermissionKeys.<resource>.view` and **filter with `hasPermission`** — never show the link without the key.
+3. Core page: add the nav item in `src/features/access-control/hooks/use-admin-nav-items.ts`. Module page: add it to the module's `adminNav` in `module.ts`. Either way it carries the **view** permission and is filtered with `hasPermission` — never show the link without the key.
 4. Gate mutate actions with `PermissionGate` + **modify** key.
 5. Align with `docs/features/.../contracts/permissions.md`.
 

@@ -16,6 +16,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from '@/components/ui/sheet'
+import { modulePublicLinks } from '@/config/modules'
 import { useSignOut } from '@/features/auth'
 import { cn } from '@/lib/utils'
 import { useAuthStore } from '@/store/auth-store'
@@ -30,7 +31,7 @@ type PublicSiteHeaderProps = {
 }
 
 /**
- * Shared public chrome: brand, Navigate (Home/Tools), auth, LocaleSelect, ThemeToggle.
+ * Shared public chrome: brand, Navigate (Home + module public links), auth, LocaleSelect, ThemeToggle.
  * Mounted on `/` and `/tools` (owner Webhooks UI is under `/admin/tools/webhooks`).
  */
 export function PublicSiteHeader({
@@ -127,9 +128,11 @@ export function PublicSiteHeader({
             <Button variant="ghost" size="sm" asChild>
               <Link href="/">{t('nav.home')}</Link>
             </Button>
-            <Button variant="ghost" size="sm" asChild>
-              <Link href="/tools">{t('nav.tools')}</Link>
-            </Button>
+            {modulePublicLinks.map((link) => (
+              <Button key={link.href} variant="ghost" size="sm" asChild>
+                <Link href={link.href}>{t(link.labelKey)}</Link>
+              </Button>
+            ))}
             {children}
           </nav>
         </div>
@@ -158,9 +161,17 @@ export function PublicSiteHeader({
                 <Button variant="ghost" className="justify-start" asChild onClick={closeMobile}>
                   <Link href="/">{t('nav.home')}</Link>
                 </Button>
-                <Button variant="ghost" className="justify-start" asChild onClick={closeMobile}>
-                  <Link href="/tools">{t('nav.tools')}</Link>
-                </Button>
+                {modulePublicLinks.map((link) => (
+                  <Button
+                    key={link.href}
+                    variant="ghost"
+                    className="justify-start"
+                    asChild
+                    onClick={closeMobile}
+                  >
+                    <Link href={link.href}>{t(link.labelKey)}</Link>
+                  </Button>
+                ))}
                 {children ? (
                   <div className="flex flex-col gap-2 border-t border-border pt-2" onClick={closeMobile}>
                     {children}

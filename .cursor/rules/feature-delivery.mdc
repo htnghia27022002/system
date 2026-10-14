@@ -33,6 +33,8 @@ One chat drives agents in order. User says `@ba …` then you continue through a
 
 Prefer **extending an existing bounded context** (auth, access-control, tools, profile) over a new top-level package.
 
+The core holds **no business logic**. A business/optional feature is a **module** (BE `be/internal/modules/<name>/`, FE `fe/src/features/<name>/module.ts`) registered in one line on each side — see [`docs/modules.md`](../../docs/modules.md). Extend core contexts only for capabilities every project needs.
+
 | Kind | BE | FE | Permissions |
 |------|----|----|-------------|
 | Self-service account | `/api/auth/*` + JWT | Existing page section (e.g. fourth Card on `/admin/profile`) | `permissions.md` = **N/A** (signed-in only). No catalog keys, no sidebar. |

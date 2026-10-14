@@ -31,12 +31,12 @@ Helpers: BE `be/common/rbac` (`rbac.Key`, `rbac.ActionView`, `rbac.ActionModify`
 | Role | Must do |
 |------|---------|
 | `@technical-architect` | Document keys in `contracts/permissions.md` (resource, `:view` / `:modify`, which routes/menu). Add `[BE]` / `[FE]` tasks for catalog + menu gate. |
-| `@be` | Add rows to `DefaultPermissions()` in `be/internal/database/seeders/catalog.go` (stable UUIDs). Protect routes with `RequireView` / `RequireModify`. Admin role gets new keys via `RolePermissionSeeder` (iterates catalog). |
-| `@fe` | Extend `PermissionKeys` + `PermissionResource`. Gate admin routes with `PermissionGuard`. **Show sidebar/menu items only when `hasPermission(...)`** (see `app-sidebar.tsx`). Gate mutate actions with `PermissionGate`. Update mock catalog if used. |
+| `@be` | Core resource: add rows to `DefaultPermissions()` in `be/internal/database/seeders/catalog.go`; module resource: return them from the module's `Permissions()` (`be/internal/modules/<name>/module.go`). Stable UUIDs; duplicate keys/IDs abort seeding. Protect routes with `RequireView` / `RequireModify`. Admin role gets new keys via `RolePermissionSeeder` (iterates the merged catalog). |
+| `@fe` | Core resource: extend `PermissionKeys`. Module resource: `definePermissions` in the module's `permissions.ts` + catalog rows and `adminNav` in its `module.ts` (the mock catalog and sidebar read them from `src/config/modules.ts`). Gate admin routes with `PermissionGuard`. **Show sidebar/menu items only when `hasPermission(...)`**. Gate mutate actions with `PermissionGate`. |
 
 ## Admin menu (mandatory for FE)
 
-Any new item in `fe/src/components/common/app-sidebar.tsx` (or equivalent admin nav) **MUST**:
+Any new admin nav item — core items in `use-admin-nav-items.ts`, module items in the module's `adminNav` — **MUST**:
 
 1. Set `permission: PermissionKeys.<resource>.view` (or the documented view key).
 2. Be filtered with `hasPermission` so users without the key never see the link.
@@ -59,8 +59,8 @@ Examples: purely public marketing UI, public webhook **capture** URL only.
 ## Checklist (implement)
 
 - [ ] `contracts/permissions.md` lists keys (or N/A)
-- [ ] BE: `catalog.go` `DefaultPermissions()` updated
+- [ ] BE: `catalog.go` `DefaultPermissions()` (core) or module `Permissions()` updated
 - [ ] BE: routes use `RequireView` / `RequireModify`
-- [ ] FE: `PermissionKeys` updated
+- [ ] FE: `PermissionKeys` (core) or module `permissions.ts` + `module.ts` updated
 - [ ] FE: sidebar filtered by `hasPermission`
 - [ ] FE: page `PermissionGuard` + modify `PermissionGate` where needed

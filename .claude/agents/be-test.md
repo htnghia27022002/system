@@ -40,7 +40,7 @@ make test-be-e2e
 make test-be-all
 ```
 
-For queue-driven features (e.g. maps ingest): the **`queue` Docker service** (`cmd/queue`) must be running to verify NATS processing end-to-end; unit tests call the service directly. Admin search is a plain Postgres query — test it with a stub `interfaces.SearchRepository`.
+For queue-driven module features: start the `queue` profile (`make up-d PROFILES="dev queue"`, `NATS_ENABLED=true`) to verify NATS processing end-to-end; unit tests call the module service directly. Module tests live in `test/unit/<module>/`; registry behaviour is covered by `test/unit/module/`.
 
 See [`.claude/rules/environment.md`](../../.claude/rules/environment.md).
 

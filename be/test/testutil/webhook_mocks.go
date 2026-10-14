@@ -9,16 +9,16 @@ import (
 
 	"github.com/google/uuid"
 
-	webhookmodel "be/internal/models/webhook"
-	"be/internal/repository/interfaces"
+	webhookmodel "be/internal/modules/webhooks/models/webhook"
+	"be/internal/modules/webhooks/repository/interfaces"
 )
 
 // MemoryWebhookInboxRepo is an in-memory WebhookInboxRepository for unit tests.
 type MemoryWebhookInboxRepo struct {
-	mu      sync.Mutex
-	ByID    map[string]*webhookmodel.Inbox
-	ByUser  map[string]string
-	ByUUID  map[string]string
+	mu     sync.Mutex
+	ByID   map[string]*webhookmodel.Inbox
+	ByUser map[string]string
+	ByUUID map[string]string
 }
 
 func NewMemoryWebhookInboxRepo() *MemoryWebhookInboxRepo {

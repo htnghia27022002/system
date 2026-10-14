@@ -1,10 +1,10 @@
 'use client'
 
+import Image from 'next/image'
 import Link from 'next/link'
 
 import { Button } from '@/components/ui/button'
 
-import { HeroCharacterStage } from '../hero-character'
 import { landingContent } from '../../content'
 import { SectionBase } from './section-base'
 
@@ -44,8 +44,17 @@ export function HeroSection() {
           </div>
         </div>
 
-        <div className="order-1 w-full lg:order-2 lg:justify-self-end lg:max-w-md xl:max-w-lg">
-          <HeroCharacterStage />
+        <div className="order-1 w-full lg:order-2 lg:justify-self-end">
+          <div className="relative mx-auto aspect-[3/2] w-full max-w-xl overflow-hidden rounded-2xl border border-border/70 shadow-sm">
+            <Image
+              src="/images/landing-hero.webp"
+              alt=""
+              fill
+              priority
+              sizes="(min-width: 1024px) 45vw, 100vw"
+              className="object-cover"
+            />
+          </div>
         </div>
       </div>
     </SectionBase>

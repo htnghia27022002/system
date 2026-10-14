@@ -1,0 +1,28 @@
+FROM golang:1.22-alpine AS builder
+
+WORKDIR /app
+
+RUN apk add --no-cache git ca-certificates
+
+COPY go.mod go.sum ./
+RUN go mod download
+
+COPY . .
+
+RUN CGO_ENABLED=0 GOOS=linux go build -o server . \
+	&& CGO_ENABLED=0 GOOS=linux go build -o queue ./cmd/queue
+
+FROM alpine:3.20
+
+WORKDIR /app
+
+RUN apk add --no-cache ca-certificates
+
+COPY --from=builder /app/server .
+COPY --from=builder /app/queue .
+COPY --from=builder /app/config.yaml .
+# SQL migrations are embedded in the Go binaries (be/migrations via go:embed).
+
+EXPOSE 8080
+
+CMD ["./server"]

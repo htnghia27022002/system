@@ -1,6 +1,9 @@
 # Next.js + React + TypeScript
 
-**Next.js 15 App Router** + React 19 + TypeScript + Tailwind CSS v4.
+**Next.js 15 App Router** + React 19 + TypeScript + Tailwind CSS v4 — the core admin/app
+shell of the base. Optional features plug in as modules (`src/config/modules.ts`, guide:
+[`../docs/modules.md`](../docs/modules.md)). This folder is a standalone pnpm project
+(own `pnpm-lock.yaml`, `Dockerfile`, `.env`).
 
 ## Structure
 
@@ -11,23 +14,22 @@ src/
     common/             ← Shared presentational components (AuthLayout, Breadcrumbs, ...)
     providers/          ← React context providers
     ui/                 ← shadcn/ui components
-  config/               ← env.ts, i18n.ts
+  config/               ← env.ts, i18n.ts, modules.ts (module registry)
   features/             ← All domain logic + page components
     landing/            ← Public `/` (LandingPage)
-    tools/              ← Tools hub + webhooks
     access-control/     ← UsersTable, RolesTable, permission hooks, admin nav
     admin-dashboard/
-    admin-search/
     user-profile/
+    tools/              ← Module: Tools hub + Webhooks (module.ts descriptor)
     auth/
   hooks/                ← Shared custom hooks
   layouts/              ← AdminLayout
-  lib/                  ← utils.ts (cn)
+  lib/                  ← utils.ts (cn), permissions.ts (definePermissions)
   locales/              ← en/, vi/
   services/             ← api-client, auth-token-service, mock/
   store/                ← Zustand stores
   styles/               ← index.css (Tailwind + CSS variables)
-  types/                ← Cross-feature TypeScript types
+  types/                ← Cross-feature TypeScript types (modules.ts = AppModule)
   utils/                ← Helpers
 ```
 
@@ -61,6 +63,8 @@ src/app/
     page.tsx                ← /admin → features/admin-dashboard + PermissionGuard
     users/page.tsx          ← /admin/users → features/access-control/UsersTable
     roles/page.tsx          ← /admin/roles → features/access-control/RolesTable
+    profile/page.tsx        ← /admin/profile → features/user-profile
+    tools/webhooks/page.tsx ← /admin/tools/webhooks → features/tools (module)
 ```
 
 ## Getting Started
@@ -79,6 +83,8 @@ cp .env.example .env
 pnpm install
 pnpm dev
 ```
+
+**Production image (this folder only):** `docker build -t my-fe --build-arg NEXT_PUBLIC_API_BASE_URL=https://api.example.com/api .`
 
 ### Demo accounts
 

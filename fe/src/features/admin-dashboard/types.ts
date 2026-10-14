@@ -1,8 +1,8 @@
 export type DashboardKpiKey =
   | 'totalUsers'
   | 'activeSessions'
-  | 'revenue'
-  | 'ordersToday'
+  | 'newUsers'
+  | 'roles'
 
 export type DashboardKpi = {
   key: DashboardKpiKey

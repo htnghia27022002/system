@@ -1,4 +1,5 @@
 import { env } from '@/config/env'
+import { modulePermissions } from '@/config/modules'
 import type {
   AuthResolvedUser,
   CreateRoleInput,
@@ -58,30 +59,8 @@ const SEED_PERMISSIONS: Permission[] = [
     group: 'permissions',
     description: 'View the permissions catalog',
   },
-  {
-    key: 'webhooks:view',
-    name: 'View webhooks',
-    group: 'webhooks',
-    description: 'Open the webhooks inbox and list captured requests',
-  },
-  {
-    key: 'webhooks:modify',
-    name: 'Modify webhooks',
-    group: 'webhooks',
-    description: 'Regenerate the public URL and soft-delete captured requests',
-  },
-  {
-    key: 'maps:view',
-    name: 'View maps',
-    group: 'maps',
-    description: 'View the admin street map, Places, Sources, and ingest status',
-  },
-  {
-    key: 'maps:modify',
-    name: 'Modify maps',
-    group: 'maps',
-    description: 'Manage Sources, run Load data, and change Place status',
-  },
+  // Module permissions (src/config/modules.ts), mirroring each BE module's Permissions().
+  ...modulePermissions,
 ]
 
 const ALL_PERMISSION_KEYS = SEED_PERMISSIONS.map((p) => p.key)

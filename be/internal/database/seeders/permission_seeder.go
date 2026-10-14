@@ -6,11 +6,14 @@ import (
 	"be/pkg/postgres"
 )
 
-// PermissionSeeder seeds the permissions catalog.
-type PermissionSeeder struct{}
+// PermissionSeeder seeds the permissions catalog (core + module permissions).
+type PermissionSeeder struct {
+	permissions []PermissionDef
+}
 
-func NewPermissionSeeder() *PermissionSeeder {
-	return &PermissionSeeder{}
+// NewPermissionSeeder seeds the core catalog plus any extra module permissions.
+func NewPermissionSeeder(extra ...PermissionDef) *PermissionSeeder {
+	return &PermissionSeeder{permissions: append(DefaultPermissions(), extra...)}
 }
 
 func (s *PermissionSeeder) Name() string {
@@ -18,7 +21,7 @@ func (s *PermissionSeeder) Name() string {
 }
 
 func (s *PermissionSeeder) Run(ctx context.Context, db *postgres.Postgres) error {
-	for _, item := range DefaultPermissions() {
+	for _, item := range s.permissions {
 		sql, args, err := db.Builder.
 			Insert(postgres.QuoteIdent("permissions")).
 			Columns("id", "key", "name", `"group"`, "description").

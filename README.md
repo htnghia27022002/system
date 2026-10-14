@@ -1,21 +1,29 @@
-# System Monorepo
+# System — core base
 
-pnpm workspace with a **Next.js frontend** (`fe/`), **Go backend** (`be/`), and **Docker** stack for local development.
+A base to clone for new projects: a **Next.js frontend** (`fe/`), a **Go backend** (`be/`)
+and a **Docker** stack. It ships only the core (auth, users, roles/permissions, profile,
+admin shell, design system) plus optional **modules** — currently the Webhooks tool.
+No business logic lives in the core. How modules work, and how to add or remove one:
+[`docs/modules.md`](docs/modules.md).
+
+`be/` and `fe/` are independent apps (own `go.mod` / `pnpm-lock.yaml`, `Dockerfile`,
+`.env`) that talk over HTTP only — run, build or deploy either one on its own.
 
 ## Architecture
 
 ```text
 Browser → nginx (:8080) → /api/* → be (Go + Gin)
                        → /*     → fe (Next.js 15)
-be → postgres, redis, nats (publish)
-queue (cmd/queue) → nats (consume) → postgres (maps ingest)
+be → postgres                (required)
+be → redis, nats             (optional: compose profiles "cache" / "queue")
+queue (cmd/queue) → nats     (consumes streams declared by modules)
 ```
 
 | Layer | Path | Stack |
 |-------|------|-------|
 | Frontend | [`fe/`](fe/) | Next.js 15, React 19, TypeScript, Tailwind v4 |
 | Backend | [`be/`](be/) | Go 1.22, Gin, pgx, squirrel, PostgreSQL, JWT, RBAC |
-| Infrastructure | [`docker/`](docker/) | nginx, postgres, redis, nats, compose profiles |
+| Infrastructure | [`docker/`](docker/) | nginx, postgres; optional redis, nats (compose profiles) |
 
 **Request flow (BE):** `route → handler → service → repository → database`
 
@@ -45,9 +53,9 @@ Requires PostgreSQL locally.
 cd be && cp .env.example .env   # or use be/.env
 make run                        # http://localhost:8080/api
 
-# Frontend (separate terminal, repo root)
-pnpm install
-cp fe/.env.example fe/.env
+# Frontend (separate terminal)
+cd fe && pnpm install
+cp .env.example .env
 pnpm dev                        # http://localhost:3000
 ```
 
@@ -60,6 +68,7 @@ Set `NEXT_PUBLIC_USE_MOCK_API=false` and `NEXT_PUBLIC_API_BASE_URL=http://localh
 | [`docs/README.md`](docs/README.md) | Feature docs layout, role ownership |
 | [`docs/workflow/overview.md`](docs/workflow/overview.md) | Speckit SDD cycle |
 | [`docs/workflow/agent-prompts.md`](docs/workflow/agent-prompts.md) | Prompts per agent (BA/BE/FE/QA) |
+| [`docs/modules.md`](docs/modules.md) | Core vs modules, add/remove a module, optional infra, separate deploys |
 | [`AGENTS.md`](AGENTS.md) | Root agent rules, GitNexus, monorepo policy |
 | [`fe/CLAUDE.md`](fe/CLAUDE.md) | FE architecture and import rules (authoritative) |
 | [`fe/README.md`](fe/README.md) | FE structure, routes, commands |
@@ -73,13 +82,13 @@ Set `NEXT_PUBLIC_USE_MOCK_API=false` and `NEXT_PUBLIC_API_BASE_URL=http://localh
 
 | Command | Description |
 |---------|-------------|
-| `make up-d` | Docker dev stack (background) |
+| `make up-d` | Docker dev stack (background); add-ons: `PROFILES="dev queue cache"` |
 | `make down` | Stop containers |
 | `make test` | BE (Docker) + FE tests |
 | `make test-be` | Go tests inside `be` container |
-| `make test-fe` | Vitest (`pnpm test`) |
+| `make test-fe` | Vitest (`pnpm -C fe test:run`) |
 | `make prod` | Docker production profile |
-| `pnpm dev` | FE only (host) |
+| `pnpm setup` / `pnpm dev` | Install / run FE only (host; delegates to `fe/`) |
 | `pnpm docker:up` | Same as `make up` |
 
 ## Workspace layout
@@ -87,11 +96,10 @@ Set `NEXT_PUBLIC_USE_MOCK_API=false` and `NEXT_PUBLIC_API_BASE_URL=http://localh
 ```text
 system/
 ├── docs/               # Feature specs & role docs (Speckit)
-├── fe/                 # Next.js app
-├── be/                 # Go API
-├── docker/             # Dockerfiles + nginx configs
+├── fe/                 # Next.js app (own pnpm-lock.yaml, Dockerfile, .env)
+├── be/                 # Go API (own go.mod, Dockerfile, .env)
+├── docker/             # nginx configs + data volumes
 ├── docker-compose.yml
-├── pnpm-workspace.yaml
 ├── Makefile
 └── AGENTS.md
 ```

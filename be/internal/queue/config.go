@@ -8,8 +8,11 @@ import (
 )
 
 type Config struct {
-	Connection ConnectionConfig         `json:"connection"`
-	Streams    map[string]StreamOptions `json:"streams"`
+	Connection ConnectionConfig `json:"connection"`
+	// Streams holds optional per-stream option overrides keyed by Stream.Key.
+	// Streams themselves are declared by modules (see Stream); a key with no
+	// override uses the module's defaults.
+	Streams map[string]StreamOptions `json:"streams"`
 }
 
 type ConnectionConfig struct {
@@ -38,17 +41,6 @@ type ConsumerOptions struct {
 	MaxAckPending int    `json:"max_ack_pending"`
 	DeliverPolicy string `json:"deliver_policy"`
 	ReplayPolicy  string `json:"replay_policy"`
-}
-
-type StreamDefinition struct {
-	Name     string
-	Subjects []string
-}
-
-type ConsumerDefinition struct {
-	Name          string
-	FilterSubject string
-	Handler       string
 }
 
 func LoadConfig() Config {
@@ -85,27 +77,6 @@ func defaultConfig() Config {
 			MaxReconnects: -1,
 			ReconnectWait: "2s",
 		},
-		Streams: map[string]StreamOptions{
-			StreamKeyMaps: {
-				Retention:       "limits",
-				Storage:         "file",
-				MaxAge:          "168h",
-				MaxMsgs:         100000,
-				MaxBytes:        1073741824,
-				Discard:         "old",
-				DuplicateWindow: "2m",
-				Consumers: map[string]ConsumerOptions{
-					ConsumerKeyMapsIngest: {
-						AckPolicy:     "explicit",
-						AckWait:       "60s",
-						MaxDeliver:    5,
-						MaxAckPending: 16,
-						DeliverPolicy: "all",
-						ReplayPolicy:  "instant",
-					},
-				},
-			},
-		},
 	}
 }
 
@@ -131,33 +102,6 @@ func applyEnvOverrides(cfg *Config) {
 	if url := strings.TrimSpace(os.Getenv("NATS_URL")); url != "" {
 		cfg.Connection.URL = url
 	}
-}
-
-func resolveStream(key string) (StreamDefinition, error) {
-	switch key {
-	case StreamKeyMaps:
-		return StreamDefinition{
-			Name:     StreamMaps,
-			Subjects: []string{SubjectMapsWildcard},
-		}, nil
-	default:
-		return StreamDefinition{}, fmt.Errorf("queue: unknown stream key %q", key)
-	}
-}
-
-func resolveConsumer(streamKey, consumerKey string) (ConsumerDefinition, error) {
-	switch streamKey {
-	case StreamKeyMaps:
-		switch consumerKey {
-		case ConsumerKeyMapsIngest:
-			return ConsumerDefinition{
-				Name:          ConsumerMapsIngest,
-				FilterSubject: SubjectMapsIngest,
-				Handler:       HandlerMapsIngest,
-			}, nil
-		}
-	}
-	return ConsumerDefinition{}, fmt.Errorf("queue: unknown consumer key %q for stream %q", consumerKey, streamKey)
 }
 
 func parseBool(raw string) bool {

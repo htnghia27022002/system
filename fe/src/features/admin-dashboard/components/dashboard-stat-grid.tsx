@@ -1,6 +1,6 @@
 'use client'
 
-import { TrendingDownIcon, TrendingUpIcon } from 'lucide-react'
+import { MinusIcon, TrendingDownIcon, TrendingUpIcon } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
 import {
@@ -44,8 +44,9 @@ export function DashboardStatGrid({ kpis, isLoading }: DashboardStatGridProps) {
   return (
     <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
       {kpis?.map((kpi) => {
-        const positive = kpi.changePercent >= 0
-        const TrendIcon = positive ? TrendingUpIcon : TrendingDownIcon
+        const trend = Math.sign(kpi.changePercent)
+        const TrendIcon =
+          trend > 0 ? TrendingUpIcon : trend < 0 ? TrendingDownIcon : MinusIcon
         return (
           <Card key={kpi.key} className="gap-3">
             <CardHeader className="px-4">
@@ -53,7 +54,7 @@ export function DashboardStatGrid({ kpis, isLoading }: DashboardStatGridProps) {
                 {t(`overview.kpis.${kpi.key}`)}
               </CardDescription>
               <CardTitle className="text-2xl font-semibold tabular-nums">
-                {formatKpiValue(kpi.key, kpi.value, i18n.language)}
+                {formatKpiValue(kpi.value, i18n.language)}
               </CardTitle>
             </CardHeader>
             <CardContent className="px-4">
@@ -61,7 +62,8 @@ export function DashboardStatGrid({ kpis, isLoading }: DashboardStatGridProps) {
                 <span
                   className={cn(
                     'inline-flex items-center gap-1 font-medium tabular-nums',
-                    positive ? 'text-success' : 'text-destructive',
+                    trend > 0 && 'text-success',
+                    trend < 0 && 'text-destructive',
                   )}
                 >
                   <TrendIcon className="size-4" aria-hidden />
@@ -77,19 +79,7 @@ export function DashboardStatGrid({ kpis, isLoading }: DashboardStatGridProps) {
   )
 }
 
-function formatKpiValue(
-  key: DashboardKpi['key'],
-  value: number,
-  locale: string,
-): string {
-  if (key === 'revenue') {
-    return new Intl.NumberFormat(locale, {
-      style: 'currency',
-      currency: 'USD',
-      maximumFractionDigits: 0,
-    }).format(value)
-  }
-
+function formatKpiValue(value: number, locale: string): string {
   return new Intl.NumberFormat(locale).format(value)
 }
 

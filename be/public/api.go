@@ -17,7 +17,7 @@ import (
 	"be/internal/app"
 	"be/internal/config"
 	"be/internal/database"
-	"be/internal/middleware"
+	"be/internal/module"
 	"be/pkg/postgres"
 	"be/public/routes"
 )
@@ -28,11 +28,18 @@ func Run(cfg config.Config, db *postgres.Postgres, redis *goredis.Client) error 
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
 
+	container, err := app.NewContainer(cfg, db)
+	if err != nil {
+		return err
+	}
+	defer container.Close()
+	log.Printf("modules enabled: %v", container.Modules.Names())
+
 	if cfg.AutoMigrate {
-		if err := database.RunMigrations(cfg); err != nil {
+		if err := database.RunMigrations(cfg, container.Modules.MigrationSets()...); err != nil {
 			return err
 		}
-		if err := database.Seed(ctx, db); err != nil {
+		if err := database.Seed(ctx, db, container.Modules.SeedContributions()...); err != nil {
 			return err
 		}
 	}
@@ -42,13 +49,12 @@ func Run(cfg config.Config, db *postgres.Postgres, redis *goredis.Client) error 
 	}
 	defer func() { _ = cache.Close() }()
 
-	container := app.NewContainer(cfg, db)
-	defer container.Close()
-
 	r := gin.Default()
-	// Permissive CORS for public webhook capture (no credentials) must run before
-	// credentialed owner CORS so browser preflight to /api/webhooks/capture/* succeeds.
-	r.Use(middleware.WebhookCaptureCORS())
+	// Module middleware (e.g. permissive CORS for public webhook capture) runs before
+	// the credentialed core CORS so its browser preflight succeeds.
+	for _, mw := range container.Modules.GlobalMiddleware() {
+		r.Use(mw)
+	}
 	r.Use(cors.New(cors.Config{
 		AllowOrigins:     cfg.CORSOrigins,
 		AllowMethods:     []string{"GET", "POST", "PATCH", "PUT", "DELETE", "OPTIONS", "HEAD"},
@@ -59,11 +65,11 @@ func Run(cfg config.Config, db *postgres.Postgres, redis *goredis.Client) error 
 	}))
 
 	api := r.Group("/api")
+	routes.RegisterAppRoutes(api, container)
 	routes.RegisterAuthRoutes(api, container)
-	routes.RegisterAddressRoutes(api, container)
-	routes.RegisterAdminRoutes(api, container)
+	admin := routes.RegisterAdminRoutes(api, container)
 	routes.RegisterMediaRoutes(api, container)
-	routes.RegisterWebhookRoutes(api, container)
+	container.Modules.RegisterRoutes(module.Routes{API: api, Admin: admin})
 
 	srv := &http.Server{
 		Addr:              ":" + cfg.Port,

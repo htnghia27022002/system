@@ -35,8 +35,9 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip'
-import { PermissionGate, PermissionKeys } from '@/features/access-control'
+import { PermissionGate } from '@/features/access-control'
 
+import { WebhooksPermissions } from '../permissions'
 import {
   WEBHOOK_METHOD_FILTERS,
   WEBHOOK_READ_FILTERS,
@@ -188,7 +189,7 @@ export function WebhooksListToolbar({
         {t('tools.webhooks.list.showing', { shown, total, page })}
       </p>
 
-      <PermissionGate permission={PermissionKeys.webhooks.modify}>
+      <PermissionGate permission={WebhooksPermissions.modify}>
         <AlertDialog>
           <Tooltip>
             <TooltipTrigger asChild>
