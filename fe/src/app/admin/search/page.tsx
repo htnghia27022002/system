@@ -1,26 +1,11 @@
-import type { Metadata } from 'next'
-import { Suspense } from 'react'
+import { notFound } from 'next/navigation'
 
-import { DataTableSkeleton } from '@/components/common/data-table/data-table-skeleton'
-import { AdminSearchPage, SearchAccessGuard } from '@/features/admin-search'
-
-export const metadata: Metadata = {
-  title: 'Search',
-  robots: { index: false, follow: false },
-}
-
+/**
+ * Admin unified search is temporarily hidden. The feature module
+ * (`@/features/admin-search`) and `GET /api/admin/search` are kept; to restore,
+ * render `<SearchAccessGuard><AdminSearchPage /></SearchAccessGuard>` here again
+ * and re-add its `metadata` (see git history).
+ */
 export default function Page() {
-  return (
-    <SearchAccessGuard>
-      <Suspense
-        fallback={
-          <div className="flex flex-col gap-4 p-4 md:p-6">
-            <DataTableSkeleton columns={1} />
-          </div>
-        }
-      >
-        <AdminSearchPage />
-      </Suspense>
-    </SearchAccessGuard>
-  )
+  notFound()
 }

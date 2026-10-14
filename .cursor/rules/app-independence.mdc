@@ -18,7 +18,7 @@ If a secret or connection string touches only one app, it lives in **that app's 
 
 ## 2. Reusability across environments
 
-The same `be/.env` pattern works for Docker compose, bare-metal, or any PaaS. Change hostnames (`DB_HOST`, `REDIS_URL`, `ELASTICSEARCH_URL`, `NATS_URL`) per environment; business config (`JWT_SECRET`, `OAUTH_*`, `CORS_ORIGINS`) stays stable.
+The same `be/.env` pattern works for Docker compose, bare-metal, or any PaaS. Change hostnames (`DB_HOST`, `REDIS_URL`, `NATS_URL`) per environment; business config (`JWT_SECRET`, `OAUTH_*`, `CORS_ORIGINS`) stays stable.
 
 | Deploy scenario | What to copy | What to configure |
 |-----------------|-------------|-------------------|
