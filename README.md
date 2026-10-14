@@ -91,6 +91,10 @@ Set `NEXT_PUBLIC_USE_MOCK_API=false` and `NEXT_PUBLIC_API_BASE_URL=http://localh
 | `pnpm setup` / `pnpm dev` | Install / run FE only (host; delegates to `fe/`) |
 | `pnpm docker:up` | Same as `make up` |
 
+## CI
+
+[`.github/workflows/ci.yml`](.github/workflows/ci.yml) runs on every PR: BE (gofmt on changed files, vet, unit with `-race`, integration + e2e against a Postgres service), FE (lint, typecheck, Vitest, `next build`) and a Docker build of each app from its own folder (proves `be/` and `fe/` stay standalone).
+
 ## Workspace layout
 
 ```text

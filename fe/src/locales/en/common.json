@@ -75,6 +75,10 @@
       "missingCode": "Missing authorization code. Please start sign-in again.",
       "failed": "Sign-in failed. Try email and password or try Google again.",
       "success": "Signed in successfully"
+    },
+    "errors": {
+      "invalidCredentials": "Invalid email or password",
+      "tooManyAttempts": "Too many sign-in attempts. Please wait a few minutes and try again."
     }
   },
   "tools": {

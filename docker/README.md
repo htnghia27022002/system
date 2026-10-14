@@ -130,7 +130,7 @@ Three files — **no app config in root `.env`**.
 | File | Purpose |
 |------|---------|
 | `.env` | `NGINX_HTTP_PORT`, `GO_APP_IMAGE` (compose auto-loads) |
-| `be/.env` | Full BE + queue: `DB_*`, `AUTO_MIGRATE`, `MODULES`, JWT, OAuth, CORS; optional `REDIS_URL`, `NATS_*` |
+| `be/.env` | Full BE + queue: `DB_*`, `AUTO_MIGRATE`, `MODULES`, JWT, OAuth, CORS, `LOG_*`, `TRUSTED_PROXIES`, `AUTH_*` (cookie, rate limit, lockout); optional `REDIS_URL`, `NATS_*` |
 | `fe/.env` | Full FE: `NEXT_PUBLIC_*` (dev profile) |
 
 Setup: `make env` or copy `.env.example`, `be/.env.example`, `fe/.env.example`.

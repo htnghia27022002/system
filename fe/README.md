@@ -133,5 +133,5 @@ pnpm lint      # eslint
 - TanStack Query v5 · Zustand v5
 - React Hook Form · Zod v4
 - i18next (en / vi) · next-themes
-- Axios with JWT refresh interceptor
+- Axios with JWT refresh interceptor (`withCredentials` + `X-Requested-With`; the BE keeps the refresh token in an httpOnly cookie, so only the access token is in localStorage)
 - Vitest + Testing Library

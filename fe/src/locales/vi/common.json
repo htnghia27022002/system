@@ -75,6 +75,10 @@
       "missingCode": "Thiếu mã xác thực. Vui lòng đăng nhập lại.",
       "failed": "Đăng nhập thất bại. Thử email/mật khẩu hoặc Google.",
       "success": "Đăng nhập thành công"
+    },
+    "errors": {
+      "invalidCredentials": "Email hoặc mật khẩu không đúng",
+      "tooManyAttempts": "Bạn đã thử đăng nhập quá nhiều lần. Vui lòng đợi vài phút rồi thử lại."
     }
   },
   "tools": {
