@@ -67,16 +67,16 @@ route → handler → service → repository → database
 
 ## Queue worker
 
-Search sync and future async jobs use NATS JetStream:
+Optional async jobs use NATS JetStream (off by default; compose profile `queue`):
 
 | Layer | Path |
 |-------|------|
 | Infra | `be/internal/queue/` |
-| Publish | `be/internal/handlers/publisher/` |
-| Consume | `be/internal/handlers/subscribers/` |
+| Publish | `be/internal/handlers/publisher/` (`PublishJSON`) |
+| Consume | module `Streams()` consumers (`be/internal/modules/<name>/`) |
 | Worker | `be/cmd/queue/` (Docker service `queue`) |
 
-Rules: constants in `queue/constants.go`; options in `queue/nats.json`; API never runs consumers. See `be/CLAUDE.md` §12.
+Rules: names are constants in the owning module; option overrides in `queue/nats.json`; API never runs consumers. Business features are modules (`docs/modules.md`). See `be/CLAUDE.md` §12.
 
 ## Feature docs
 
@@ -86,7 +86,7 @@ Rules: constants in `queue/constants.go`; options in `queue/nats.json`; API neve
 | `plan.md` | Follow BE sections |
 | `contracts/database.md` | Authoritative schema / migrations |
 | `contracts/endpoints.md` | Authoritative HTTP API shapes |
-| `contracts/permissions.md` | RBAC keys — seed in `catalog.go`, protect with `RequireView` / `RequireModify` |
+| `contracts/permissions.md` | RBAC keys — seed in `catalog.go` (core) or the module's `Permissions()`, protect with `RequireView` / `RequireModify` |
 | `be-tasks-verify.md` | **Own** — write after implement + verify |
 
 Do **not** create or rewrite `plan.md` / `tasks.md` / `contracts/*` unless the user explicitly asks to fix a defect found during implement.
@@ -95,7 +95,7 @@ Do **not** create or rewrite `plan.md` / `tasks.md` / `contracts/*` unless the u
 
 When the feature has admin/API protection (see `contracts/permissions.md`):
 
-1. Add keys to `DefaultPermissions()` in `be/internal/database/seeders/catalog.go` (stable UUIDs, `rbac.Key` / view+modify).
+1. Add keys (stable UUIDs, `rbac.Key` / view+modify): core → `DefaultPermissions()` in `be/internal/database/seeders/catalog.go`; module → the module's `Permissions()`.
 2. Protect routes with `middleware.RequireView("resource")` / `RequireModify("resource")`.
 3. Confirm admin role seeding picks up new keys (`RolePermissionSeeder` iterates the catalog).
 

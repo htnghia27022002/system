@@ -44,18 +44,22 @@ public/routes → public/handlers → internal/services → internal/repository 
 
 Never put business logic in handlers or HTTP formatting in repositories.
 
-## Queue / NATS (JetStream)
+## Modules
 
-Async messaging for background jobs (currently maps ingest). See `be/CLAUDE.md` §12.
+Business/optional features are modules: `internal/modules/<name>/` (vertical slice with the same layers) registered in `internal/modules/registry.go`; contract in `internal/module/`. Core never imports a module. See [`docs/modules.md`](../../../docs/modules.md) and `be/CLAUDE.md` §5.1.
+
+## Queue / NATS (JetStream) — optional
+
+Off by default. See `be/CLAUDE.md` §12.
 
 ```text
-internal/queue/                 # NATS infra, constants, nats.json options
-internal/handlers/publisher/    # Publish* after DB writes
-internal/handlers/subscribers/  # process_* consumers
+internal/queue/                 # NATS client, Stream/Consumer topology, nats.json overrides
+internal/handlers/publisher/    # PublishJSON after DB writes (no-op when disabled)
+internal/modules/<name>/        # Streams() with consumer Handlers, optional Poller
 cmd/queue/                      # Worker process (not in API)
 ```
 
-- Subject/stream/consumer names → `internal/queue/constants.go` only
+- Subject/stream/consumer names → constants in the owning module
 - API publishes; `cmd/queue` consumes
 - Do not add in-process goroutine workers in `main.go`
 
@@ -70,7 +74,7 @@ cmd/queue/                      # Worker process (not in API)
 
 For admin/protected features (see `contracts/permissions.md` and `.claude/rules/feature-permissions.md`):
 
-1. Seed keys in `be/internal/database/seeders/catalog.go` → `DefaultPermissions()` (`rbac.Key`, view/modify, stable UUIDs).
+1. Seed keys (`rbac.Key`, view/modify, stable UUIDs): core resource → `DefaultPermissions()` in `be/internal/database/seeders/catalog.go`; module resource → the module's `Permissions()` in `be/internal/modules/<name>/module.go`.
 2. Protect routes with `RequireView("resource")` / `RequireModify("resource")`.
 3. Rely on `RolePermissionSeeder` to attach catalog keys to the admin role.
 

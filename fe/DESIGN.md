@@ -34,7 +34,7 @@ Prefer `StatusBadge` for status pills. Never pair meaning with color alone — k
 
 | Element | Radius | Border |
 |---------|--------|--------|
-| Surfaces: `Card`, `Panel`, table frame, floating map card, empty-state frame | `rounded-xl` | `border border-border` |
+| Surfaces: `Card`, `Panel`, table frame, floating card, empty-state frame | `rounded-xl` | `border border-border` |
 | Controls: button, input, select, toolbar, small notice, code block | `rounded-lg` | from the shadcn primitive |
 | Avatar, pill badge, status dot | `rounded-full` | — |
 | Landing / marketing only | `rounded-2xl`+ | — |
@@ -48,10 +48,6 @@ Use the scale in `index.css` — never hand-pick `z-[NNNN]`:
 
 | Layer | Class |
 |-------|-------|
-| Map toolbars / filters | `z-(--z-map-controls)` |
-| Map hover card | `z-(--z-map-hover)` |
-| Map popovers / detail cards | `z-(--z-map-popover)` |
-| Map side panel (non-modal sheet) | `z-(--z-map-panel)` |
 | Dialog, alert dialog, drawer, sheet | `z-(--z-modal)` (built into the primitives) |
 | Select, popover, dropdown, tooltip | `z-(--z-floating)` (built into the primitives — no override needed inside dialogs) |
 

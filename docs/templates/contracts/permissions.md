@@ -37,6 +37,6 @@ If this feature has no admin nav entry, write **None**.
 
 ## Seed notes
 
-- Add to `be/internal/database/seeders/catalog.go` → `DefaultPermissions()` with stable UUIDs
+- Core resource: add to `be/internal/database/seeders/catalog.go` → `DefaultPermissions()`; module resource: the module's `Permissions()` — stable UUIDs either way
 - Admin role receives all catalog keys via `RolePermissionSeeder`
 - FE: extend `PermissionKeys` / `PermissionResource` in `permission-keys.ts`

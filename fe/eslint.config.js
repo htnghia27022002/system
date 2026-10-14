@@ -48,7 +48,7 @@ function designTokenRestrictions() {
     {
       pattern: '\\bz-\\[\\d+\\]',
       message:
-        'Use the z-index scale from src/styles/index.css, e.g. z-(--z-modal) or z-(--z-map-popover).',
+        'Use the z-index scale from src/styles/index.css, e.g. z-(--z-modal) or z-(--z-floating).',
     },
     {
       pattern: '\\b(text|tracking|leading)-\\[[\\d.]+(px|rem|em)?\\]',

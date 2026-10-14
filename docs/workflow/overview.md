@@ -56,7 +56,7 @@ flowchart TD
 
 - Command: `/speckit-implement` — execute `tasks.md` using `plan.md` + `contracts/*`
 - Agents: `@be` for `[BE]` tasks, `@fe` for `[FE]` tasks
-- BE seeds permissions in `catalog.go`; FE gates **sidebar** with `hasPermission` and pages with `PermissionGuard`
+- BE seeds permissions in `catalog.go` (core) or a module's `Permissions()`; FE gates **sidebar** with `hasPermission` and pages with `PermissionGuard`
 - After tasks are done: run package tests, then write **`be-tasks-verify.md`** / **`fe-tasks-verify.md`**
 - **Do not** run `speckit-plan` / `speckit-tasks` from `@be` / `@fe`
 - **Gate:** Verify docs must record a completed pass before `@qa` sign-off
