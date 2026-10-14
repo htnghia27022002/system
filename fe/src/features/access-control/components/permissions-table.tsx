@@ -2,6 +2,7 @@
 
 import { useTranslation } from 'react-i18next'
 
+import { PageContainer, PageHeader } from '@/components/common/page-layout'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
@@ -23,40 +24,38 @@ export function PermissionsTable() {
 
   if (query.isLoading) {
     return (
-      <div className="flex flex-col gap-4 p-4">
+      <PageContainer>
         <Skeleton className="h-10 w-48" />
         <Skeleton className="h-64 w-full" />
-      </div>
+      </PageContainer>
     )
   }
 
   if (query.isError) {
     return (
-      <Card className="m-4">
-        <CardContent className="flex flex-col gap-3 py-6">
-          <p className="text-sm text-muted-foreground">
-            {t('access.permissions.error')}
-          </p>
-          <Button variant="outline" onClick={() => void query.refetch()}>
-            {t('access.actions.retry')}
-          </Button>
-        </CardContent>
-      </Card>
+      <PageContainer>
+        <Card>
+          <CardContent className="flex flex-col gap-3 py-6">
+            <p className="text-sm text-muted-foreground">
+              {t('access.permissions.error')}
+            </p>
+            <Button variant="outline" onClick={() => void query.refetch()}>
+              {t('access.actions.retry')}
+            </Button>
+          </CardContent>
+        </Card>
+      </PageContainer>
     )
   }
 
   const permissions = query.data ?? []
 
   return (
-    <div className="flex flex-1 flex-col gap-4 p-4">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">
-          {t('access.permissions.title')}
-        </h1>
-        <p className="text-sm text-muted-foreground">
-          {t('access.permissions.description')}
-        </p>
-      </div>
+    <PageContainer>
+      <PageHeader
+        title={t('access.permissions.title')}
+        description={t('access.permissions.description')}
+      />
 
       {permissions.length === 0 ? (
         <Card>
@@ -94,6 +93,6 @@ export function PermissionsTable() {
           </Table>
         </div>
       )}
-    </div>
+    </PageContainer>
   )
 }

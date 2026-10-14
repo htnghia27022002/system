@@ -6,6 +6,7 @@ import type { ColumnDef } from '@tanstack/react-table'
 
 import { PencilIcon } from 'lucide-react'
 
+import { PageContainer, PageHeader } from '@/components/common/page-layout'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { DropdownMenuItem } from '@/components/ui/dropdown-menu'
@@ -31,7 +32,6 @@ import {
 } from '@/components/ui/alert-dialog'
 import { Card, CardContent } from '@/components/ui/card'
 
-import { AccessControlPageHeader } from './access-control-page-header'
 import { ListRowActionsMenu } from './list-row-actions-menu'
 import { MobileRecordCard } from './mobile-record-card'
 import { PermissionGate } from './permission-gate'
@@ -53,9 +53,9 @@ export function UsersTable() {
   return (
     <Suspense
       fallback={
-        <div className="flex flex-col gap-4 p-4">
+        <PageContainer>
           <DataTableSkeleton columns={8} />
-        </div>
+        </PageContainer>
       }
     >
       <UsersTableContent />
@@ -318,20 +318,20 @@ function UsersTableContent() {
 
   if (usersQuery.isLoading || rolesQuery.isLoading) {
     return (
-      <div className="flex flex-col gap-4 p-4">
-        <AccessControlPageHeader
+      <PageContainer>
+        <PageHeader
           title={t('access.users.title')}
           description={t('access.users.description')}
         />
           <DataTableSkeleton columns={8} />
-      </div>
+      </PageContainer>
     )
   }
 
   if (usersQuery.isError) {
     return (
-      <div className="flex flex-col gap-4 p-4">
-        <AccessControlPageHeader
+      <PageContainer>
+        <PageHeader
           title={t('access.users.title')}
           description={t('access.users.description')}
         />
@@ -345,7 +345,7 @@ function UsersTableContent() {
             </Button>
           </CardContent>
         </Card>
-      </div>
+      </PageContainer>
     )
   }
 
@@ -353,8 +353,8 @@ function UsersTableContent() {
   const isRefreshing = usersQuery.isFetching && !usersQuery.isLoading
 
   return (
-    <div className="flex flex-1 flex-col gap-4 p-4">
-      <AccessControlPageHeader
+    <PageContainer>
+      <PageHeader
         title={t('access.users.title')}
         description={t('access.users.description')}
         actions={
@@ -538,6 +538,6 @@ function UsersTableContent() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div>
+    </PageContainer>
   )
 }

@@ -182,9 +182,13 @@
     "vsLastWeek": "vs last week",
     "lastUpdated": "Last updated {{time}}",
     "refreshing": "Refreshing",
+    "refresh": "Refresh",
     "chart": {
       "title": "Weekly activity",
-      "description": "Orders and sessions over the last 7 days."
+      "description": "Daily activity over the last 7 days.",
+      "series": "Activity",
+      "day": "Day",
+      "empty": "No activity in the last 7 days."
     },
     "kpis": {
       "totalUsers": "Total users",

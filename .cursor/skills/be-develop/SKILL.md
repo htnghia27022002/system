@@ -46,7 +46,7 @@ Never put business logic in handlers or HTTP formatting in repositories.
 
 ## Queue / NATS (JetStream)
 
-Async messaging for search outbox sync (and future events). See `be/AGENTS.md` §12 and `docs/features/002-elasticsearch-search/be-implement.md`.
+Async messaging for background jobs (currently maps ingest). See `be/AGENTS.md` §12.
 
 ```text
 internal/queue/                 # NATS infra, constants, nats.json options
@@ -104,7 +104,7 @@ cd be && make run && make test
 - `DB_HOST=postgres`
 - `REDIS_URL=redis://redis:6379`
 - `NATS_ENABLED`, `NATS_URL` — queue publish/consume (`internal/queue/nats.json` for JetStream options)
-- `ELASTICSEARCH_ENABLED`, `ELASTICSEARCH_URL`
+- `AUTO_MIGRATE` — run migrations + seeders on API start (default `true`; set `false` for multi-replica deploys)
 - `CORS_ORIGINS` must include nginx origin (`http://localhost:8080`)
 
 ## Quality checks

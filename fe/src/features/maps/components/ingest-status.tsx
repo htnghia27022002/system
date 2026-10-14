@@ -75,7 +75,7 @@ export function IngestStatus({ run, className }: IngestStatusProps) {
           />
         </div>
       </TooltipTrigger>
-      <TooltipContent side="bottom" sideOffset={8} className="z-[1200] max-w-xs">
+      <TooltipContent side="bottom" sideOffset={8} className="z-(--z-map-popover) max-w-xs">
         {inProgress ? `${t('maps.ingest.inProgress')} ` : null}
         {detail}
       </TooltipContent>

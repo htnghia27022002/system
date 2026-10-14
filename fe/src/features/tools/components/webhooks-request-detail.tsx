@@ -77,13 +77,13 @@ function CollapsibleBlock({
             {title}
           </span>
           {badge ? (
-            <Badge variant="outline" className="h-5 px-1.5 text-[10px]">
+            <Badge variant="outline" className="h-5 px-1.5 text-xs">
               {badge}
             </Badge>
           ) : null}
           <Badge
             variant="secondary"
-            className="ml-auto h-5 px-1.5 text-[10px] tabular-nums"
+            className="ml-auto h-5 px-1.5 text-xs tabular-nums"
           >
             {empty ? '0' : count}
           </Badge>

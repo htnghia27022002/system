@@ -334,7 +334,7 @@ export function SourceFormDialog({
                       <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
-                      <SelectContent className="z-[1500]">
+                      <SelectContent>
                         {HTTP_METHODS.map((method) => (
                           <SelectItem key={method} value={method}>
                             {method}
@@ -700,7 +700,7 @@ function MappingSelects({
                 <SelectTrigger className="h-9">
                   <SelectValue placeholder={t('maps.sources.wizard.skipField')} />
                 </SelectTrigger>
-                <SelectContent className="z-[1500]">
+                <SelectContent>
                   <SelectItem value={NONE}>
                     {t('maps.sources.wizard.skipField')}
                   </SelectItem>

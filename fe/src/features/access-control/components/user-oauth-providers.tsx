@@ -56,7 +56,7 @@ export function UserOAuthProviders({ providers }: UserOAuthProvidersProps) {
           <Tooltip key={provider}>
             <TooltipTrigger asChild>
               <span
-                className="inline-flex h-6 items-center rounded-md border border-border bg-muted px-1.5 text-[10px] font-medium uppercase tracking-wide text-muted-foreground"
+                className="inline-flex h-6 items-center rounded-md border border-border bg-muted px-1.5 text-xs font-medium uppercase tracking-wide text-muted-foreground"
                 aria-label={label}
               >
                 {label.slice(0, 3)}

@@ -18,6 +18,47 @@ Marketing/landing polish only: skill `design-taste-frontend` (`.cursor/skills/` 
 - Light and dark modes must both remain readable; prefer semantic tokens over raw Tailwind color scales (`blue-500`, …) unless the token maps to a theme variable.
 - Shared chrome (sidebar, header, page shell, cards) must look like one product: same radius, border treatment, and elevation pattern.
 
+### Status colors
+
+| Meaning | Token | Example |
+|---------|-------|---------|
+| Success / healthy / GET | `success` | `bg-success/10 text-success`, dot `bg-success` |
+| Warning / partial / PUT·PATCH | `warning` | `bg-warning/10 text-warning` |
+| Error / destructive / DELETE | `destructive` | `bg-destructive/10 text-destructive` |
+| Info / neutral accent / POST | `primary` | `bg-primary/10 text-primary` |
+| Extra categorical hues (charts, syntax) | `chart-1` … `chart-5` | `text-chart-5` |
+
+Prefer `StatusBadge` for status pills. Never pair meaning with color alone — keep a label or icon.
+
+### Radius, borders, type
+
+| Element | Radius | Border |
+|---------|--------|--------|
+| Surfaces: `Card`, `Panel`, table frame, floating map card, empty-state frame | `rounded-xl` | `border border-border` |
+| Controls: button, input, select, toolbar, small notice, code block | `rounded-lg` | from the shadcn primitive |
+| Avatar, pill badge, status dot | `rounded-full` | — |
+| Landing / marketing only | `rounded-2xl`+ | — |
+
+- One border style for surfaces: `border border-border` (the `Card` primitive uses it too). Do not mix `ring-1` outlines with `border` on sibling surfaces.
+- Type uses the Tailwind scale (`text-xs` … `text-2xl`). No arbitrary `text-[14px]`, `tracking-[…]`, `leading-[…]`; the smallest UI text is `text-xs`.
+
+### Stacking (z-index)
+
+Use the scale in `index.css` — never hand-pick `z-[NNNN]`:
+
+| Layer | Class |
+|-------|-------|
+| Map toolbars / filters | `z-(--z-map-controls)` |
+| Map hover card | `z-(--z-map-hover)` |
+| Map popovers / detail cards | `z-(--z-map-popover)` |
+| Map side panel (non-modal sheet) | `z-(--z-map-panel)` |
+| Dialog, alert dialog, drawer, sheet | `z-(--z-modal)` (built into the primitives) |
+| Select, popover, dropdown, tooltip | `z-(--z-floating)` (built into the primitives — no override needed inside dialogs) |
+
+### Enforced by lint
+
+`pnpm lint` fails on raw palette colors (`bg-emerald-500`, `text-white`, …), `z-[NNNN]`, arbitrary type sizes, and `rounded-2xl`/`3xl` outside `src/components/ui/` and `src/features/landing/` (see `fe/eslint.config.js`).
+
 ### Before custom markup
 
 1. Check `src/components/ui/` for an existing shadcn component.
@@ -32,14 +73,15 @@ Admin and product pages must share the **same outer padding and vertical rhythm*
 
 | Surface | Standard |
 |---------|----------|
-| Admin page body (dashboard, users, roles, …) | Outer wrapper: `flex flex-1 flex-col gap-4 p-4` (match existing admin pages) |
+| Admin page body (dashboard, users, roles, …) | `<PageContainer>` (`flex flex-1 flex-col gap-4 p-4`) + `<PageHeader title description actions>` from `@/components/common/page-layout` |
+| Grouped content on a page (filter form, toolbar, URL box) | `<Panel>` (`rounded-xl border bg-card p-4`); `<Panel asChild>` to render as `form` / `section` |
 | Card / table panel padding | Prefer `p-4` / `px-4` on small; align with siblings on the same page |
 | Public content width (tools, marketing sections) | `mx-auto w-full max-w-6xl px-4 sm:px-6 lg:px-8` (or the layout already used by that product area — stay consistent within the area) |
 | Stack spacing | Prefer `gap-4` / `space-y-4` / `space-y-6` — do not mix random `p-3` + `p-8` + `gap-2` on sibling pages |
 
 **Rules**
 
-- New admin pages must reuse the same outer `p-4` + `gap-4` pattern as `UsersTable` / dashboard overview.
+- New admin pages must render inside `PageContainer` with a `PageHeader` (same as `UsersTable`, `RolesTable`, `ProfilePage`, `WebhooksToolPage`). Do not hand-write the page shell or `<h1>`.
 - Do not invent a second page shell with different horizontal margin (`px-8` on one page, `px-3` on another).
 - Dialogs/sheets: follow rule `fe-form-layout` (width, footer, grid). Keep header/body/footer padding aligned across create/edit dialogs.
 

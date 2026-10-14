@@ -115,7 +115,7 @@ export function MapSearch({
         <ul
           id={listId}
           role="listbox"
-          className="absolute top-[calc(100%+0.35rem)] z-[1200] max-h-80 w-full overflow-auto rounded-lg border border-border bg-card py-1 shadow-md"
+          className="absolute top-[calc(100%+0.35rem)] z-(--z-map-popover) max-h-80 w-full overflow-auto rounded-lg border border-border bg-card py-1 shadow-md"
         >
           {hits.length === 0 && !loading ? (
             <li className="px-3 py-2 text-sm text-muted-foreground">

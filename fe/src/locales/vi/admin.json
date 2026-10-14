@@ -174,9 +174,13 @@
     "vsLastWeek": "so với tuần trước",
     "lastUpdated": "Cập nhật lúc {{time}}",
     "refreshing": "Đang làm mới",
+    "refresh": "Làm mới",
     "chart": {
       "title": "Hoạt động trong tuần",
-      "description": "Đơn hàng và phiên trong 7 ngày qua."
+      "description": "Hoạt động theo ngày trong 7 ngày qua.",
+      "series": "Hoạt động",
+      "day": "Ngày",
+      "empty": "Không có hoạt động trong 7 ngày qua."
     },
     "kpis": {
       "totalUsers": "Tổng người dùng",

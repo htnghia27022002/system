@@ -1,5 +1,6 @@
 'use client'
 
+import { TrendingDownIcon, TrendingUpIcon } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
 import {
@@ -20,68 +21,83 @@ type DashboardStatGridProps = {
 }
 
 export function DashboardStatGrid({ kpis, isLoading }: DashboardStatGridProps) {
-  const { t } = useTranslation('admin')
+  const { t, i18n } = useTranslation('admin')
 
-  const placeholders = Array.from({ length: 4 }, (_, index) => index)
+  if (isLoading) {
+    return (
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        {Array.from({ length: 4 }, (_, index) => (
+          <Card key={index} className="gap-3">
+            <CardHeader className="px-4">
+              <Skeleton className="h-4 w-24" />
+              <Skeleton className="h-8 w-20" />
+            </CardHeader>
+            <CardContent className="px-4">
+              <Skeleton className="h-3 w-28" />
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    )
+  }
 
   return (
     <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-      {isLoading
-        ? placeholders.map((key) => (
-            <Card
-              key={key}
-              className="gap-3 border border-border bg-card py-4 shadow-none ring-0"
-            >
-              <CardHeader className="px-4">
-                <Skeleton className="h-4 w-24" />
-                <Skeleton className="h-8 w-20" />
-              </CardHeader>
-              <CardContent className="px-4">
-                <Skeleton className="h-3 w-16" />
-              </CardContent>
-            </Card>
-          ))
-        : kpis?.map((kpi) => {
-            const positive = kpi.changePercent >= 0
-            return (
-              <Card
-                key={kpi.key}
-                className="gap-3 border border-border bg-card py-4 shadow-none ring-0"
-              >
-                <CardHeader className="px-4">
-                  <CardDescription className="text-[14px] font-semibold leading-[1.29] tracking-[-0.224px] text-muted-foreground">
-                    {t(`overview.kpis.${kpi.key}`)}
-                  </CardDescription>
-                  <CardTitle className="text-[28px] font-semibold tabular-nums">
-                    {formatKpiValue(kpi.key, kpi.value)}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="px-4">
-                  <p
-                    className={cn(
-                      'text-[14px] leading-[1.29] tracking-[-0.224px]',
-                      positive ? 'text-primary' : 'text-destructive',
-                    )}
-                  >
-                    {positive ? '+' : ''}
-                    {kpi.changePercent.toFixed(1)}% {t('overview.vsLastWeek')}
-                  </p>
-                </CardContent>
-              </Card>
-            )
-          })}
+      {kpis?.map((kpi) => {
+        const positive = kpi.changePercent >= 0
+        const TrendIcon = positive ? TrendingUpIcon : TrendingDownIcon
+        return (
+          <Card key={kpi.key} className="gap-3">
+            <CardHeader className="px-4">
+              <CardDescription className="font-medium">
+                {t(`overview.kpis.${kpi.key}`)}
+              </CardDescription>
+              <CardTitle className="text-2xl font-semibold tabular-nums">
+                {formatKpiValue(kpi.key, kpi.value, i18n.language)}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="px-4">
+              <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                <span
+                  className={cn(
+                    'inline-flex items-center gap-1 font-medium tabular-nums',
+                    positive ? 'text-success' : 'text-destructive',
+                  )}
+                >
+                  <TrendIcon className="size-4" aria-hidden />
+                  {formatChange(kpi.changePercent, i18n.language)}
+                </span>
+                {t('overview.vsLastWeek')}
+              </p>
+            </CardContent>
+          </Card>
+        )
+      })}
     </div>
   )
 }
 
-function formatKpiValue(key: DashboardKpi['key'], value: number): string {
+function formatKpiValue(
+  key: DashboardKpi['key'],
+  value: number,
+  locale: string,
+): string {
   if (key === 'revenue') {
-    return new Intl.NumberFormat('en-US', {
+    return new Intl.NumberFormat(locale, {
       style: 'currency',
       currency: 'USD',
       maximumFractionDigits: 0,
     }).format(value)
   }
 
-  return new Intl.NumberFormat('en-US').format(value)
+  return new Intl.NumberFormat(locale).format(value)
+}
+
+function formatChange(changePercent: number, locale: string): string {
+  return new Intl.NumberFormat(locale, {
+    style: 'percent',
+    signDisplay: 'exceptZero',
+    minimumFractionDigits: 1,
+    maximumFractionDigits: 1,
+  }).format(changePercent / 100)
 }

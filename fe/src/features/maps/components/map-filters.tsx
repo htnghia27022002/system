@@ -80,7 +80,7 @@ export function MapFilters({
   )
 
   return (
-    <div className="pointer-events-none absolute inset-x-3 top-3 z-[1100] flex flex-col items-start gap-2">
+    <div className="pointer-events-none absolute inset-x-3 top-3 z-(--z-map-controls) flex flex-col items-start gap-2">
       <MapSearch
         value={values.q}
         hits={searchHits}
@@ -104,7 +104,7 @@ export function MapFilters({
               <SelectTrigger aria-label={t('maps.filters.category')}>
                 <SelectValue placeholder={t('maps.filters.allCategories')} />
               </SelectTrigger>
-              <SelectContent className="z-[1400]">
+              <SelectContent>
                 <SelectItem value={ALL}>
                   {t('maps.filters.allCategories')}
                 </SelectItem>
@@ -136,7 +136,6 @@ export function MapFilters({
                 adminDivisionId: next.adminDivisionId,
               })
             }
-            contentClassName="z-[1400]"
           />
         </FilterPopoverButton>
 
@@ -206,7 +205,7 @@ export function MapFilters({
                 {locating ? <Spinner className="size-4" /> : <LocateFixedIcon />}
               </Button>
             </TooltipTrigger>
-            <TooltipContent side="right" sideOffset={8} className="z-[1200]">
+            <TooltipContent side="right" sideOffset={8} className="z-(--z-map-popover)">
               {t('maps.locate.action')}
             </TooltipContent>
           </Tooltip>
@@ -233,7 +232,7 @@ export function MapFilters({
                 <FilterXIcon />
               </Button>
             </TooltipTrigger>
-            <TooltipContent side="right" sideOffset={8} className="z-[1200]">
+            <TooltipContent side="right" sideOffset={8} className="z-(--z-map-popover)">
               {t('maps.filters.clear')}
             </TooltipContent>
           </Tooltip>
@@ -276,14 +275,14 @@ function FilterPopoverButton({
             </Button>
           </PopoverTrigger>
         </TooltipTrigger>
-        <TooltipContent side="right" sideOffset={8} className="z-[1200]">
+        <TooltipContent side="right" sideOffset={8} className="z-(--z-map-popover)">
           {label}
         </TooltipContent>
       </Tooltip>
       <PopoverContent
         align="start"
         side="right"
-        className={cn('z-[1200] w-72', contentClassName)}
+        className={cn('z-(--z-map-popover) w-72', contentClassName)}
         onOpenAutoFocus={(event) => event.preventDefault()}
         onInteractOutside={(event) => {
           const target = event.target as HTMLElement | null

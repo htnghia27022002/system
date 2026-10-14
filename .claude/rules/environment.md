@@ -11,7 +11,7 @@ All agent shell commands start from the **repository root** (the folder that con
 | File | Owner | Contains | Used by |
 |------|-------|----------|---------|
 | **`.env`** (root) | Docker wiring | `NGINX_HTTP_PORT`, `GO_APP_IMAGE` (Hub tag for prod Go) | compose auto-load |
-| **`be/.env`** | BE app | DB, Redis, ES, NATS, JWT, OAuth, CORS, queue worker | `env_file` on `be` / `queue` / `go-app` / `go-queue`; local `cd be && make run`; `--env-file be/.env` for postgres `${DB_*}` |
+| **`be/.env`** | BE app | DB, Redis, NATS, JWT, OAuth, CORS, queue worker | `env_file` on `be` / `queue` / `go-app` / `go-queue`; local `cd be && make run`; `--env-file be/.env` for postgres `${DB_*}` |
 | **`fe/.env`** | FE app | `NEXT_PUBLIC_*` | `env_file` on `fe`; local `pnpm dev` |
 
 **Root `.env` does NOT hold OAuth, JWT, or `NEXT_PUBLIC_*`.** Those belong in the app package that owns them.

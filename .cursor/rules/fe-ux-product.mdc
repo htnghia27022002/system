@@ -11,7 +11,7 @@ Adapted from [Toss-style DS](https://github.com/PatrickJS/awesome-cursorrules) +
 ## Hierarchy
 
 - One accent (`text-primary` / `bg-primary`) for primary actions and **clickable table values**
-- Status only via semantic tokens (`destructive`, success/warning badges) — never color alone
+- Status only via semantic tokens (`success`, `warning`, `destructive`, `primary`; `StatusBadge`) — never color alone
 - No nested cards, no extra hex colors, no decorative gradients on admin screens
 
 ## Every interactive surface
@@ -26,4 +26,4 @@ Must have **loading, empty, error, hover, focus**. Lists that hit a paginated AP
 
 ## Spacing
 
-Admin pages: outer `flex flex-1 flex-col gap-4 p-4`. Do not invent a second page shell.
+Admin pages: `PageContainer` + `PageHeader` (`@/components/common/page-layout`); group content in `Panel` or `Card`. Do not invent a second page shell. Radius, z-index and type rules: `fe/DESIGN.md` §1 (enforced by `pnpm lint`).

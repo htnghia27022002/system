@@ -37,6 +37,10 @@
   --color-border: var(--border);
   --color-destructive: var(--destructive);
   --color-destructive-foreground: var(--destructive-foreground);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
   --color-accent-foreground: var(--accent-foreground);
   --color-accent: var(--accent);
   --color-muted-foreground: var(--muted-foreground);
@@ -58,6 +62,21 @@
   --radius-2xl: calc(var(--radius) + 8px);
   --radius-3xl: calc(var(--radius) + 12px);
   --radius-4xl: calc(var(--radius) + 16px);
+}
+
+/*
+ * Stacking scale. Map overlays must sit above Leaflet panes/controls (≤1000);
+ * modals sit above map overlays; floating content (select, popover, dropdown,
+ * tooltip) sits above modals so it stays usable inside a dialog.
+ * Use as `z-(--z-modal)` — never hand-pick `z-[NNNN]`.
+ */
+:root {
+  --z-map-controls: 1100;
+  --z-map-hover: 1150;
+  --z-map-popover: 1200;
+  --z-map-panel: 1300;
+  --z-modal: 1400;
+  --z-floating: 1500;
 }
 
 /* Light mode - balanced admin palette */
@@ -87,6 +106,12 @@
 
   --destructive: oklch(0.577 0.245 27.325);
   --destructive-foreground: oklch(1 0 0);
+
+  /* Status colors — use for badges, dots and inline status text (never color alone). */
+  --success: oklch(0.527 0.137 162.48);
+  --success-foreground: oklch(1 0 0);
+  --warning: oklch(0.555 0.163 48.998);
+  --warning-foreground: oklch(1 0 0);
 
   --border: oklch(0.882 0.014 255);
   --input: oklch(0.882 0.014 255);
@@ -134,6 +159,11 @@
 
   --destructive: oklch(0.637 0.237 25.331);
   --destructive-foreground: oklch(1 0 0);
+
+  --success: oklch(0.765 0.177 163.22);
+  --success-foreground: oklch(0.155 0.018 257.67);
+  --warning: oklch(0.828 0.189 84.429);
+  --warning-foreground: oklch(0.155 0.018 257.67);
 
   --border: oklch(0.34 0.03 257.67);
   --input: oklch(0.34 0.03 257.67);

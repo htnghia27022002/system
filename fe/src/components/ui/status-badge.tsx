@@ -4,27 +4,27 @@ export type StatusVariant = 'success' | 'warning' | 'error' | 'info' | 'neutral'
 
 /**
  * Dot color for each semantic variant.
- * Uses Tailwind palette classes — all changes are isolated here.
+ * Uses semantic theme tokens from src/styles/index.css.
  */
 const DOT_CLASSES: Record<StatusVariant, string> = {
-  success: 'bg-emerald-500',
-  warning: 'bg-amber-400',
+  success: 'bg-success',
+  warning: 'bg-warning',
   error:   'bg-destructive',
   info:    'bg-primary',
   neutral: 'bg-muted-foreground/50',
 }
 
 const PING_CLASSES: Record<StatusVariant, string> = {
-  success: 'bg-emerald-400',
-  warning: 'bg-amber-300',
+  success: 'bg-success/60',
+  warning: 'bg-warning/60',
   error:   'bg-destructive/60',
   info:    'bg-primary/60',
   neutral: 'bg-muted-foreground/30',
 }
 
 const BADGE_CLASSES: Record<StatusVariant, string> = {
-  success: 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-400',
-  warning: 'bg-amber-50 text-amber-700 dark:bg-amber-950/60 dark:text-amber-400',
+  success: 'bg-success/10 text-success dark:bg-success/20',
+  warning: 'bg-warning/10 text-warning dark:bg-warning/20',
   error:   'bg-destructive/10 text-destructive dark:bg-destructive/20',
   info:    'bg-primary/10 text-primary dark:bg-primary/20',
   neutral: 'bg-muted text-muted-foreground',

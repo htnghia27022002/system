@@ -118,7 +118,6 @@ export function LocationFormDialog({
               setCountryCode(next.countryCode)
               setAdminDivisionId(next.adminDivisionId)
             }}
-            contentClassName="z-[1500]"
           />
           <Field>
             <FieldLabel htmlFor="loc-street">{t('maps.locations.fields.street')}</FieldLabel>

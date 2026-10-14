@@ -313,9 +313,9 @@ export function PermissionPicker({
                       className={cn(
                         'text-sm tabular-nums',
                         count === total
-                          ? 'font-semibold text-emerald-600 dark:text-emerald-400'
+                          ? 'font-semibold text-success'
                           : count > 0
-                            ? 'font-semibold text-amber-600 dark:text-amber-400'
+                            ? 'font-semibold text-warning'
                             : 'text-muted-foreground',
                       )}
                     >

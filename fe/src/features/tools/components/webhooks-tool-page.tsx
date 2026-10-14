@@ -2,6 +2,8 @@
 
 import { useTranslation } from 'react-i18next'
 
+import { PageContainer, PageHeader } from '@/components/common/page-layout'
+
 import { getToolById } from '../catalog'
 import { toolsFeatureContent } from '../content'
 import { WebhooksInbox } from './webhooks-inbox'
@@ -21,13 +23,10 @@ export function WebhooksToolPage() {
     t('tools.webhooks.subtitle', { defaultValue: copy.subtitle })
 
   return (
-    <div className="flex flex-1 flex-col gap-4 p-4">
-      <header className="space-y-1">
-        <h1 className="text-2xl font-semibold tracking-tight">{title}</h1>
-        <p className="text-sm text-muted-foreground">{subtitle}</p>
-      </header>
+    <PageContainer>
+      <PageHeader title={title} description={subtitle} />
 
       <WebhooksInbox />
-    </div>
+    </PageContainer>
   )
 }

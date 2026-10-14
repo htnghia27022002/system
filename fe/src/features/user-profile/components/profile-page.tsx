@@ -3,6 +3,7 @@
 import { useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 
+import { PageContainer, PageHeader } from '@/components/common/page-layout'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -29,43 +30,38 @@ export function ProfilePage() {
 
   if (profileQuery.isLoading && !profile) {
     return (
-      <div className="flex flex-1 flex-col gap-4 p-4">
+      <PageContainer>
         <Skeleton className="h-8 w-48" />
         <Skeleton className="h-10 w-full max-w-md" />
         <Skeleton className="h-64 w-full" />
-      </div>
+      </PageContainer>
     )
   }
 
   if (profileQuery.isError && !profile) {
     return (
-      <div className="flex flex-col gap-3 p-4">
+      <PageContainer>
         <p className="text-sm text-destructive" role="alert">
           {t('profile.errors.loadFailed')}
         </p>
         <Button variant="outline" className="w-fit" onClick={() => void profileQuery.refetch()}>
           {t('access.actions.retry', { defaultValue: 'Retry' })}
         </Button>
-      </div>
+      </PageContainer>
     )
   }
 
   if (!profile) {
     return (
-      <div className="p-4">
+      <PageContainer>
         <p className="text-sm text-destructive">{t('profile.errors.loadFailed')}</p>
-      </div>
+      </PageContainer>
     )
   }
 
   return (
-    <div className="flex flex-1 flex-col gap-4 p-4">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">
-          {t('profile.title')}
-        </h1>
-        <p className="text-sm text-muted-foreground">{t('profile.description')}</p>
-      </div>
+    <PageContainer>
+      <PageHeader title={t('profile.title')} description={t('profile.description')} />
 
       <Tabs defaultValue="profile" className="min-w-0 gap-4">
         <TabsList
@@ -114,6 +110,6 @@ export function ProfilePage() {
           <AccountSessionsCard />
         </TabsContent>
       </Tabs>
-    </div>
+    </PageContainer>
   )
 }

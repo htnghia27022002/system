@@ -386,7 +386,7 @@ export function MapsPage() {
         onOpenSources={() => openManage('sources')}
       />
 
-      <div className="pointer-events-none absolute top-[4.75rem] right-3 z-[1100] sm:top-3 sm:right-[4.25rem]">
+      <div className="pointer-events-none absolute top-[4.75rem] right-3 z-(--z-map-controls) sm:top-3 sm:right-[4.25rem]">
         <div className="pointer-events-auto">
           <IngestStatus run={ingestRun} />
         </div>
@@ -423,7 +423,7 @@ export function MapsPage() {
       ) : null}
 
       {placesQuery.isError ? (
-        <div className="pointer-events-none absolute inset-x-3 bottom-3 z-[1100] flex justify-start">
+        <div className="pointer-events-none absolute inset-x-3 bottom-3 z-(--z-map-controls) flex justify-start">
           <div className="pointer-events-auto flex max-w-sm flex-col gap-2 rounded-lg border border-border bg-card/95 p-3 shadow-md backdrop-blur-sm">
             <p className="text-sm text-muted-foreground">{t('maps.error')}</p>
             <Button
@@ -438,14 +438,14 @@ export function MapsPage() {
       ) : null}
 
       {!createDraft && emptyMessage ? (
-        <div className="pointer-events-none absolute inset-x-3 bottom-3 z-[1100] flex justify-start">
+        <div className="pointer-events-none absolute inset-x-3 bottom-3 z-(--z-map-controls) flex justify-start">
           <p className="max-w-sm rounded-lg border border-border bg-card/95 px-3 py-2 text-sm text-muted-foreground shadow-md backdrop-blur-sm">
             {emptyMessage}
           </p>
         </div>
       ) : null}
       {!createDraft && filteredEmpty ? (
-        <div className="pointer-events-none absolute inset-x-3 bottom-3 z-[1100] flex justify-start">
+        <div className="pointer-events-none absolute inset-x-3 bottom-3 z-(--z-map-controls) flex justify-start">
           <p className="max-w-sm rounded-lg border border-border bg-card/95 px-3 py-2 text-sm text-muted-foreground shadow-md backdrop-blur-sm">
             {t('maps.emptyFilter')}
           </p>
@@ -462,7 +462,7 @@ export function MapsPage() {
         <SheetContent
           side="right"
           showOverlay={false}
-          className="z-[1300] w-full sm:max-w-sm"
+          className="z-(--z-map-panel) w-full sm:max-w-sm"
         >
           <SheetHeader>
             <SheetTitle>{t('maps.sources.title')}</SheetTitle>

@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next'
 import { PencilIcon } from 'lucide-react'
 import type { ColumnDef } from '@tanstack/react-table'
 
+import { PageContainer, PageHeader } from '@/components/common/page-layout'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
@@ -21,7 +22,6 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
 
-import { AccessControlPageHeader } from './access-control-page-header'
 import { ListRowActionsMenu } from './list-row-actions-menu'
 import { MobileRecordCard } from './mobile-record-card'
 import { PermissionGate } from './permission-gate'
@@ -41,9 +41,9 @@ export function RolesTable() {
   return (
     <Suspense
       fallback={
-        <div className="flex flex-col gap-4 p-4">
+        <PageContainer>
           <DataTableSkeleton columns={4} />
-        </div>
+        </PageContainer>
       }
     >
       <RolesTableContent />
@@ -169,7 +169,7 @@ function RolesTableContent() {
                 <Badge
                   key={g}
                   variant="secondary"
-                  className="h-5 px-1.5 text-[11px] capitalize"
+                  className="h-5 px-1.5 text-xs capitalize"
                 >
                   {g}
                 </Badge>
@@ -194,20 +194,20 @@ function RolesTableContent() {
 
   if (rolesQuery.isLoading) {
     return (
-      <div className="flex flex-col gap-4 p-4">
-        <AccessControlPageHeader
+      <PageContainer>
+        <PageHeader
           title={t('access.roles.title')}
           description={t('access.roles.description')}
         />
         <DataTableSkeleton columns={4} />
-      </div>
+      </PageContainer>
     )
   }
 
   if (rolesQuery.isError) {
     return (
-      <div className="flex flex-col gap-4 p-4">
-        <AccessControlPageHeader
+      <PageContainer>
+        <PageHeader
           title={t('access.roles.title')}
           description={t('access.roles.description')}
         />
@@ -221,7 +221,7 @@ function RolesTableContent() {
             </Button>
           </CardContent>
         </Card>
-      </div>
+      </PageContainer>
     )
   }
 
@@ -240,8 +240,8 @@ function RolesTableContent() {
       })
 
   return (
-    <div className="flex flex-1 flex-col gap-4 p-4">
-      <AccessControlPageHeader
+    <PageContainer>
+      <PageHeader
         title={t('access.roles.title')}
         description={t('access.roles.description')}
         actions={
@@ -360,6 +360,6 @@ function RolesTableContent() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div>
+    </PageContainer>
   )
 }
