@@ -32,15 +32,6 @@ vi.mock('framer-motion', () => ({
   },
 }))
 
-vi.mock('next/dynamic', () => ({
-  default: () => {
-    function MockHeroStage() {
-      return <div data-testid="hero-character-stage" />
-    }
-    return MockHeroStage
-  },
-}))
-
 vi.mock('next/image', () => ({
   default: ({ alt, priority: _priority, fill: _fill, sizes: _sizes, ...props }: {
     alt: string

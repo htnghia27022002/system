@@ -4,9 +4,12 @@ name: system
 # fe/.env  → fe (dev only)
 # .env     → NGINX_HTTP_PORT + GO_APP_IMAGE (Docker Hub tag) — auto-loaded by compose
 #
-# Profiles:
-#   dev  — make up / make up-d  (full stack + hot reload)
-#   prod — make prod            (pull GO_APP_IMAGE + nginx + nats + redis; no Go source build)
+# Profiles (combine with --profile; the core needs only Postgres):
+#   dev        — make up / make up-d   (postgres + be + fe + nginx, hot reload)
+#   prod       — make prod             (pull GO_APP_IMAGE + nginx; DB is external)
+#   cache      — + redis               (set REDIS_URL in be/.env)
+#   queue      — + nats + queue worker (dev; set NATS_ENABLED=true in be/.env)
+#   prod-queue — + nats + go-queue     (prod)
 
 services:
   postgres:
@@ -30,7 +33,7 @@ services:
       - system_net
 
   redis:
-    profiles: [dev, prod]
+    profiles: [cache]
     image: redis:7-alpine
     restart: unless-stopped
     volumes:
@@ -45,7 +48,7 @@ services:
 
 
   nats:
-    profiles: [dev, prod]
+    profiles: [queue, prod-queue]
     image: nats:2.10-alpine
     restart: unless-stopped
     command: ["-js", "-m", "8222"]
@@ -72,15 +75,11 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-      redis:
-        condition: service_healthy
-      nats:
-        condition: service_healthy
     networks:
       - system_net
 
   queue:
-    profiles: [dev]
+    profiles: [queue]
     build:
       context: ./be
       dockerfile: Dockerfile.dev
@@ -141,16 +140,11 @@ services:
     restart: unless-stopped
     env_file:
       - ./be/.env
-    depends_on:
-      redis:
-        condition: service_healthy
-      nats:
-        condition: service_healthy
     networks:
       - system_net
 
   go-queue:
-    profiles: [prod]
+    profiles: [prod-queue]
     image: ${GO_APP_IMAGE:-youruser/go-app:latest}
     pull_policy: always
     restart: unless-stopped
@@ -160,8 +154,6 @@ services:
     depends_on:
       go-app:
         condition: service_started
-      redis:
-        condition: service_healthy
       nats:
         condition: service_healthy
     networks:

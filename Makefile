@@ -1,10 +1,14 @@
 .PHONY: up up-d down logs build prod psql redis env test test-be test-fe lint
 
 # be/.env for DB_* substitution (postgres) + be/queue containers.
-# Profiles: dev = full stack; prod = nginx + go-app + go-queue + nats + redis.
-# Prod pulls GO_APP_IMAGE from Docker Hub (set in root .env) — no source build on server.
-COMPOSE := docker compose --env-file be/.env --profile dev
-COMPOSE_PROD := docker compose --env-file be/.env --profile prod
+# Profiles: dev = postgres + be + fe + nginx; prod = nginx + go-app (pulls GO_APP_IMAGE).
+# Optional add-ons: cache (redis), queue (nats + worker), prod-queue (nats + go-queue).
+#   make up-d PROFILES="dev queue"      make prod PROD_PROFILES="prod prod-queue"
+PROFILES ?= dev
+PROD_PROFILES ?= prod
+ALL_PROFILES := --profile dev --profile prod --profile cache --profile queue --profile prod-queue
+COMPOSE := docker compose --env-file be/.env $(addprefix --profile ,$(PROFILES))
+COMPOSE_PROD := docker compose --env-file be/.env $(addprefix --profile ,$(PROD_PROFILES))
 GO_APP_IMAGE ?= $(shell sed -n 's/^GO_APP_IMAGE=//p' .env 2>/dev/null)
 
 up:
@@ -14,7 +18,7 @@ up-d:
 	$(COMPOSE) up --build -d
 
 down:
-	docker compose --profile dev --profile prod down
+	docker compose --env-file be/.env $(ALL_PROFILES) down
 
 logs:
 	$(COMPOSE) logs -f
@@ -35,7 +39,7 @@ psql:
 	$(COMPOSE) exec postgres psql -U $${DB_USER:-postgres} -d $${DB_NAME:-myapp_pg}
 
 redis:
-	$(COMPOSE) exec redis redis-cli ping
+	docker compose --env-file be/.env --profile cache exec redis redis-cli ping
 
 env:
 	@test -f .env || cp .env.example .env

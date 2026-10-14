@@ -9,6 +9,6 @@
     "test": "pnpm -C fe test:run",
     "lint": "pnpm -C fe lint",
     "docker:up": "docker compose --env-file be/.env --profile dev up --build",
-    "docker:down": "docker compose --profile dev --profile prod down"
+    "docker:down": "docker compose --env-file be/.env --profile dev --profile prod --profile cache --profile queue --profile prod-queue down"
   }
 }
