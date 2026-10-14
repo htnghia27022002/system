@@ -77,7 +77,7 @@ Rule: [`.claude/rules/feature-permissions.md`](../rules/feature-permissions.md).
 
 - App Router: `src/app/` — thin pages only
 - Domain: `src/features/<feature>/`
-- Theme: `src/styles/index.css` — see [`DESIGN.md`](./DESIGN.md)
+- Theme: `src/styles/index.css` — see [`fe/DESIGN.md`](../../fe/DESIGN.md)
 - Env: `src/config/env.ts`
 - No `react-router-dom`
 

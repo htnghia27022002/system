@@ -1,12 +1,12 @@
 # FE Design Rules
 
-Visual and interaction standards for `fe/`. Architecture, routing, and package boundaries stay in [`AGENTS.md`](./AGENTS.md). Agents implementing UI **must** follow this file.
+Visual and interaction standards for `fe/`. Architecture, routing, and package boundaries stay in [`CLAUDE.md`](./CLAUDE.md) (Cursor: [`AGENTS.md`](./AGENTS.md)). Agents implementing UI **must** follow this file.
 
 **Theme source of truth:** `src/styles/index.css` (`:root` / `.dark` CSS variables).  
 **UI primitives:** `src/components/ui/` (shadcn). Compose in `src/components/common/` or features — do not invent a parallel design system.
 
-Related Cursor rules (detail): `.cursor/rules/fe-ui-library-first.mdc`, `.cursor/rules/fe-form-layout.mdc`.  
-Marketing/landing polish only: `.cursor/skills/design-taste-frontend/SKILL.md`.
+Related rules (detail): `fe-ui-library-first`, `fe-form-layout`, `fe-ux-product` — mirrored in `.cursor/rules/*.mdc` (Cursor) and `.claude/rules/*.md` (Claude Code).  
+Marketing/landing polish only: skill `design-taste-frontend` (`.cursor/skills/` or `.claude/skills/`).
 
 ---
 
@@ -41,7 +41,7 @@ Admin and product pages must share the **same outer padding and vertical rhythm*
 
 - New admin pages must reuse the same outer `p-4` + `gap-4` pattern as `UsersTable` / dashboard overview.
 - Do not invent a second page shell with different horizontal margin (`px-8` on one page, `px-3` on another).
-- Dialogs/sheets: follow `.cursor/rules/fe-form-layout.mdc` (width, footer, grid). Keep header/body/footer padding aligned across create/edit dialogs.
+- Dialogs/sheets: follow rule `fe-form-layout` (width, footer, grid). Keep header/body/footer padding aligned across create/edit dialogs.
 
 ---
 
@@ -91,7 +91,7 @@ Non-clickable cells stay default body color (`text-foreground` / muted). Do not 
 
 ## 5) Form & dialog layout (summary)
 
-Full detail: `.cursor/rules/fe-form-layout.mdc`.
+Full detail: rule `fe-form-layout`.
 
 - Mobile first; prefer 2 columns on `sm+` for paired fields; avoid uneven 3-column grids.
 - Full-width: password, textarea, file upload, permission pickers, long selects.
@@ -121,4 +121,4 @@ Full detail: `.cursor/rules/fe-form-layout.mdc`.
 
 ## 8) Product screens (admin / tools)
 
-Landing polish uses `design-taste-frontend`. **Admin and tool UIs** follow `.cursor/rules/fe-ux-product.mdc`: one accent color, grayscale structure, loading/empty/error on every list, server pager when the API is paginated, i18n for user-visible copy.
+Landing polish uses `design-taste-frontend`. **Admin and tool UIs** follow rule `fe-ux-product`: one accent color, grayscale structure, loading/empty/error on every list, server pager when the API is paginated, i18n for user-visible copy.
