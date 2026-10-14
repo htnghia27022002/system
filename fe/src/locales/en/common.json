@@ -166,5 +166,12 @@
         "inboxLoad": "Could not load your webhook inbox. Sign in again or try later."
       }
     }
+  },
+  "errorBoundary": {
+    "title": "Something went wrong",
+    "description": "An unexpected error occurred while loading this page. Please try again.",
+    "reference": "Reference: {{digest}}",
+    "retry": "Try again",
+    "home": "Go back"
   }
 }

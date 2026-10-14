@@ -26,19 +26,25 @@ const withSerwist = withSerwistInit({
   disable: process.env.NODE_ENV === 'development',
 })
 
+/**
+ * Baseline headers for every page when the FE runs without nginx (standalone
+ * deploy). No CSP here: a useful one needs per-deploy API/asset origins — add it
+ * at the edge or with a nonce middleware when the project knows them.
+ */
+const SECURITY_HEADERS = [
+  { key: 'X-Content-Type-Options', value: 'nosniff' },
+  { key: 'X-Frame-Options', value: 'DENY' },
+  { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
+  {
+    key: 'Permissions-Policy',
+    value: 'camera=(), microphone=(), geolocation=(), payment=()',
+  },
+]
+
 const nextConfig: NextConfig = {
+  poweredByHeader: false,
   async headers() {
-    return [
-      {
-        source: '/:path*',
-        headers: [
-          {
-            key: 'Permissions-Policy',
-            value: 'geolocation=(self)',
-          },
-        ],
-      },
-    ]
+    return [{ source: '/:path*', headers: SECURITY_HEADERS }]
   },
   async redirects() {
     return [
