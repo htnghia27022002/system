@@ -3,6 +3,7 @@ package module
 import (
 	"github.com/gin-gonic/gin"
 
+	"be/internal/apidoc"
 	"be/internal/database"
 	"be/internal/database/seeders"
 	"be/internal/queue"
@@ -105,6 +106,17 @@ func (s Set) Settings() []settings.Definition {
 	for _, m := range s {
 		if p, ok := m.(SettingsProvider); ok {
 			out = append(out, p.Settings()...)
+		}
+	}
+	return out
+}
+
+// APIDoc collects the route docs of modules that provide them.
+func (s Set) APIDoc() []apidoc.Op {
+	var out []apidoc.Op
+	for _, m := range s {
+		if p, ok := m.(APIDocProvider); ok {
+			out = append(out, p.APIDoc()...)
 		}
 	}
 	return out

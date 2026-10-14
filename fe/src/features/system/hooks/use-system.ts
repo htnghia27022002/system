@@ -4,7 +4,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 
-import { apiErrorMessage } from '@/lib/api-error'
+import { translateApiError } from '@/lib/api-error'
 
 import { systemApi } from '../services/system-api'
 import type { ListAuditLogsParams, SettingValues } from '../types'
@@ -26,6 +26,7 @@ export function useSettings() {
 
 export function useUpdateSettings() {
   const { t } = useTranslation('admin')
+  const { t: tc } = useTranslation('common')
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: (values: SettingValues) => systemApi.updateSettings(values),
@@ -36,7 +37,7 @@ export function useUpdateSettings() {
       toast.success(t('system.settings.saved'))
     },
     onError: (error) => {
-      toast.error(apiErrorMessage(error, t('system.settings.saveFailed')))
+      toast.error(translateApiError(error, tc, t('system.settings.saveFailed')))
     },
   })
 }

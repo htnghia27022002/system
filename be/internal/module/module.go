@@ -14,6 +14,7 @@ import (
 	"github.com/gin-gonic/gin"
 
 	jwtmanager "be/common/jwt"
+	"be/internal/apidoc"
 	"be/internal/audit"
 	"be/internal/config"
 	"be/internal/database/seeders"
@@ -101,6 +102,12 @@ type Poller interface {
 // Closer releases module resources on shutdown.
 type Closer interface {
 	Close()
+}
+
+// APIDocProvider documents the module's routes for the OpenAPI spec. Every
+// route the module mounts must be listed (the OpenAPI test enforces it).
+type APIDocProvider interface {
+	APIDoc() []apidoc.Op
 }
 
 // SettingsProvider declares runtime settings (shown on the admin Settings page,

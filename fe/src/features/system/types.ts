@@ -1,17 +1,7 @@
-export type AuditLogEntry = {
-  id: string
-  actorId: string | null
-  actorEmail: string
-  /** `<resource>.<verb>`, e.g. `user.update`, `auth.login_failed`. */
-  action: string
-  resourceType: string
-  resourceId: string
-  metadata: Record<string, unknown>
-  ipAddress: string
-  userAgent: string
-  requestId: string
-  createdAt: string
-}
+import type { AuditLogResponse } from '@/types/api.gen'
+
+/** Generated from the BE OpenAPI schema (pnpm gen:api). */
+export type AuditLogEntry = AuditLogResponse
 
 export type ListAuditLogsParams = {
   page?: number

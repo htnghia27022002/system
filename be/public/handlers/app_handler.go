@@ -35,5 +35,13 @@ func (h *AppHandler) Info(c *gin.Context) {
 		}
 		public = values
 	}
-	response.JSON(c, http.StatusOK, gin.H{"modules": h.modules, "settings": public})
+	response.JSON(c, http.StatusOK, AppInfoResponse{Modules: h.modules, Settings: public})
+}
+
+// AppInfoResponse is GET /api/app/info.
+type AppInfoResponse struct {
+	// Modules are the enabled optional BE modules.
+	Modules []string `json:"modules"`
+	// Settings are the public runtime settings (key → value).
+	Settings map[string]any `json:"settings"`
 }

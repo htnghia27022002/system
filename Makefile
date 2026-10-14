@@ -1,4 +1,4 @@
-.PHONY: up up-d down logs build prod psql redis env test test-be test-fe lint
+.PHONY: openapi up up-d down logs build prod psql redis env test test-be test-fe lint
 
 # be/.env for DB_* substitution (postgres) + be/queue containers.
 # Profiles: dev = postgres + be + fe + nginx; prod = nginx + go-app (pulls GO_APP_IMAGE).
@@ -66,3 +66,9 @@ test-fe:
 
 lint:
 	pnpm -C fe lint
+
+# API contract: BE route docs -> be/api/openapi.json -> fe/src/types/api.gen.ts
+# (BE step runs in the be container; use `cd be && make openapi` with Go on the host).
+openapi:
+	$(COMPOSE) exec -T be go run ./cmd/openapi -o api/openapi.json
+	pnpm -C fe gen:api

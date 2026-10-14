@@ -34,7 +34,7 @@ func (h *SystemHandler) ListAuditLogs(c *gin.Context) {
 
 func (h *SystemHandler) ListSettings(c *gin.Context) {
 	values, err := h.settings.List(c.Request.Context())
-	httpx.OK(c, gin.H{"items": values}, err)
+	httpx.OK(c, admindto.SettingsResponse{Items: values}, err)
 }
 
 func (h *SystemHandler) UpdateSettings(c *gin.Context) {

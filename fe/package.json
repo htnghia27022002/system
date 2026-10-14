@@ -11,7 +11,8 @@
     "lint": "eslint .",
     "test": "vitest",
     "test:run": "vitest run",
-    "generate:pwa-icons": "node scripts/generate-pwa-icons.mjs"
+    "generate:pwa-icons": "node scripts/generate-pwa-icons.mjs",
+    "gen:api": "node scripts/gen-api.mjs"
   },
   "dependencies": {
     "@fontsource-variable/geist": "^5.2.9",
@@ -57,6 +58,7 @@
     "eslint-plugin-react-hooks": "^7.1.1",
     "globals": "^17.6.0",
     "jsdom": "^29.1.1",
+    "openapi-typescript": "7.4.4",
     "sharp": "^0.35.3",
     "tailwindcss": "^4.3.0",
     "typescript": "~6.0.2",

@@ -216,5 +216,18 @@
     "reference": "Reference: {{digest}}",
     "retry": "Try again",
     "home": "Go back"
+  },
+  "errors": {
+    "validation_failed": "Some fields are invalid. Check the form and try again.",
+    "invalid_json": "The request could not be read.",
+    "unauthorized": "Your session has expired. Sign in again.",
+    "forbidden": "You do not have permission to do this.",
+    "not_found": "This item no longer exists.",
+    "conflict": "This conflicts with existing data (for example, the email is already used).",
+    "payload_too_large": "The upload is too large.",
+    "too_many_requests": "Too many attempts. Wait a moment and try again.",
+    "account_locked": "Too many sign-in attempts. Please wait a few minutes and try again.",
+    "email_not_verified": "Verify your email first. Check your inbox for the link we sent.",
+    "registration_disabled": "Sign-up is closed. Ask an administrator for an invitation."
   }
 }

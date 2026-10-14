@@ -53,6 +53,9 @@ type Value struct {
 	Overridden bool `json:"overridden"`
 }
 
+// OpenAPIName names the schema in the API document.
+func (Value) OpenAPIName() string { return "SettingValue" }
+
 // Store persists overrides (implemented by repository.SettingRepository).
 type Store interface {
 	All(ctx context.Context) (map[string]json.RawMessage, error)

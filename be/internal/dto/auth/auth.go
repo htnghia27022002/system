@@ -100,3 +100,7 @@ type OAuthCallbackRequest struct {
 type MessageResponse struct {
 	Message string `json:"message"`
 }
+
+type OAuthProvidersResponse struct {
+	Providers []string `json:"providers"`
+}

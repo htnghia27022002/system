@@ -29,7 +29,7 @@ func NewHealthHandler(checks ...ReadinessCheck) *HealthHandler {
 
 // Health is the liveness probe: 200 while the process serves HTTP.
 func (h *HealthHandler) Health(c *gin.Context) {
-	response.JSON(c, http.StatusOK, gin.H{"status": "ok"})
+	response.JSON(c, http.StatusOK, HealthResponse{Status: "ok"})
 }
 
 // Ready is the readiness probe: 200 when every check passes, else 503. Failure
@@ -54,5 +54,17 @@ func (h *HealthHandler) Ready(c *gin.Context) {
 	if status != http.StatusOK {
 		overall = "unavailable"
 	}
-	response.JSON(c, status, gin.H{"status": overall, "checks": results})
+	response.JSON(c, status, ReadyResponse{Status: overall, Checks: results})
+}
+
+// HealthResponse is GET /api/health.
+type HealthResponse struct {
+	Status string `json:"status"`
+}
+
+// ReadyResponse is GET /api/ready: status "ok" or "unavailable" (503) and
+// each dependency as "ok" / "down" (no error details).
+type ReadyResponse struct {
+	Status string            `json:"status"`
+	Checks map[string]string `json:"checks"`
 }

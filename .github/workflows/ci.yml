@@ -83,6 +83,10 @@ jobs:
           cache: pnpm
           cache-dependency-path: fe/pnpm-lock.yaml
       - run: pnpm install --frozen-lockfile
+      - name: API types match be/api/openapi.json
+        run: |
+          pnpm gen:api
+          git diff --exit-code -- src/types/api.gen.ts || (echo "Run pnpm gen:api and commit src/types/api.gen.ts" && exit 1)
       - run: pnpm lint
       - run: pnpm exec tsc --noEmit
       - run: pnpm test:run

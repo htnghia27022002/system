@@ -1,6 +1,9 @@
 package admin
 
-import "be/pkg/query"
+import (
+	"be/internal/settings"
+	"be/pkg/query"
+)
 
 // ListAuditLogsQuery filters GET /api/admin/audit-logs.
 type ListAuditLogsQuery struct {
@@ -51,4 +54,9 @@ type DashboardOverview struct {
 	// WeeklyActivity is successful sign-ins per UTC day, oldest first (7 days).
 	WeeklyActivity []DashboardPoint `json:"weeklyActivity"`
 	UpdatedAt      string           `json:"updatedAt"`
+}
+
+// SettingsResponse lists every declared setting with its effective value.
+type SettingsResponse struct {
+	Items []settings.Value `json:"items"`
 }

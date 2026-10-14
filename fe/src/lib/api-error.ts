@@ -38,3 +38,17 @@ export function apiErrorMessage(error: unknown, fallback: string): string {
   const data = body(error)
   return data?.message || data?.error || fallback
 }
+
+type Translate = (key: string, options?: { defaultValue?: string }) => string
+
+/**
+ * User-facing message for a failed call: the translation of the BE error code
+ * (`common:errors.<code>`) when one exists, else the server message, else
+ * `fallback`. Pass a `t` bound to the `common` namespace.
+ */
+export function translateApiError(error: unknown, t: Translate, fallback: string): string {
+  const message = apiErrorMessage(error, fallback)
+  const code = apiErrorCode(error)
+  if (!code || code === 'bad_request' || code === 'internal') return message
+  return t(`errors.${code}`, { defaultValue: message })
+}

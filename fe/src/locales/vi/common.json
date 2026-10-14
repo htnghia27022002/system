@@ -216,5 +216,18 @@
     "reference": "Mã tham chiếu: {{digest}}",
     "retry": "Thử lại",
     "home": "Quay lại"
+  },
+  "errors": {
+    "validation_failed": "Một số trường không hợp lệ. Hãy kiểm tra lại biểu mẫu.",
+    "invalid_json": "Không đọc được yêu cầu.",
+    "unauthorized": "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.",
+    "forbidden": "Bạn không có quyền thực hiện thao tác này.",
+    "not_found": "Mục này không còn tồn tại.",
+    "conflict": "Dữ liệu bị trùng (ví dụ: email đã được sử dụng).",
+    "payload_too_large": "Tệp tải lên quá lớn.",
+    "too_many_requests": "Bạn thao tác quá nhiều lần. Vui lòng đợi một lát rồi thử lại.",
+    "account_locked": "Bạn đã thử đăng nhập quá nhiều lần. Vui lòng đợi vài phút rồi thử lại.",
+    "email_not_verified": "Vui lòng xác minh email trước. Hãy kiểm tra hộp thư để lấy liên kết chúng tôi đã gửi.",
+    "registration_disabled": "Hiện không mở đăng ký. Hãy liên hệ quản trị viên để được mời."
   }
 }

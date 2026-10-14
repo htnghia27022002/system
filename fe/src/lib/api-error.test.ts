@@ -1,7 +1,7 @@
 import { AxiosError, AxiosHeaders } from 'axios'
 import { describe, expect, it } from 'vitest'
 
-import { apiErrorCode, apiErrorMessage, apiErrorStatus } from './api-error'
+import { apiErrorCode, apiErrorMessage, apiErrorStatus, translateApiError } from './api-error'
 
 function axiosError(status: number, data: unknown) {
   return new AxiosError('fail', 'ERR', undefined, undefined, {
@@ -31,5 +31,16 @@ describe('api-error', () => {
     const mock = Object.assign(new Error('locked'), { status: 429, code: 'account_locked' })
     expect(apiErrorStatus(mock)).toBe(429)
     expect(apiErrorCode(mock)).toBe('account_locked')
+  })
+})
+
+describe('translateApiError', () => {
+  const t = (key: string, options?: { defaultValue?: string }) =>
+    key === 'errors.forbidden' ? 'Bạn không có quyền' : (options?.defaultValue ?? key)
+
+  it('translates known codes and falls back to the server message', () => {
+    expect(translateApiError(axiosError(403, { error: 'forbidden', code: 'forbidden' }), t, 'x')).toBe('Bạn không có quyền')
+    expect(translateApiError(axiosError(409, { error: 'email already exists', code: 'conflict' }), t, 'x')).toBe('email already exists')
+    expect(translateApiError(new Error('boom'), t, 'fallback')).toBe('fallback')
   })
 })
