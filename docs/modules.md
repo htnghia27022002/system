@@ -40,14 +40,17 @@ capability it needs:
 | `StreamProvider` | JetStream streams/consumers consumed by `cmd/queue` |
 | `Poller` | Fallback work loop for `cmd/queue` when NATS is disabled |
 | `Closer` | Cleanup on shutdown |
+| `SettingsProvider` | Runtime settings (`<module>.<name>`, typed, with default) shown on the admin Settings page; `Public: true` exposes one on `/api/app/info` |
 
-The `Kernel` gives a module `Config`, `DB`, `JWT`, `Publisher` and the `Auth`
-middleware. `Routes.Admin` is `/api/admin` with auth already applied. A module's
+The `Kernel` gives a module `Config`, `DB`, `JWT`, `Publisher`, `Mailer`
+(transactional email), `Storage` (uploads: local or S3), `Audit` (record
+`<resource>.<verb>` entries to the audit trail), `Settings` (read at request
+time, not in `New`) and the `Auth` middleware. `Routes.Admin` is `/api/admin` with auth already applied. A module's
 `New` must only wire objects (no I/O) — CLIs build modules from a Config-only kernel.
 
 `MODULES` in `be/.env` picks the set: unset = registry defaults, a comma list = exactly
 those, empty = core only, an unknown name = startup error. `GET /api/app/info` returns
-the enabled list (public).
+the enabled list and the public settings.
 
 ### Frontend (`fe/`)
 
@@ -68,11 +71,26 @@ lists that BE module, so a BE deployed without it never shows dead links.
 
 ## Add a module
 
+**Fastest path — generate it:** `make module name=invoices [label="Invoices"] [singular=invoice]`
+writes a working admin CRUD module on both sides and registers it:
+
+| Side | Generated |
+|------|-----------|
+| BE | `internal/modules/<name>/` — `module.go` (permissions with stable IDs derived from the name, routes under `/api/admin/<name>`), `apidoc.go`, migration, model, DTOs, repository, service (records `<singular>.create/update/delete` to the audit log), handler; registry entry; `test/integration/<name>_module_integration_test.go` (CRUD + permission check) |
+| FE | `src/features/<name>/` — `module.ts`, `permissions.ts`, typed API + in-memory mock, TanStack Query hooks, table + columns + form dialog (search, server paging, edit/delete gated by `<name>:modify`), mock test; `app/admin/<name>/page.tsx` behind `PermissionGuard`; registry line; EN/VI strings |
+
+The resource starts with `name` + `description`; reshape the migration, model, DTOs,
+FE types and form for real fields, then `make openapi` and run the tests. CI runs the
+generator on a throwaway module (`scaffold` job) so the templates cannot rot.
+
+**By hand:**
+
 1. Write the spec/plan/contracts as usual (`docs/features/NNN-name/`).
 2. **BE** — create `internal/modules/<name>/` (copy `webhooks/` as the template):
    `module.go` with `Name`, `New`, `RegisterRoutes`, `Permissions` (new stable UUIDs),
-   `Migrations` (start at `000001_<name>.up.sql`). Append one `Entry` to
-   `internal/modules/registry.go`. Tests go under `be/test/unit/<name>/`.
+   `Migrations` (start at `000001_<name>.up.sql`), `APIDoc` (every route — a test
+   enforces it). Append one `Entry` to `internal/modules/registry.go`. Tests go under
+   `be/test/unit/<name>/`.
 3. **FE** — create `src/features/<name>/` with `permissions.ts`, `module.ts`
    (`backendModule: '<be name>'`), components and hooks; add its `app/` routes wrapped in
    `PermissionGuard`; append the descriptor to `src/config/modules.ts`; add i18n keys.

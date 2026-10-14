@@ -196,9 +196,7 @@ func (h *AuthHandler) OAuthStart(c *gin.Context) {
 }
 
 func (h *AuthHandler) OAuthProviders(c *gin.Context) {
-	response.JSON(c, http.StatusOK, gin.H{
-		"providers": h.oauth.ListConfiguredProviders(),
-	})
+	response.JSON(c, http.StatusOK, authdto.OAuthProvidersResponse{Providers: h.oauth.ListConfiguredProviders()})
 }
 
 func (h *AuthHandler) OAuthCallback(c *gin.Context) {

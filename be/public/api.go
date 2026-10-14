@@ -53,44 +53,12 @@ func Run(cfg config.Config, db *postgres.Postgres, redis *goredis.Client) error 
 	}
 	defer func() { _ = cache.Close() }()
 
-	logger := slog.Default()
-	r := gin.New()
-	// Only these peers may set X-Forwarded-For / X-Real-IP; everyone else is
-	// identified by the socket address (rate limits and session IPs rely on it).
-	if err := r.SetTrustedProxies(cfg.TrustedProxies); err != nil {
-		return fmt.Errorf("TRUSTED_PROXIES: %w", err)
+	r, err := NewRouter(cfg, container, handlers.NewHealthHandler(readinessChecks(container, db, redis)...))
+	if err != nil {
+		return err
 	}
-	r.Use(
-		middleware.RequestID(),
-		middleware.Recovery(logger),
-		middleware.AccessLog(logger),
-		middleware.SecurityHeaders(),
-	)
-	// Module middleware (e.g. permissive CORS for public webhook capture) runs before
-	// the credentialed core CORS so its browser preflight succeeds.
-	for _, mw := range container.Modules.GlobalMiddleware() {
-		r.Use(mw)
-	}
-	r.Use(cors.New(cors.Config{
-		AllowOrigins: cfg.CORSOrigins,
-		AllowMethods: []string{"GET", "POST", "PATCH", "PUT", "DELETE", "OPTIONS", "HEAD"},
-		AllowHeaders: []string{
-			"Origin", "Content-Type", "Accept", "Authorization",
-			"X-Requested-With", "X-Session-Id", middleware.RequestIDHeader,
-		},
-		ExposeHeaders:    []string{"Content-Length", middleware.RequestIDHeader},
-		AllowCredentials: true,
-		MaxAge:           12 * time.Hour,
-	}))
 
-	health := handlers.NewHealthHandler(readinessChecks(container, db, redis)...)
-
-	api := r.Group("/api")
-	routes.RegisterAppRoutes(api, container, health)
-	routes.RegisterAuthRoutes(api, container)
-	admin := routes.RegisterAdminRoutes(api, container)
-	routes.RegisterMediaRoutes(api, container)
-	container.Modules.RegisterRoutes(module.Routes{API: api, Admin: admin})
+	go container.Janitor.Run(ctx)
 
 	srv := &http.Server{
 		Addr:              ":" + cfg.Port,
@@ -141,5 +109,52 @@ func readinessChecks(c *app.Container, db *postgres.Postgres, redis *goredis.Cli
 			},
 		})
 	}
+	// Remote object stores (S3) expose Ping; the local disk needs no probe.
+	if pinger, ok := c.Storage.(interface{ Ping(context.Context) error }); ok {
+		checks = append(checks, handlers.ReadinessCheck{Name: "storage", Check: pinger.Ping})
+	}
 	return checks
+}
+
+// NewRouter builds the HTTP engine: global middleware, CORS and every core and
+// module route. Run uses it; tests and the OpenAPI check build the same router.
+func NewRouter(cfg config.Config, container *app.Container, health *handlers.HealthHandler) (*gin.Engine, error) {
+	logger := slog.Default()
+	r := gin.New()
+	// Only these peers may set X-Forwarded-For / X-Real-IP; everyone else is
+	// identified by the socket address (rate limits and session IPs rely on it).
+	if err := r.SetTrustedProxies(cfg.TrustedProxies); err != nil {
+		return nil, fmt.Errorf("TRUSTED_PROXIES: %w", err)
+	}
+	r.Use(
+		middleware.RequestID(),
+		middleware.AuditContext(),
+		middleware.Recovery(logger),
+		middleware.AccessLog(logger),
+		middleware.SecurityHeaders(),
+	)
+	// Module middleware (e.g. permissive CORS for public webhook capture) runs before
+	// the credentialed core CORS so its browser preflight succeeds.
+	for _, mw := range container.Modules.GlobalMiddleware() {
+		r.Use(mw)
+	}
+	r.Use(cors.New(cors.Config{
+		AllowOrigins: cfg.CORSOrigins,
+		AllowMethods: []string{"GET", "POST", "PATCH", "PUT", "DELETE", "OPTIONS", "HEAD"},
+		AllowHeaders: []string{
+			"Origin", "Content-Type", "Accept", "Authorization",
+			"X-Requested-With", "X-Session-Id", middleware.RequestIDHeader,
+		},
+		ExposeHeaders:    []string{"Content-Length", middleware.RequestIDHeader},
+		AllowCredentials: true,
+		MaxAge:           12 * time.Hour,
+	}))
+
+	api := r.Group("/api")
+	routes.RegisterAppRoutes(api, container, health)
+	routes.RegisterAuthRoutes(api, container)
+	admin := routes.RegisterAdminRoutes(api, container)
+	routes.RegisterMediaRoutes(api, container)
+	container.Modules.RegisterRoutes(module.Routes{API: api, Admin: admin})
+	return r, nil
 }

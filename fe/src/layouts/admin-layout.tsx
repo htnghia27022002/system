@@ -30,6 +30,14 @@ const BREADCRUMB_MAP: Record<
     label: 'nav.roles',
     parent: { label: 'nav.accessControl', href: '/admin/users' },
   },
+  '/admin/audit-log': {
+    label: 'nav.auditLog',
+    parent: { label: 'nav.system' },
+  },
+  '/admin/settings': {
+    label: 'nav.settings',
+    parent: { label: 'nav.system' },
+  },
   // Module routes (src/config/modules.ts)
   ...Object.fromEntries(
     moduleBreadcrumbs.map((b) => [

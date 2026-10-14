@@ -66,6 +66,28 @@ func DefaultPermissions() []PermissionDef {
 			Group:       "permissions",
 			Description: "View the permissions catalog",
 		},
+		// Core keys added after the module range (…0017+) use the 10000002 prefix.
+		{
+			ID:          "10000002-0000-4000-8000-000000000001",
+			Key:         rbac.Key("audit", rbac.ActionView),
+			Name:        "View audit log",
+			Group:       "audit",
+			Description: "Read the audit trail of sign-ins and admin changes",
+		},
+		{
+			ID:          "10000002-0000-4000-8000-000000000002",
+			Key:         rbac.Key("settings", rbac.ActionView),
+			Name:        "View settings",
+			Group:       "settings",
+			Description: "View application settings",
+		},
+		{
+			ID:          "10000002-0000-4000-8000-000000000003",
+			Key:         rbac.Key("settings", rbac.ActionModify),
+			Name:        "Modify settings",
+			Group:       "settings",
+			Description: "Change application settings",
+		},
 	}
 }
 

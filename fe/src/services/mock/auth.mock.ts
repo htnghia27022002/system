@@ -55,6 +55,7 @@ function buildAuthResponse(
       address: '',
       socialLinks: [],
       hasPassword: true,
+      emailVerified: true,
     },
   }
 }

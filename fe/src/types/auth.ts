@@ -28,6 +28,8 @@ export type AuthUser = {
   address?: string
   socialLinks?: SocialLink[]
   hasPassword?: boolean
+  /** False until the owner confirms the email address (BE `emailVerified`). */
+  emailVerified?: boolean
 }
 
 export type JwtPayload = {

@@ -23,12 +23,12 @@ import {
 } from '@/components/ui/alert-dialog'
 
 import { ListRowActionsMenu } from './list-row-actions-menu'
-import { MobileRecordCard } from './mobile-record-card'
+import { MobileRecordCard } from '@/components/common/mobile-record-card'
 import { PermissionGate } from './permission-gate'
 import { RoleFormDialog } from './role-form-dialog'
-import { ServerListSearch } from './server-list-search'
+import { ServerListSearch } from '@/components/common/server-list-search'
 import { PermissionKeys } from '../permission-keys'
-import { useListQueryParams } from '../hooks/use-list-query-params'
+import { useListQueryParams } from '@/hooks/use-list-query-params'
 import { usePermissions } from '../hooks/use-permissions'
 import { useRoleMutations, useRolesList } from '../hooks/use-roles'
 import type {

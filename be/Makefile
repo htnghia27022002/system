@@ -1,4 +1,4 @@
-.PHONY: run build test test-unit test-integration test-e2e test-all lint tidy migrate-up migrate-down migrate-version migrate-create seed seed-class
+.PHONY: openapi run build test test-unit test-integration test-e2e test-all lint tidy migrate-up migrate-down migrate-version migrate-create seed seed-class
 
 run:
 	go run .
@@ -19,6 +19,10 @@ test-e2e:
 	go test -tags=e2e ./test/e2e/...
 
 test-all: test-unit test-integration test-e2e
+
+# Regenerate api/openapi.json from the route docs (a unit test fails when it is stale).
+openapi:
+	go run ./cmd/openapi -o api/openapi.json
 
 lint:
 	golangci-lint run ./...

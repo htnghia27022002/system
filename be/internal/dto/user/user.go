@@ -39,6 +39,7 @@ type UserResponse struct {
 	RoleID         string          `json:"roleId"`
 	SuperAdmin     bool            `json:"superAdmin"`
 	Status         string          `json:"status"`
+	EmailVerified  bool            `json:"emailVerified"`
 	Phone          string          `json:"phone"`
 	AvatarURL      string          `json:"avatarUrl"`
 	General        string          `json:"general"`
@@ -54,7 +55,31 @@ type ListUsersQuery struct {
 	Search string `form:"search" binding:"omitempty,max=200"`
 	RoleID string `form:"roleId" binding:"omitempty,uuid"`
 	ID     string `form:"id" binding:"omitempty,uuid"`
-	Status string `form:"status" binding:"omitempty,oneof=active inactive"`
+	Status string `form:"status" binding:"omitempty,oneof=active inactive invited"`
 }
 
 type PaginatedUsersResponse = query.Page[UserResponse]
+
+// ChangedFields lists the JSON names of the fields an update sets (never their
+// values — the audit log must not hold passwords or personal data).
+func ChangedFields(req UpdateUserRequest) []string {
+	fields := []string{}
+	add := func(set bool, name string) {
+		if set {
+			fields = append(fields, name)
+		}
+	}
+	add(req.Email != nil, "email")
+	add(req.Name != nil, "name")
+	add(req.Password != nil && *req.Password != "", "password")
+	add(req.RoleID != nil, "roleId")
+	add(req.Status != nil, "status")
+	add(req.Phone != nil, "phone")
+	add(req.General != nil, "general")
+	add(req.Birthday != nil, "birthday")
+	add(req.Address != nil, "address")
+	add(req.SocialLinks != nil, "socialLinks")
+	add(req.AvatarURL != nil, "avatarUrl")
+	add(req.SuperAdmin != nil, "superAdmin")
+	return fields
+}

@@ -39,7 +39,8 @@
       "name": "Họ và tên",
       "email": "Email",
       "password": "Mật khẩu",
-      "confirmPassword": "Xác nhận mật khẩu"
+      "confirmPassword": "Xác nhận mật khẩu",
+      "newPassword": "Mật khẩu mới"
     },
     "actions": {
       "signIn": "Đăng nhập",
@@ -63,7 +64,9 @@
     "register": {
       "title": "Tạo tài khoản",
       "description": "Điền thông tin để đăng ký tài khoản mới.",
-      "hasAccount": "Đã có tài khoản?"
+      "hasAccount": "Đã có tài khoản?",
+      "checkEmail": "Đã tạo tài khoản. Hãy kiểm tra email để xác minh rồi đăng nhập.",
+      "closed": "Hiện không mở đăng ký. Hãy liên hệ quản trị viên để được mời."
     },
     "oauth": {
       "divider": "Hoặc tiếp tục với",
@@ -78,7 +81,43 @@
     },
     "errors": {
       "invalidCredentials": "Email hoặc mật khẩu không đúng",
-      "tooManyAttempts": "Bạn đã thử đăng nhập quá nhiều lần. Vui lòng đợi vài phút rồi thử lại."
+      "tooManyAttempts": "Bạn đã thử đăng nhập quá nhiều lần. Vui lòng đợi vài phút rồi thử lại.",
+      "emailNotVerified": "Vui lòng xác minh email trước. Hãy kiểm tra hộp thư để lấy liên kết chúng tôi đã gửi."
+    },
+    "links": {
+      "invalid": "Liên kết này không hợp lệ hoặc đã hết hạn.",
+      "backToSignIn": "Quay lại đăng nhập"
+    },
+    "forgot": {
+      "link": "Quên mật khẩu?",
+      "title": "Quên mật khẩu",
+      "description": "Nhập email, chúng tôi sẽ gửi liên kết đặt lại mật khẩu.",
+      "submit": "Gửi liên kết",
+      "sent": "Nếu {{email}} có tài khoản, liên kết đặt lại mật khẩu đang được gửi tới. Hãy kiểm tra hộp thư.",
+      "failed": "Không gửi được liên kết. Vui lòng thử lại."
+    },
+    "reset": {
+      "title": "Đặt mật khẩu mới",
+      "description": "Bạn sẽ bị đăng xuất khỏi mọi thiết bị.",
+      "submit": "Cập nhật mật khẩu",
+      "success": "Đã cập nhật mật khẩu. Hãy đăng nhập bằng mật khẩu mới.",
+      "failed": "Không cập nhật được mật khẩu. Vui lòng thử lại.",
+      "requestNew": "Yêu cầu liên kết mới"
+    },
+    "verify": {
+      "title": "Xác minh email",
+      "description": "Đang xác nhận địa chỉ email của bạn.",
+      "pending": "Đang xác minh…",
+      "success": "Địa chỉ email của bạn đã được xác minh.",
+      "continue": "Tiếp tục",
+      "resendFromProfile": "Gửi liên kết mới từ trang hồ sơ"
+    },
+    "invite": {
+      "title": "Nhận lời mời",
+      "description": "Đặt mật khẩu để kích hoạt tài khoản.",
+      "submit": "Kích hoạt tài khoản",
+      "success": "Tài khoản đã sẵn sàng. Hãy đăng nhập để tiếp tục.",
+      "failed": "Không nhận được lời mời. Vui lòng thử lại."
     }
   },
   "tools": {
@@ -177,5 +216,18 @@
     "reference": "Mã tham chiếu: {{digest}}",
     "retry": "Thử lại",
     "home": "Quay lại"
+  },
+  "errors": {
+    "validation_failed": "Một số trường không hợp lệ. Hãy kiểm tra lại biểu mẫu.",
+    "invalid_json": "Không đọc được yêu cầu.",
+    "unauthorized": "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.",
+    "forbidden": "Bạn không có quyền thực hiện thao tác này.",
+    "not_found": "Mục này không còn tồn tại.",
+    "conflict": "Dữ liệu bị trùng (ví dụ: email đã được sử dụng).",
+    "payload_too_large": "Tệp tải lên quá lớn.",
+    "too_many_requests": "Bạn thao tác quá nhiều lần. Vui lòng đợi một lát rồi thử lại.",
+    "account_locked": "Bạn đã thử đăng nhập quá nhiều lần. Vui lòng đợi vài phút rồi thử lại.",
+    "email_not_verified": "Vui lòng xác minh email trước. Hãy kiểm tra hộp thư để lấy liên kết chúng tôi đã gửi.",
+    "registration_disabled": "Hiện không mở đăng ký. Hãy liên hệ quản trị viên để được mời."
   }
 }

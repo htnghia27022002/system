@@ -13,6 +13,7 @@ import type {
   Role,
   UpdateRoleInput,
   UpdateUserInput,
+  InviteUserInput,
 } from '@/features/access-control/types'
 import type { UserRole } from '@/types/auth'
 import { mockDelay } from '@/utils/mock-delay'
@@ -58,6 +59,24 @@ const SEED_PERMISSIONS: Permission[] = [
     name: 'View permissions',
     group: 'permissions',
     description: 'View the permissions catalog',
+  },
+  {
+    key: 'audit:view',
+    name: 'View audit log',
+    group: 'audit',
+    description: 'Read the audit trail of sign-ins and admin changes',
+  },
+  {
+    key: 'settings:view',
+    name: 'View settings',
+    group: 'settings',
+    description: 'View application settings',
+  },
+  {
+    key: 'settings:modify',
+    name: 'Modify settings',
+    group: 'settings',
+    description: 'Change application settings',
   },
   // Module permissions (src/config/modules.ts), mirroring each BE module's Permissions().
   ...modulePermissions,
@@ -537,6 +556,44 @@ export const mockAccessControlApi = {
       }
       writeUsers([...users, user])
       return user
+    })
+  },
+
+  async inviteUser(input: InviteUserInput): Promise<ManagedUser> {
+    return withDelay(() => {
+      const users = readUsers()
+      if (users.some((u) => u.email.toLowerCase() === input.email.toLowerCase())) {
+        throw new MockAccessControlError('Email is already registered', 409)
+      }
+      if (!getRoleById(input.roleId)) {
+        throw new MockAccessControlError('Role not found', 404)
+      }
+      const user: ManagedUser = {
+        id: crypto.randomUUID(),
+        email: input.email,
+        name: input.name,
+        password: '',
+        roleId: input.roleId,
+        status: 'invited',
+        emailVerified: false,
+        superAdmin: false,
+        avatarUrl: '',
+        socialLinks: [],
+        oauthProviders: [],
+        createdAt: new Date().toISOString(),
+      }
+      writeUsers([...users, user])
+      return user
+    })
+  },
+
+  async resendInvite(id: string): Promise<void> {
+    return withDelay(() => {
+      const user = readUsers().find((u) => u.id === id)
+      if (!user) throw new MockAccessControlError('User not found', 404)
+      if (user.status !== 'invited') {
+        throw new MockAccessControlError('User has already accepted the invitation', 409)
+      }
     })
   },
 

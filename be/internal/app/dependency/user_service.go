@@ -3,6 +3,7 @@ package dependency
 import (
 	"be/internal/services/media"
 	usersvc "be/internal/services/user"
+	"be/pkg/storage"
 )
 
 func NewUserService(infra *Infra, mediaSvc *media.Service) *usersvc.Service {
@@ -11,6 +12,6 @@ func NewUserService(infra *Infra, mediaSvc *media.Service) *usersvc.Service {
 	return usersvc.NewService(userRepo, authRepo, mediaSvc)
 }
 
-func NewMediaService(infra *Infra) *media.Service {
-	return media.NewService(infra.Config.UploadDir)
+func NewMediaService(store storage.Storage) *media.Service {
+	return media.NewService(store)
 }

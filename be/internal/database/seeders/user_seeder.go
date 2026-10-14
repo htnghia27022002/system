@@ -3,8 +3,10 @@ package seeders
 import (
 	"context"
 
-	"be/pkg/hash"
+	"github.com/Masterminds/squirrel"
+
 	usermodel "be/internal/models/user"
+	"be/pkg/hash"
 	"be/pkg/postgres"
 )
 
@@ -45,8 +47,8 @@ func (s *UserSeeder) Run(ctx context.Context, db *postgres.Postgres) error {
 	for _, user := range users {
 		sql, args, err := db.Builder.
 			Insert(postgres.QuoteIdent("users")).
-			Columns("id", "email", "password_hash", "full_name", "role_id", "status", "is_super_admin").
-			Values(user.ID, user.Email, user.PasswordHash, user.FullName, user.RoleID, string(user.Status), user.SuperAdmin).
+			Columns("id", "email", "password_hash", "full_name", "role_id", "status", "is_super_admin", "email_verified_at").
+			Values(user.ID, user.Email, user.PasswordHash, user.FullName, user.RoleID, string(user.Status), user.SuperAdmin, squirrel.Expr("NOW()")).
 			Suffix("ON CONFLICT (email) DO NOTHING").
 			ToSql()
 		if err != nil {

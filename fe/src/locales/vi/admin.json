@@ -26,7 +26,10 @@
     "roles": "Vai trò",
     "permissions": "Quyền",
     "tools": "Công cụ",
-    "webhooks": "Webhooks"
+    "webhooks": "Webhooks",
+    "system": "Hệ thống",
+    "auditLog": "Nhật ký hoạt động",
+    "settings": "Cài đặt"
   },
   "access": {
     "insufficientPermissions": "Không đủ quyền truy cập",
@@ -102,7 +105,16 @@
       },
       "status": {
         "active": "Hoạt động",
-        "inactive": "Ngừng hoạt động"
+        "inactive": "Ngừng hoạt động",
+        "invited": "Đã mời"
+      },
+      "invite": {
+        "action": "Mời người dùng",
+        "title": "Mời người dùng",
+        "description": "Chúng tôi sẽ gửi email kèm liên kết để họ tự đặt mật khẩu.",
+        "submit": "Gửi lời mời",
+        "hint": "Bạn có thể đổi vai trò sau.",
+        "resend": "Gửi lại lời mời"
       }
     },
     "roles": {
@@ -147,11 +159,11 @@
     "refreshing": "Đang làm mới",
     "refresh": "Làm mới",
     "chart": {
-      "title": "Hoạt động trong tuần",
-      "description": "Hoạt động theo ngày trong 7 ngày qua.",
-      "series": "Hoạt động",
+      "title": "Lượt đăng nhập trong tuần",
+      "description": "Số lượt đăng nhập thành công mỗi ngày trong 7 ngày qua.",
+      "series": "Lượt đăng nhập",
       "day": "Ngày",
-      "empty": "Không có hoạt động trong 7 ngày qua."
+      "empty": "Không có lượt đăng nhập nào trong 7 ngày qua."
     },
     "kpis": {
       "totalUsers": "Tổng người dùng",
@@ -259,6 +271,67 @@
         "revokeFailed": "Không thể thu hồi phiên",
         "revokeNotFound": "Phiên đó không còn hoạt động. Danh sách đã được làm mới.",
         "revokeOthersFailed": "Không thể thu hồi các phiên khác"
+      }
+    },
+    "verification": {
+      "title": "Xác minh địa chỉ email",
+      "description": "Chúng tôi đã gửi liên kết xác minh tới {{email}}. Hãy mở liên kết để xác nhận địa chỉ này.",
+      "resend": "Gửi lại liên kết",
+      "resent": "Đã gửi liên kết",
+      "sent": "Đã gửi liên kết xác minh tới {{email}}",
+      "failed": "Không gửi được liên kết xác minh"
+    }
+  },
+  "system": {
+    "audit": {
+      "title": "Nhật ký hoạt động",
+      "description": "Ai đã làm gì và khi nào: đăng nhập, thay đổi tài khoản và thao tác quản trị.",
+      "error": "Không tải được nhật ký hoạt động.",
+      "emptyTitle": "Không có mục nào",
+      "emptyDescription": "Không có mục nào khớp với bộ lọc.",
+      "searchPlaceholder": "Tìm theo hành động, email hoặc ID…",
+      "allResources": "Tất cả tài nguyên",
+      "system": "Hệ thống",
+      "fields": {
+        "time": "Thời gian",
+        "actor": "Người thực hiện",
+        "action": "Hành động",
+        "resource": "Tài nguyên",
+        "details": "Chi tiết",
+        "ip": "IP"
+      },
+      "resources": {
+        "user": "Người dùng",
+        "role": "Vai trò",
+        "session": "Phiên đăng nhập",
+        "settings": "Cài đặt"
+      }
+    },
+    "settings": {
+      "title": "Cài đặt",
+      "description": "Cài đặt khi chạy của hệ thống. Thay đổi có hiệu lực trong vòng 30 giây.",
+      "error": "Không tải được cài đặt.",
+      "empty": "Chưa có cài đặt nào được khai báo.",
+      "saved": "Đã lưu cài đặt",
+      "saveFailed": "Không lưu được cài đặt",
+      "groups": {
+        "app": "Ứng dụng",
+        "auth": "Đăng nhập & đăng ký",
+        "audit": "Nhật ký hoạt động"
+      },
+      "items": {
+        "auth.registrationEnabled": {
+          "label": "Cho phép tự đăng ký",
+          "description": "Khi tắt, chỉ người được mời mới tham gia được (đăng ký bằng mật khẩu và OAuth đều bị từ chối)."
+        },
+        "app.supportEmail": {
+          "label": "Email hỗ trợ",
+          "description": "Hiển thị cho người dùng cần trợ giúp. Để trống để ẩn."
+        },
+        "audit.retentionDays": {
+          "label": "Thời gian lưu nhật ký (ngày)",
+          "description": "Các mục cũ hơn sẽ bị xoá bởi tác vụ dọn dẹp hằng ngày."
+        }
       }
     }
   }

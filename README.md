@@ -68,7 +68,9 @@ Set `NEXT_PUBLIC_USE_MOCK_API=false` and `NEXT_PUBLIC_API_BASE_URL=http://localh
 | [`docs/README.md`](docs/README.md) | Feature docs layout, role ownership |
 | [`docs/workflow/overview.md`](docs/workflow/overview.md) | Speckit SDD cycle |
 | [`docs/workflow/agent-prompts.md`](docs/workflow/agent-prompts.md) | Prompts per agent (BA/BE/FE/QA) |
-| [`docs/modules.md`](docs/modules.md) | Core vs modules, add/remove a module, optional infra, separate deploys |
+| [`docs/new-project.md`](docs/new-project.md) | **Start here when cloning:** rename, choose optional pieces, env, first deploy |
+| [`docs/modules.md`](docs/modules.md) | Core vs modules, add/remove a module (generator), optional infra, separate deploys |
+| [`be/api/openapi.json`](be/api/openapi.json) | API contract (generated; also served at `/api/openapi.json`) |
 | [`AGENTS.md`](AGENTS.md) | Root agent rules, GitNexus, monorepo policy |
 | [`fe/CLAUDE.md`](fe/CLAUDE.md) | FE architecture and import rules (authoritative) |
 | [`fe/README.md`](fe/README.md) | FE structure, routes, commands |
@@ -88,12 +90,15 @@ Set `NEXT_PUBLIC_USE_MOCK_API=false` and `NEXT_PUBLIC_API_BASE_URL=http://localh
 | `make test-be` | Go tests inside `be` container |
 | `make test-fe` | Vitest (`pnpm -C fe test:run`) |
 | `make prod` | Docker production profile |
+| `make bootstrap name=… slug=…` | Rename a fresh clone into a project ([docs/new-project.md](docs/new-project.md)) |
+| `make module name=…` | Scaffold a CRUD module on BE + FE |
+| `make openapi` | Regenerate `be/api/openapi.json` and `fe/src/types/api.gen.ts` |
 | `pnpm setup` / `pnpm dev` | Install / run FE only (host; delegates to `fe/`) |
 | `pnpm docker:up` | Same as `make up` |
 
 ## CI
 
-[`.github/workflows/ci.yml`](.github/workflows/ci.yml) runs on every PR: BE (gofmt on changed files, vet, unit with `-race`, integration + e2e against a Postgres service), FE (lint, typecheck, Vitest, `next build`) and a Docker build of each app from its own folder (proves `be/` and `fe/` stay standalone).
+[`.github/workflows/ci.yml`](.github/workflows/ci.yml) runs on every PR: BE (gofmt on changed files, vet, unit with `-race`, integration + e2e against a Postgres service), FE (API types in sync with the spec, lint, typecheck, Vitest, `next build`), a scaffold job that generates a throwaway module and builds both apps with it, and a Docker build of each app from its own folder (proves `be/` and `fe/` stay standalone).
 
 ## Workspace layout
 

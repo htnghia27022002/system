@@ -3,9 +3,11 @@ package module
 import (
 	"github.com/gin-gonic/gin"
 
+	"be/internal/apidoc"
 	"be/internal/database"
 	"be/internal/database/seeders"
 	"be/internal/queue"
+	"be/internal/settings"
 )
 
 // Set is the list of enabled modules with helpers that collect their capabilities.
@@ -96,4 +98,26 @@ func (s Set) Close() {
 			c.Close()
 		}
 	}
+}
+
+// Settings collects the settings declared by modules.
+func (s Set) Settings() []settings.Definition {
+	var out []settings.Definition
+	for _, m := range s {
+		if p, ok := m.(SettingsProvider); ok {
+			out = append(out, p.Settings()...)
+		}
+	}
+	return out
+}
+
+// APIDoc collects the route docs of modules that provide them.
+func (s Set) APIDoc() []apidoc.Op {
+	var out []apidoc.Op
+	for _, m := range s {
+		if p, ok := m.(APIDocProvider); ok {
+			out = append(out, p.APIDoc()...)
+		}
+	}
+	return out
 }

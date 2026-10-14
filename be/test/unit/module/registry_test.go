@@ -1,6 +1,7 @@
 package module_test
 
 import (
+	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -24,10 +25,21 @@ func build(t *testing.T, cfg config.Config) module.Set {
 	return set
 }
 
-func TestDefaultsEnableWebhooks(t *testing.T) {
+// defaultNames lists the registry entries marked Default (projects add their own).
+func defaultNames() []string {
+	var names []string
+	for _, e := range modules.Available {
+		if e.Default {
+			names = append(names, e.Name)
+		}
+	}
+	return names
+}
+
+func TestDefaultsEnableRegistryDefaults(t *testing.T) {
 	set := build(t, config.Config{})
-	if got := strings.Join(set.Names(), ","); got != "webhooks" {
-		t.Fatalf("default modules = %q, want webhooks", got)
+	if got, want := strings.Join(set.Names(), ","), strings.Join(defaultNames(), ","); got != want || !strings.Contains(","+got+",", ",webhooks,") {
+		t.Fatalf("default modules = %q, want %q (including webhooks)", got, want)
 	}
 }
 
@@ -68,8 +80,16 @@ func TestModulePermissionsMergeWithCoreWithoutDuplicates(t *testing.T) {
 }
 
 func TestEachModuleHasItsOwnMigrationSet(t *testing.T) {
-	sets := build(t, config.Config{}).MigrationSets()
-	if len(sets) != 1 || sets[0].Name != "webhooks" || sets[0].FS == nil {
+	set := build(t, config.Config{})
+	sets := set.MigrationSets()
+	byName := map[string]bool{}
+	for _, s := range sets {
+		if s.FS == nil || byName[s.Name] {
+			t.Fatalf("bad or duplicate migration set %+v", s)
+		}
+		byName[s.Name] = true
+	}
+	if !byName["webhooks"] || len(sets) > len(set) {
 		t.Fatalf("unexpected migration sets: %+v", sets)
 	}
 }
@@ -102,15 +122,16 @@ func TestDisabledModuleRoutesAreNotMounted(t *testing.T) {
 
 func TestAppInfoListsEnabledModules(t *testing.T) {
 	gin.SetMode(gin.TestMode)
+	defaults, _ := json.Marshal(defaultNames())
 	for name, tc := range map[string]struct {
 		set  module.Set
 		want string
 	}{
-		"default":   {build(t, config.Config{}), `{"modules":["webhooks"]}`},
-		"core only": {build(t, config.Config{ModulesSet: true}), `{"modules":[]}`},
+		"default":   {build(t, config.Config{}), `{"modules":` + string(defaults) + `,"settings":{}}`},
+		"core only": {build(t, config.Config{ModulesSet: true}), `{"modules":[],"settings":{}}`},
 	} {
 		r := gin.New()
-		r.GET("/api/app/info", handlers.NewAppHandler(tc.set.Names()).Info)
+		r.GET("/api/app/info", handlers.NewAppHandler(tc.set.Names(), nil).Info)
 		w := httptest.NewRecorder()
 		r.ServeHTTP(w, httptest.NewRequest(http.MethodGet, "/api/app/info", nil))
 		if w.Code != http.StatusOK || w.Body.String() != tc.want {

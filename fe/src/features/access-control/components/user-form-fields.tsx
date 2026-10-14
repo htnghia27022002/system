@@ -380,11 +380,17 @@ export function UserFormFields({
                 onValueChange={(value) =>
                   setValue('status', value as 'active' | 'inactive')
                 }
+                disabled={status === 'invited'}
               >
                 <SelectTrigger className="w-full min-w-0">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
+                  {status === 'invited' ? (
+                    <SelectItem value="invited" disabled>
+                      {t('access.users.status.invited')}
+                    </SelectItem>
+                  ) : null}
                   <SelectItem value="active">
                     {t('access.users.status.active')}
                   </SelectItem>

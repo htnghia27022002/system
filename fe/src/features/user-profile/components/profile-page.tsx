@@ -13,6 +13,7 @@ import type { AuthUser } from '@/types/auth'
 import { AccountSessionsCard } from './account-sessions-card'
 import { AvatarUpload } from './avatar-upload'
 import { ChangePasswordForm } from './change-password-form'
+import { EmailVerificationNotice } from './email-verification-notice'
 import { ProfileForm } from './profile-form'
 import { profileQueryKey, useProfile } from '../hooks/use-profile'
 
@@ -62,6 +63,10 @@ export function ProfilePage() {
   return (
     <PageContainer>
       <PageHeader title={t('profile.title')} description={t('profile.description')} />
+
+      {profile.emailVerified === false ? (
+        <EmailVerificationNotice email={profile.email} />
+      ) : null}
 
       <Tabs defaultValue="profile" className="min-w-0 gap-4">
         <TabsList

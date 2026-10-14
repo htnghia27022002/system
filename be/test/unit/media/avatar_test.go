@@ -5,14 +5,16 @@ import (
 	"mime/multipart"
 	"net/textproto"
 	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 
 	"be/internal/services/media"
+	"be/pkg/storage"
 )
 
 func TestSaveAvatarRejectsTooLarge(t *testing.T) {
-	svc := media.NewService(t.TempDir())
+	svc := media.NewService(storage.NewLocal(t.TempDir(), "/api/media"))
 	payload := bytes.Repeat([]byte("a"), media.MaxAvatarBytes+10)
 
 	var buf bytes.Buffer
@@ -45,19 +47,25 @@ func TestSaveAvatarRejectsTooLarge(t *testing.T) {
 	}
 }
 
-func TestResolveAvatarFileBlocksTraversal(t *testing.T) {
-	svc := media.NewService(t.TempDir())
-	if path := svc.ResolveAvatarFile("../etc/passwd"); path != "" {
-		t.Fatalf("expected empty for traversal, got %s", path)
+func TestDeleteIgnoresForeignURLs(t *testing.T) {
+	dir := t.TempDir()
+	keep := filepath.Join(dir, "keep.txt")
+	if err := os.WriteFile(keep, []byte("x"), 0o644); err != nil {
+		t.Fatal(err)
 	}
-	if path := svc.ResolveAvatarFile("not-uuid.txt"); path != "" {
-		t.Fatalf("expected empty for bad ext, got %s", path)
+	svc := media.NewService(storage.NewLocal(dir, "/api/media"))
+	// Not under avatars/, traversal, or another host: all must be ignored.
+	for _, u := range []string{"/api/media/keep.txt", "/api/media/avatars/../keep.txt", "https://lh3.googleusercontent.com/a/photo.jpg"} {
+		svc.DeleteByPublicPath(u)
+	}
+	if _, err := os.Stat(keep); err != nil {
+		t.Fatalf("file outside avatars/ was deleted: %v", err)
 	}
 }
 
 func TestSaveAvatarWritesPNG(t *testing.T) {
 	dir := t.TempDir()
-	svc := media.NewService(dir)
+	svc := media.NewService(storage.NewLocal(dir, "/api/media"))
 	png := []byte{
 		0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0x00, 0x00, 0x00, 0x0d,
 		0x49, 0x48, 0x44, 0x52, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01,
@@ -95,11 +103,12 @@ func TestSaveAvatarWritesPNG(t *testing.T) {
 	if !strings.HasPrefix(publicPath, "/api/media/avatars/") {
 		t.Fatalf("unexpected path %s", publicPath)
 	}
-	disk := svc.ResolveAvatarFile(publicPath)
-	if disk == "" {
-		t.Fatal("resolve failed")
-	}
+	disk := filepath.Join(dir, strings.TrimPrefix(publicPath, "/api/media/"))
 	if _, err := os.Stat(disk); err != nil {
 		t.Fatalf("file missing: %v", err)
+	}
+	svc.DeleteByPublicPath(publicPath)
+	if _, err := os.Stat(disk); !os.IsNotExist(err) {
+		t.Fatalf("avatar not deleted: %v", err)
 	}
 }

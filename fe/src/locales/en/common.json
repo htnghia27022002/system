@@ -39,7 +39,8 @@
       "name": "Full name",
       "email": "Email",
       "password": "Password",
-      "confirmPassword": "Confirm password"
+      "confirmPassword": "Confirm password",
+      "newPassword": "New password"
     },
     "actions": {
       "signIn": "Sign in",
@@ -63,7 +64,9 @@
     "register": {
       "title": "Create account",
       "description": "A few details to get you started.",
-      "hasAccount": "Already have an account?"
+      "hasAccount": "Already have an account?",
+      "checkEmail": "Account created. Check your email to verify it, then sign in.",
+      "closed": "Sign-up is closed. Ask an administrator for an invitation."
     },
     "oauth": {
       "divider": "Or continue with",
@@ -78,7 +81,43 @@
     },
     "errors": {
       "invalidCredentials": "Invalid email or password",
-      "tooManyAttempts": "Too many sign-in attempts. Please wait a few minutes and try again."
+      "tooManyAttempts": "Too many sign-in attempts. Please wait a few minutes and try again.",
+      "emailNotVerified": "Verify your email first. Check your inbox for the link we sent."
+    },
+    "links": {
+      "invalid": "This link is invalid or has expired.",
+      "backToSignIn": "Back to sign in"
+    },
+    "forgot": {
+      "link": "Forgot password?",
+      "title": "Forgot password",
+      "description": "Enter your email and we will send you a reset link.",
+      "submit": "Send reset link",
+      "sent": "If an account exists for {{email}}, a reset link is on its way. Check your inbox.",
+      "failed": "Could not send the reset link. Try again."
+    },
+    "reset": {
+      "title": "Choose a new password",
+      "description": "You will be signed out of every device.",
+      "submit": "Update password",
+      "success": "Password updated. Sign in with your new password.",
+      "failed": "Could not update the password. Try again.",
+      "requestNew": "Request a new link"
+    },
+    "verify": {
+      "title": "Verify email",
+      "description": "Confirming your email address.",
+      "pending": "Verifying…",
+      "success": "Your email address is verified.",
+      "continue": "Continue",
+      "resendFromProfile": "Send a new link from your profile"
+    },
+    "invite": {
+      "title": "Accept invitation",
+      "description": "Set a password to activate your account.",
+      "submit": "Activate account",
+      "success": "Your account is ready. Sign in to continue.",
+      "failed": "Could not accept the invitation. Try again."
     }
   },
   "tools": {
@@ -177,5 +216,18 @@
     "reference": "Reference: {{digest}}",
     "retry": "Try again",
     "home": "Go back"
+  },
+  "errors": {
+    "validation_failed": "Some fields are invalid. Check the form and try again.",
+    "invalid_json": "The request could not be read.",
+    "unauthorized": "Your session has expired. Sign in again.",
+    "forbidden": "You do not have permission to do this.",
+    "not_found": "This item no longer exists.",
+    "conflict": "This conflicts with existing data (for example, the email is already used).",
+    "payload_too_large": "The upload is too large.",
+    "too_many_requests": "Too many attempts. Wait a moment and try again.",
+    "account_locked": "Too many sign-in attempts. Please wait a few minutes and try again.",
+    "email_not_verified": "Verify your email first. Check your inbox for the link we sent.",
+    "registration_disabled": "Sign-up is closed. Ask an administrator for an invitation."
   }
 }

@@ -9,6 +9,7 @@ import (
 	jwtmanager "be/common/jwt"
 	"be/common/rbac"
 	"be/common/response"
+	"be/internal/audit"
 	"be/internal/repository/interfaces"
 )
 
@@ -83,6 +84,8 @@ func Auth(jwtManager *jwtmanager.Manager, roleRepo interfaces.RoleRepository, us
 		c.Set(ContextUserRoleIDKey, claims.RoleID)
 		c.Set(ContextPermissionsKey, permissions)
 		c.Set(ContextSuperAdminKey, superAdmin)
+		// Services see the actor through the request context (audit trail).
+		c.Request = c.Request.WithContext(audit.WithActor(c.Request.Context(), claims.Subject, claims.Email))
 		c.Next()
 	}
 }
@@ -145,4 +148,11 @@ func permissionsFromContext(c *gin.Context) ([]string, bool) {
 		return nil, false
 	}
 	return permissions, true
+}
+
+// GetUserEmail returns the signed-in user's email from the JWT, or "".
+func GetUserEmail(c *gin.Context) string {
+	value, _ := c.Get(ContextUserEmailKey)
+	email, _ := value.(string)
+	return email
 }

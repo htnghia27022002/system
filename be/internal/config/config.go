@@ -41,6 +41,8 @@ type Config struct {
 	// UploadDir is the local filesystem root for uploaded media (avatars). Owned by be/.env.
 	UploadDir string
 
+	Storage StorageConfig
+
 	// Logging: LOG_FORMAT text|json (default text), LOG_LEVEL debug|info|warn|error.
 	LogFormat string
 	LogLevel  string
@@ -50,6 +52,14 @@ type Config struct {
 	TrustedProxies []string
 
 	Auth AuthConfig
+
+	// AppName labels outgoing mail (APP_NAME, default "System App").
+	AppName string
+	// AppURL is the public FE origin used to build links in emails
+	// (APP_URL, e.g. https://app.example.com). It is a URL, not a code dependency.
+	AppURL string
+
+	Mail MailConfig
 
 	// Modules lists the enabled optional modules (MODULES env, comma-separated).
 	// ModulesSet is false when MODULES is unset, meaning "use registry defaults".
@@ -74,6 +84,43 @@ type AuthConfig struct {
 	MaxFailedLogins int
 	// LockoutDuration is how long a locked account stays locked.
 	LockoutDuration time.Duration
+	// RequireEmailVerification blocks password login until the email is verified
+	// (AUTH_REQUIRE_EMAIL_VERIFICATION, default false).
+	RequireEmailVerification bool
+}
+
+// StorageConfig selects where uploads live.
+type StorageConfig struct {
+	// Driver: local (default, under UPLOAD_DIR, served at /api/media) or s3.
+	Driver string
+	// PublicURL prefixes local object URLs (STORAGE_PUBLIC_URL, default
+	// "/api/media"). Set an absolute URL (https://api.example.com/api/media)
+	// when the FE runs on another origin.
+	PublicURL string
+
+	S3Endpoint       string
+	S3Region         string
+	S3Bucket         string
+	S3AccessKeyID    string
+	S3SecretKey      string
+	S3UseSSL         bool
+	S3ForcePathStyle bool
+	// S3PublicURL is the bucket/CDN base objects are fetched from.
+	S3PublicURL string
+}
+
+// MailConfig selects the outgoing mail transport.
+type MailConfig struct {
+	// Driver: log (default — write mail to the log, for dev) or smtp.
+	Driver string
+	// From is the RFC 5322 sender, e.g. "System App <no-reply@example.com>".
+	From         string
+	SMTPHost     string
+	SMTPPort     int
+	SMTPUsername string
+	SMTPPassword string
+	// SMTPTLS: starttls (default), tls (implicit, usually port 465) or none.
+	SMTPTLS string
 }
 
 type CacheConfig struct {
@@ -195,6 +242,18 @@ func Load() Config {
 	cfg.AutoMigrate = parseBoolEnv(os.Getenv("AUTO_MIGRATE"), true)
 
 	cfg.UploadDir = firstNonEmpty(os.Getenv("UPLOAD_DIR"), "data/uploads")
+	cfg.Storage = StorageConfig{
+		Driver:           strings.ToLower(firstNonEmpty(os.Getenv("STORAGE_DRIVER"), "local")),
+		PublicURL:        strings.TrimRight(firstNonEmpty(os.Getenv("STORAGE_PUBLIC_URL"), "/api/media"), "/"),
+		S3Endpoint:       strings.TrimSpace(os.Getenv("S3_ENDPOINT")),
+		S3Region:         firstNonEmpty(os.Getenv("S3_REGION"), "us-east-1"),
+		S3Bucket:         strings.TrimSpace(os.Getenv("S3_BUCKET")),
+		S3AccessKeyID:    os.Getenv("S3_ACCESS_KEY_ID"),
+		S3SecretKey:      os.Getenv("S3_SECRET_ACCESS_KEY"),
+		S3UseSSL:         parseBoolEnv(os.Getenv("S3_USE_SSL"), true),
+		S3ForcePathStyle: parseBoolEnv(os.Getenv("S3_FORCE_PATH_STYLE"), false),
+		S3PublicURL:      strings.TrimRight(strings.TrimSpace(os.Getenv("S3_PUBLIC_URL")), "/"),
+	}
 
 	cfg.LogFormat = strings.ToLower(firstNonEmpty(os.Getenv("LOG_FORMAT"), "text"))
 	cfg.LogLevel = strings.ToLower(firstNonEmpty(os.Getenv("LOG_LEVEL"), "info"))
@@ -210,6 +269,20 @@ func Load() Config {
 		RateLimitPerMinute: parseNonNegativeIntEnv(os.Getenv("AUTH_RATE_LIMIT_PER_MINUTE"), 20),
 		MaxFailedLogins:    parseNonNegativeIntEnv(os.Getenv("AUTH_MAX_FAILED_LOGINS"), 5),
 		LockoutDuration:    parseDuration(os.Getenv("AUTH_LOCKOUT_DURATION"), 15*time.Minute),
+
+		RequireEmailVerification: parseBoolEnv(os.Getenv("AUTH_REQUIRE_EMAIL_VERIFICATION"), false),
+	}
+
+	cfg.AppName = firstNonEmpty(os.Getenv("APP_NAME"), "System App")
+	cfg.AppURL = strings.TrimRight(firstNonEmpty(os.Getenv("APP_URL"), "http://localhost:3000"), "/")
+	cfg.Mail = MailConfig{
+		Driver:       strings.ToLower(firstNonEmpty(os.Getenv("MAIL_DRIVER"), "log")),
+		From:         firstNonEmpty(os.Getenv("MAIL_FROM"), cfg.AppName+" <no-reply@localhost>"),
+		SMTPHost:     strings.TrimSpace(os.Getenv("SMTP_HOST")),
+		SMTPPort:     parseNonNegativeIntEnv(os.Getenv("SMTP_PORT"), 587),
+		SMTPUsername: os.Getenv("SMTP_USERNAME"),
+		SMTPPassword: os.Getenv("SMTP_PASSWORD"),
+		SMTPTLS:      strings.ToLower(firstNonEmpty(os.Getenv("SMTP_TLS"), "starttls")),
 	}
 
 	if _, ok := os.LookupEnv("MODULES"); ok {

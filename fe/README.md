@@ -135,3 +135,8 @@ pnpm lint      # eslint
 - i18next (en / vi) · next-themes
 - Axios with JWT refresh interceptor (`withCredentials` + `X-Requested-With`; the BE keeps the refresh token in an httpOnly cookie, so only the access token is in localStorage)
 - Vitest + Testing Library
+
+## API types & errors
+
+- `pnpm gen:api` regenerates `src/types/api.gen.ts` from `../be/api/openapi.json` (or `OPENAPI_SOURCE=<url or file>` when the FE lives alone). Import request/response types from `@/types/api.gen` instead of hand-writing them; CI fails when the file is stale.
+- Failed calls: branch on `apiErrorCode(error)` (`@/lib/api-error`), and show `translateApiError(error, t, fallback)` — it maps BE codes to `common:errors.<code>` in EN/VI.

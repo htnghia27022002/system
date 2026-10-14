@@ -19,6 +19,7 @@ import (
 	authsvc "be/internal/services/auth"
 	"be/internal/services/media"
 	"be/pkg/hash"
+	"be/pkg/storage"
 	"be/test/testutil"
 )
 
@@ -182,7 +183,7 @@ func TestChangePasswordRejectedForOAuthOnly(t *testing.T) {
 
 func TestUploadAvatarRejectsNonImage(t *testing.T) {
 	dir := t.TempDir()
-	mediaSvc := media.NewService(dir)
+	mediaSvc := media.NewService(storage.NewLocal(dir, "/api/media"))
 	user := &usermodel.User{
 		ID:       "user-1",
 		Email:    "u@example.com",
@@ -231,7 +232,7 @@ func TestUploadAvatarRejectsNonImage(t *testing.T) {
 
 func TestUploadAvatarAcceptsPNG(t *testing.T) {
 	dir := t.TempDir()
-	mediaSvc := media.NewService(dir)
+	mediaSvc := media.NewService(storage.NewLocal(dir, "/api/media"))
 	user := &usermodel.User{
 		ID:       "user-1",
 		Email:    "u@example.com",

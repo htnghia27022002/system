@@ -8,6 +8,9 @@ const (
 	StatusActive   Status = "active"
 	StatusInactive Status = "inactive"
 	StatusBlocked  Status = "blocked"
+	// StatusInvited is an account created by an admin invitation that has not
+	// set a password yet.
+	StatusInvited Status = "invited"
 )
 
 // SocialLink is one optional labeled URL on a user profile (max 5 per user).
@@ -30,7 +33,10 @@ type User struct {
 	RoleID       string       `json:"roleId" db:"role_id"`
 	IsSuperAdmin bool         `json:"superAdmin" db:"is_super_admin"`
 	Status       Status       `json:"status" db:"status"`
-	CreatedAt    time.Time    `json:"createdAt" db:"created_at"`
-	UpdatedAt    time.Time    `json:"updatedAt" db:"updated_at"`
-	DeletedAt    *time.Time   `json:"-" db:"deleted_at"`
+	// EmailVerifiedAt is nil until the owner proves the mailbox (link, OAuth,
+	// invitation or password reset).
+	EmailVerifiedAt *time.Time `json:"emailVerifiedAt,omitempty" db:"email_verified_at"`
+	CreatedAt       time.Time  `json:"createdAt" db:"created_at"`
+	UpdatedAt       time.Time  `json:"updatedAt" db:"updated_at"`
+	DeletedAt       *time.Time `json:"-" db:"deleted_at"`
 }

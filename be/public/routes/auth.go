@@ -25,12 +25,20 @@ func RegisterAuthRoutes(r *gin.RouterGroup, c *app.Container) {
 		auth.GET("/oauth/:provider/start", c.AuthHandler.OAuthStart)
 		auth.POST("/oauth/:provider/callback", limited, c.AuthHandler.OAuthCallback)
 
+		// Email-driven account flows (tokens arrive by mail; never in the URL path).
+		auth.POST("/password/forgot", limited, c.AccountHandler.ForgotPassword)
+		auth.POST("/password/reset", limited, c.AccountHandler.ResetPassword)
+		auth.POST("/email/verify", limited, c.AccountHandler.VerifyEmail)
+		auth.POST("/invite/inspect", limited, c.AccountHandler.InspectInvite)
+		auth.POST("/invite/accept", limited, c.AccountHandler.AcceptInvite)
+
 		protected := auth.Group("")
 		protected.Use(c.Kernel.Auth)
 		protected.GET("/me", c.AuthHandler.Me)
 		protected.PATCH("/profile", c.AuthHandler.UpdateProfile)
 		protected.POST("/profile/avatar", c.AuthHandler.UploadAvatar)
 		protected.POST("/change-password", limited, c.AuthHandler.ChangePassword)
+		protected.POST("/email/verification", limited, c.AccountHandler.ResendVerification)
 		protected.GET("/sessions", c.AuthHandler.ListSessions)
 		protected.POST("/sessions/revoke-others", c.AuthHandler.RevokeOtherSessions)
 		protected.DELETE("/sessions/:id", c.AuthHandler.RevokeSession)

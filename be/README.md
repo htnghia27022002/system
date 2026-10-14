@@ -65,8 +65,11 @@ Base URL: `/api` (via nginx `http://localhost:8080/api` in Docker, or `http://lo
 | Group | Paths |
 |-------|-------|
 | Auth | `POST /auth/login`, `/register`, `/refresh`, `/logout`; `GET /auth/me`; OAuth under `/auth/oauth/:provider/*` |
+| Account (email links) | `POST /auth/password/forgot` (always 202), `/auth/password/reset`, `/auth/email/verify`, `/auth/email/verification` (resend, signed in), `/auth/invite/inspect`, `/auth/invite/accept`; admin `POST /admin/users/invite`, `/admin/users/:id/invite` (resend) |
 | Admin | CRUD `/admin/users`, `/admin/roles`; `GET /admin/permissions` |
-| App | `GET /app/info` → `{"modules": [...]}` (public); `GET /health` (liveness), `GET /ready` (DB + enabled Redis/NATS, 503 when down) |
+| Admin system | `GET /admin/dashboard/overview` (`dashboard:view`), `GET /admin/audit-logs` (`audit:view`; filters `search`, `action`, `actorId`, `resourceType`, `resourceId`, `from`, `to`), `GET`/`PATCH /admin/settings` (`settings:view` / `settings:modify`) |
+| Media | `GET /media/*key` (public) streams local uploads with a sandboxing CSP |
+| App | `GET /app/info` → `{"modules": [...], "settings": {public settings}}` (public); `GET /health` (liveness), `GET /ready` (DB + enabled Redis/NATS, 503 when down) |
 | Module: webhooks | `ANY /webhooks/capture/:uuid` (public); owner inbox under `/webhooks/inbox*` (`webhooks:view` / `webhooks:modify`) |
 
 JSON responses use **camelCase**. Admin routes require Bearer JWT + permissions.
@@ -107,6 +110,21 @@ Seeded on first startup via `internal/database/seeders/` (Laravel-style) after [
 | Account lockout | DB-backed (`login_attempts`): N wrong passwords lock password login for a duration → 429 | `AUTH_MAX_FAILED_LOGINS` (0 = off), `AUTH_LOCKOUT_DURATION` |
 | Refresh token | httpOnly cookie `refresh_token`, path `/api/auth`; not in JSON. Cookie-backed `/refresh` and `/logout` require `X-Requested-With` (CSRF guard). Body tokens still work for non-browser clients; the new token returns on the same channel | `AUTH_REFRESH_COOKIE`, `AUTH_COOKIE_SAMESITE` (`none` when FE is on another site; forces Secure), `AUTH_COOKIE_SECURE`, `AUTH_COOKIE_DOMAIN` |
 
+### API contract & errors
+
+- Every route is described by an `apidoc.Op` next to where it is mounted (`public/routes/apidoc.go`, a module's `APIDoc()`); schemas come from the DTO structs by reflection. `make openapi` writes `api/openapi.json` (also served at `GET /api/openapi.json`). Unit tests fail when a mounted route is undocumented, a documented route is gone, or the committed file is stale.
+- Error bodies are always `{"error": "...", "code": "..."}`. Codes: status defaults (`bad_request`, `unauthorized`, `forbidden`, `not_found`, `conflict`, `payload_too_large`, `too_many_requests`, `internal`), binding failures (`validation_failed` + `fields: {jsonField: rule}`, `invalid_json`) and specific ones via `apperrors.WithCode` (`email_not_verified`, `account_locked`, `registration_disabled`). Clients branch on `code`, never on the message.
+
+### Audit, settings, storage
+
+- **Audit trail** (`internal/audit`, table `audit_logs`): services call `Recorder.Record(ctx, audit.Entry{Action: "user.update", ...})`; actor, IP, user agent and request ID come from the request context (`middleware.AuditContext` + `middleware.Auth`). Never put secrets in `Metadata`. Retention: setting `audit.retentionDays` (janitor runs every 6 h, also prunes dead tokens).
+- **Settings** (`internal/settings`, table `app_settings`): declare `settings.Definition`s in code (core: `CoreDefinitions`, modules: `SettingsProvider`); the DB only holds overrides; reads are cached 30 s per process. Unknown keys and wrong types are rejected.
+- **Storage** (`pkg/storage`): `STORAGE_DRIVER=local` (files under `UPLOAD_DIR`, URLs `STORAGE_PUBLIC_URL` + `/key`, default `/api/media`) or `s3` (`S3_ENDPOINT`, `S3_BUCKET`, `S3_ACCESS_KEY_ID`, `S3_SECRET_ACCESS_KEY`, `S3_PUBLIC_URL`, `S3_REGION`, `S3_USE_SSL`, `S3_FORCE_PATH_STYLE`). Objects are public; keep private files elsewhere. With an FE on another origin, set an absolute `STORAGE_PUBLIC_URL`.
+
+### Mail & account lifecycle
+
+`internal/mail` sends transactional mail through `MAIL_DRIVER=log` (default — the message, including its link, is written to the BE log) or `smtp` (`SMTP_HOST`, `SMTP_PORT`, `SMTP_TLS=starttls|tls|none`, `SMTP_USERNAME`, `SMTP_PASSWORD`, `MAIL_FROM`). Sending is asynchronous; a bad driver config stops startup. Links point at `APP_URL` (the FE origin): `/reset-password`, `/verify-email`, `/accept-invite`, each with a single-use token (stored hashed in `user_tokens`; reset 1 h, verify 48 h, invite 7 days; only the newest link of a kind works). Modules can send mail via `Kernel.Mailer`. Dev: `make up-d PROFILES="dev mail"` starts Mailpit (UI on `:8025`).
+
 Probe `/api/ready` from orchestrators (compose healthchecks already do); `/api/health` only says the process is up.
 
 ## Commands
@@ -118,6 +136,7 @@ make test-integration # integration tests (needs Postgres)
 make test-e2e         # HTTP e2e tests (needs Postgres)
 make test-all         # all test tiers
 make lint             # golangci-lint
+make openapi          # regenerate api/openapi.json from the route docs
 make migrate-up       # apply SQL migrations (golang-migrate)
 make migrate-down     # roll back one core migration (module=<name> for a module set)
 make migrate-version  # print the version of core and every enabled module

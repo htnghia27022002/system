@@ -14,7 +14,8 @@ export type Role = {
   permissionKeys: string[]
 }
 
-export type ManagedUserStatus = 'active' | 'inactive'
+/** `invited`: created by an admin invitation, waiting for the user to set a password. */
+export type ManagedUserStatus = 'active' | 'inactive' | 'invited'
 
 export type SocialLink = {
   label?: string
@@ -37,6 +38,8 @@ export type ManagedUser = {
   socialLinks?: SocialLink[]
   /** Linked OAuth provider ids, e.g. `google`. */
   oauthProviders?: string[]
+  /** False until the user confirms the email address. */
+  emailVerified?: boolean
   createdAt?: string
 }
 
@@ -78,12 +81,19 @@ export type CreateUserInput = {
   superAdmin?: boolean
 }
 
+export type InviteUserInput = {
+  email: string
+  name: string
+  roleId: string
+}
+
 export type UpdateUserInput = {
   email?: string
   name?: string
   password?: string
   roleId?: string
-  status?: ManagedUserStatus
+  /** The BE only accepts active / inactive; `invited` ends by accepting the invitation. */
+  status?: Exclude<ManagedUserStatus, 'invited'>
   phone?: string
   general?: string
   birthday?: string | null

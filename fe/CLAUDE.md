@@ -47,6 +47,7 @@ src/
     access-control/
     admin-dashboard/
     user-profile/
+    system/       ← audit log + runtime settings (core admin)
     tools/        ← optional module (module.ts descriptor; Webhooks tool)
   hooks/          ← shared custom hooks ('use client')
   layouts/        ← AdminLayout (admin chrome only)
@@ -80,12 +81,17 @@ src/app/
     layout.tsx              ← GuestGuard
     login/page.tsx          ← imports LoginPage from @/features/auth
     register/page.tsx       ← imports RegisterPage from @/features/auth
+    forgot-password/page.tsx
+  (account)/                ← email-link pages, no guard (work signed in or out)
+    reset-password/ verify-email/ accept-invite/  ← read ?token= inside <Suspense>
   admin/
     layout.tsx              ← ProtectedGuard + AdminGuard + AdminLayout
     page.tsx                ← imports AdminDashboardOverview + PermissionGuard
     users/page.tsx          ← imports UsersTable + PermissionGuard
     roles/page.tsx          ← imports RolesTable + PermissionGuard
     profile/page.tsx        ← ProfilePage
+    audit-log/page.tsx      ← AuditLogTable (features/system) + PermissionGuard(audit:view)
+    settings/page.tsx       ← SettingsPage (features/system) + PermissionGuard(settings:view)
     tools/webhooks/page.tsx ← module route (tools)
 ```
 

@@ -21,6 +21,15 @@ async function mockUpdateProfile(
 }
 
 export const profileApi = {
+  /** Emails a new verification link to the signed-in user. */
+  async resendVerification(): Promise<void> {
+    if (env.USE_MOCK_API) {
+      const { loadAccountMock } = await import('@/services/mock')
+      return (await loadAccountMock()).resendVerification()
+    }
+    await apiClient.post('/auth/email/verification')
+  },
+
   async getProfile(): Promise<AuthUser> {
     return authApi.me()
   },
