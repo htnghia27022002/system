@@ -62,8 +62,8 @@ services:
   be:
     profiles: [dev]
     build:
-      context: .
-      dockerfile: docker/be/Dockerfile.dev
+      context: ./be
+      dockerfile: Dockerfile.dev
     restart: unless-stopped
     env_file:
       - ./be/.env
@@ -82,8 +82,8 @@ services:
   queue:
     profiles: [dev]
     build:
-      context: .
-      dockerfile: docker/be/Dockerfile.dev
+      context: ./be
+      dockerfile: Dockerfile.dev
     restart: unless-stopped
     command: ["go", "run", "./cmd/queue"]
     env_file:
@@ -101,18 +101,15 @@ services:
   fe:
     profiles: [dev]
     build:
-      context: .
-      dockerfile: docker/fe/Dockerfile.dev
+      context: ./fe
+      dockerfile: Dockerfile.dev
     restart: unless-stopped
     env_file:
       - ./fe/.env
     volumes:
-      - ./fe:/app/fe
-      - ./package.json:/app/package.json
-      - ./pnpm-workspace.yaml:/app/pnpm-workspace.yaml
-      - ./pnpm-lock.yaml:/app/pnpm-lock.yaml
-      - fe_node_modules:/app/fe/node_modules
-      - fe_next:/app/fe/.next
+      - ./fe:/app
+      - fe_node_modules:/app/node_modules
+      - fe_next:/app/.next
     environment:
       WATCHPACK_POLLING: "true"
     depends_on:

@@ -4,10 +4,10 @@ WORKDIR /app
 
 RUN apk add --no-cache git ca-certificates
 
-COPY be/go.mod be/go.sum ./
+COPY go.mod go.sum ./
 RUN go mod download
 
-COPY be/ .
+COPY . .
 
 RUN CGO_ENABLED=0 GOOS=linux go build -o server . \
 	&& CGO_ENABLED=0 GOOS=linux go build -o queue ./cmd/queue

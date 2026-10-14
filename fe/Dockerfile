@@ -1,3 +1,5 @@
+# Production image — build context is this folder (fe/), so fe/ can be built and
+# deployed on its own. NEXT_PUBLIC_* values are inlined at build time.
 FROM node:22-alpine AS builder
 
 WORKDIR /app
@@ -14,11 +16,11 @@ ENV NEXT_PUBLIC_APP_NAME=$NEXT_PUBLIC_APP_NAME
 ENV NEXT_PUBLIC_USE_MOCK_API=$NEXT_PUBLIC_USE_MOCK_API
 ENV NEXT_PUBLIC_SITE_URL=$NEXT_PUBLIC_SITE_URL
 
-COPY package.json pnpm-workspace.yaml pnpm-lock.yaml ./
-COPY fe/ fe/
+COPY package.json pnpm-lock.yaml .npmrc ./
+RUN pnpm install --frozen-lockfile
 
-RUN pnpm install --filter fe --frozen-lockfile
-RUN pnpm --filter fe build
+COPY . .
+RUN pnpm build
 
 FROM node:22-alpine AS runner
 
@@ -28,18 +30,13 @@ RUN corepack enable && corepack prepare pnpm@10.12.1 --activate
 
 ENV NODE_ENV=production
 
-COPY package.json pnpm-workspace.yaml pnpm-lock.yaml ./
-COPY fe/package.json fe/
-RUN pnpm install --filter fe --prod --frozen-lockfile
+COPY package.json pnpm-lock.yaml .npmrc ./
+RUN pnpm install --prod --frozen-lockfile
 
-COPY --from=builder /app/fe/.next fe/.next
-COPY --from=builder /app/fe/public fe/public
-COPY fe/next.config.ts fe/next.config.ts
-COPY fe/postcss.config.mjs fe/postcss.config.mjs
-COPY fe/tsconfig.json fe/tsconfig.json
-COPY fe/src fe/src
-
-WORKDIR /app/fe
+COPY --from=builder /app/.next ./.next
+COPY --from=builder /app/public ./public
+COPY next.config.ts postcss.config.mjs tsconfig.json ./
+COPY src ./src
 
 EXPOSE 3000
 

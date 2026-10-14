@@ -22,7 +22,7 @@ logs:
 # Build Go prod image + push to Docker Hub (multi-stage; final layer = binaries only).
 build:
 	@test -n "$(GO_APP_IMAGE)" || { echo "Set GO_APP_IMAGE in .env first (e.g. youruser/go-app:1.0.0)"; exit 1; }
-	docker build -f docker/be/Dockerfile.prod -t $(GO_APP_IMAGE) .
+	docker build -f be/Dockerfile -t $(GO_APP_IMAGE) be
 	docker push $(GO_APP_IMAGE)
 
 # Prod server: pull Hub image + start (no --build, no Go source tree required).
@@ -58,7 +58,7 @@ test-be-all:
 	$(COMPOSE) exec -T be sh -c "go test ./test/unit/... && go test -tags=integration ./test/integration/... && go test -tags=e2e ./test/e2e/..."
 
 test-fe:
-	pnpm test
+	pnpm -C fe test:run
 
 lint:
-	pnpm lint
+	pnpm -C fe lint

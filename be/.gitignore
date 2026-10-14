@@ -1,0 +1,6 @@
+# Lets be/ live in its own repository (the monorepo root .gitignore covers these too).
+.env
+data/uploads/
+storage/cache/
+bin/
+/app

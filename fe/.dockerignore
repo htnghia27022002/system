@@ -1,0 +1,8 @@
+node_modules
+.next
+.env
+.env.*
+!.env.example
+*.tsbuildinfo
+public/sw.js
+public/swe-worker-*.js
