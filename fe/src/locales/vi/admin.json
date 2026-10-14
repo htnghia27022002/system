@@ -102,7 +102,16 @@
       },
       "status": {
         "active": "Hoạt động",
-        "inactive": "Ngừng hoạt động"
+        "inactive": "Ngừng hoạt động",
+        "invited": "Đã mời"
+      },
+      "invite": {
+        "action": "Mời người dùng",
+        "title": "Mời người dùng",
+        "description": "Chúng tôi sẽ gửi email kèm liên kết để họ tự đặt mật khẩu.",
+        "submit": "Gửi lời mời",
+        "hint": "Bạn có thể đổi vai trò sau.",
+        "resend": "Gửi lại lời mời"
       }
     },
     "roles": {
@@ -260,6 +269,14 @@
         "revokeNotFound": "Phiên đó không còn hoạt động. Danh sách đã được làm mới.",
         "revokeOthersFailed": "Không thể thu hồi các phiên khác"
       }
+    },
+    "verification": {
+      "title": "Xác minh địa chỉ email",
+      "description": "Chúng tôi đã gửi liên kết xác minh tới {{email}}. Hãy mở liên kết để xác nhận địa chỉ này.",
+      "resend": "Gửi lại liên kết",
+      "resent": "Đã gửi liên kết",
+      "sent": "Đã gửi liên kết xác minh tới {{email}}",
+      "failed": "Không gửi được liên kết xác minh"
     }
   }
 }

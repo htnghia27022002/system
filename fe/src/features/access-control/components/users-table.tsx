@@ -37,6 +37,7 @@ import { MobileRecordCard } from './mobile-record-card'
 import { PermissionGate } from './permission-gate'
 import { ServerListSearch } from './server-list-search'
 import { UserFormDialog } from './user-form-dialog'
+import { UserInviteDialog } from './user-invite-dialog'
 import { UserOAuthProviders } from './user-oauth-providers'
 import { PermissionKeys } from '../permission-keys'
 import { useListQueryParams } from '../hooks/use-list-query-params'
@@ -45,6 +46,7 @@ import { useAllRolesList } from '../hooks/use-roles'
 import { useUserMutations, useUsersList } from '../hooks/use-users'
 import type {
   CreateUserFormValues,
+  InviteUserFormValues,
   UpdateUserFormValues,
 } from '../schemas/access-control-schemas'
 import type { ManagedUser } from '../types'
@@ -84,13 +86,15 @@ function UsersTableContent() {
   })
   const rolesQuery = useAllRolesList()
   const { canModify, isSuperAdmin } = usePermissions()
-  const { createUser, updateUser, deleteUser } = useUserMutations()
+  const { createUser, updateUser, deleteUser, inviteUser, resendInvite } =
+    useUserMutations()
   const canManageUsers = canModify('users')
 
   const [dialogOpen, setDialogOpen] = useState(false)
   const [dialogMode, setDialogMode] = useState<'create' | 'edit'>('create')
   const [editingUser, setEditingUser] = useState<ManagedUser | undefined>()
   const [deleteTarget, setDeleteTarget] = useState<ManagedUser | undefined>()
+  const [inviteOpen, setInviteOpen] = useState(false)
 
   const roles = useMemo(() => rolesQuery.data ?? [], [rolesQuery.data])
   const roleById = useMemo(
@@ -150,7 +154,8 @@ function UsersTableContent() {
       name: values.name,
       email: values.email,
       roleId: values.roleId,
-      status: values.status,
+      // `invited` is not settable; it ends when the user accepts the invitation.
+      ...(values.status === 'invited' ? {} : { status: values.status }),
       phone: values.phone,
       general: values.general,
       birthday: values.birthday?.trim() ? values.birthday : null,
@@ -165,6 +170,10 @@ function UsersTableContent() {
     )
   }
 
+  const handleInvite = (values: InviteUserFormValues) => {
+    inviteUser.mutate(values, { onSuccess: () => setInviteOpen(false) })
+  }
+
   const renderActions = (user: ManagedUser) =>
     canManageUsers ? (
       <ListRowActionsMenu>
@@ -173,6 +182,16 @@ function UsersTableContent() {
             {t('access.actions.edit')}
           </DropdownMenuItem>
         </PermissionGate>
+        {user.status === 'invited' ? (
+          <PermissionGate permission={PermissionKeys.users.modify}>
+            <DropdownMenuItem
+              disabled={resendInvite.isPending}
+              onSelect={() => resendInvite.mutate(user.id)}
+            >
+              {t('access.users.invite.resend')}
+            </DropdownMenuItem>
+          </PermissionGate>
+        ) : null}
         <PermissionGate permission={PermissionKeys.users.modify}>
           <DropdownMenuItem
             variant="destructive"
@@ -359,9 +378,18 @@ function UsersTableContent() {
         description={t('access.users.description')}
         actions={
           <PermissionGate permission={PermissionKeys.users.modify}>
-            <Button className="w-full md:w-auto" onClick={openCreate}>
-              {t('access.users.createAction')}
-            </Button>
+            <div className="flex w-full flex-col gap-2 md:w-auto md:flex-row">
+              <Button
+                variant="outline"
+                className="w-full md:w-auto"
+                onClick={() => setInviteOpen(true)}
+              >
+                {t('access.users.invite.action')}
+              </Button>
+              <Button className="w-full md:w-auto" onClick={openCreate}>
+                {t('access.users.createAction')}
+              </Button>
+            </div>
           </PermissionGate>
         }
       />
@@ -439,6 +467,9 @@ function UsersTableContent() {
                 <SelectItem value="inactive">
                   {t('access.users.status.inactive')}
                 </SelectItem>
+                <SelectItem value="invited">
+                  {t('access.users.status.invited')}
+                </SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -496,6 +527,14 @@ function UsersTableContent() {
             />
           )
         }}
+      />
+
+      <UserInviteDialog
+        open={inviteOpen}
+        roles={roles}
+        isPending={inviteUser.isPending}
+        onOpenChange={setInviteOpen}
+        onInvite={handleInvite}
       />
 
       <UserFormDialog

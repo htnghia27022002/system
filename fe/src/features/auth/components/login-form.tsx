@@ -53,7 +53,12 @@ export function LoginForm() {
         </div>
 
         <div className="grid gap-2">
-          <Label htmlFor="password">{t('auth.fields.password')}</Label>
+          <div className="flex items-center justify-between gap-2">
+            <Label htmlFor="password">{t('auth.fields.password')}</Label>
+            <TextLink href="/forgot-password" className="text-sm text-muted-foreground">
+              {t('auth.forgot.link')}
+            </TextLink>
+          </div>
           <Input
             id="password"
             type="password"

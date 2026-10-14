@@ -80,6 +80,9 @@ src/app/
     layout.tsx              ← GuestGuard
     login/page.tsx          ← imports LoginPage from @/features/auth
     register/page.tsx       ← imports RegisterPage from @/features/auth
+    forgot-password/page.tsx
+  (account)/                ← email-link pages, no guard (work signed in or out)
+    reset-password/ verify-email/ accept-invite/  ← read ?token= inside <Suspense>
   admin/
     layout.tsx              ← ProtectedGuard + AdminGuard + AdminLayout
     page.tsx                ← imports AdminDashboardOverview + PermissionGuard

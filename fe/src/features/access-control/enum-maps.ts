@@ -22,4 +22,5 @@ export type StatusBadgeConfig = {
 export const USER_STATUS_MAP: Record<ManagedUserStatus, StatusBadgeConfig> = {
   active:   { variant: 'success', pulse: true  },
   inactive: { variant: 'neutral', pulse: false },
+  invited:  { variant: 'warning', pulse: false },
 }

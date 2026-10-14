@@ -15,6 +15,7 @@ import type {
   Role,
   UpdateRoleInput,
   UpdateUserInput,
+  InviteUserInput,
 } from '../types'
 
 export { MockAccessControlError }
@@ -119,6 +120,22 @@ export const accessControlApi = {
       return loadAccessControlMock().then((mock) => mock.createUser(input))
     }
     return apiClient.post<ManagedUser>('/admin/users', input).then((r) => r.data)
+  },
+
+  /** Creates an invited account and emails the invitation link. */
+  inviteUser(input: InviteUserInput): Promise<ManagedUser> {
+    if (env.USE_MOCK_API) {
+      return loadAccessControlMock().then((mock) => mock.inviteUser(input))
+    }
+    return apiClient.post<ManagedUser>('/admin/users/invite', input).then((r) => r.data)
+  },
+
+  /** Emails a fresh invitation link; older links stop working. */
+  resendInvite(id: string): Promise<void> {
+    if (env.USE_MOCK_API) {
+      return loadAccessControlMock().then((mock) => mock.resendInvite(id))
+    }
+    return apiClient.post(`/admin/users/${id}/invite`).then(() => undefined)
   },
 
   updateUser(

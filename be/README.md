@@ -65,6 +65,7 @@ Base URL: `/api` (via nginx `http://localhost:8080/api` in Docker, or `http://lo
 | Group | Paths |
 |-------|-------|
 | Auth | `POST /auth/login`, `/register`, `/refresh`, `/logout`; `GET /auth/me`; OAuth under `/auth/oauth/:provider/*` |
+| Account (email links) | `POST /auth/password/forgot` (always 202), `/auth/password/reset`, `/auth/email/verify`, `/auth/email/verification` (resend, signed in), `/auth/invite/inspect`, `/auth/invite/accept`; admin `POST /admin/users/invite`, `/admin/users/:id/invite` (resend) |
 | Admin | CRUD `/admin/users`, `/admin/roles`; `GET /admin/permissions` |
 | App | `GET /app/info` → `{"modules": [...]}` (public); `GET /health` (liveness), `GET /ready` (DB + enabled Redis/NATS, 503 when down) |
 | Module: webhooks | `ANY /webhooks/capture/:uuid` (public); owner inbox under `/webhooks/inbox*` (`webhooks:view` / `webhooks:modify`) |
@@ -106,6 +107,10 @@ Seeded on first startup via `internal/database/seeders/` (Laravel-style) after [
 | Rate limit | Per IP + route, fixed window, in-memory (per instance) on login, register, OAuth callback, change-password → 429 + `Retry-After` | `AUTH_RATE_LIMIT_PER_MINUTE` (0 = off) |
 | Account lockout | DB-backed (`login_attempts`): N wrong passwords lock password login for a duration → 429 | `AUTH_MAX_FAILED_LOGINS` (0 = off), `AUTH_LOCKOUT_DURATION` |
 | Refresh token | httpOnly cookie `refresh_token`, path `/api/auth`; not in JSON. Cookie-backed `/refresh` and `/logout` require `X-Requested-With` (CSRF guard). Body tokens still work for non-browser clients; the new token returns on the same channel | `AUTH_REFRESH_COOKIE`, `AUTH_COOKIE_SAMESITE` (`none` when FE is on another site; forces Secure), `AUTH_COOKIE_SECURE`, `AUTH_COOKIE_DOMAIN` |
+
+### Mail & account lifecycle
+
+`internal/mail` sends transactional mail through `MAIL_DRIVER=log` (default — the message, including its link, is written to the BE log) or `smtp` (`SMTP_HOST`, `SMTP_PORT`, `SMTP_TLS=starttls|tls|none`, `SMTP_USERNAME`, `SMTP_PASSWORD`, `MAIL_FROM`). Sending is asynchronous; a bad driver config stops startup. Links point at `APP_URL` (the FE origin): `/reset-password`, `/verify-email`, `/accept-invite`, each with a single-use token (stored hashed in `user_tokens`; reset 1 h, verify 48 h, invite 7 days; only the newest link of a kind works). Modules can send mail via `Kernel.Mailer`. Dev: `make up-d PROFILES="dev mail"` starts Mailpit (UI on `:8025`).
 
 Probe `/api/ready` from orchestrators (compose healthchecks already do); `/api/health` only says the process is up.
 

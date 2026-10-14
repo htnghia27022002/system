@@ -1,11 +1,11 @@
 'use client'
 
 import { useMutation } from '@tanstack/react-query'
-import axios from 'axios'
 import { useRouter } from 'next/navigation'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 
+import { apiErrorCode, apiErrorStatus } from '@/lib/api-error'
 import { getPostLoginPath, useAuthStore } from '@/store/auth-store'
 
 import { authApi, MockAuthError } from '../services/auth-api'
@@ -28,11 +28,17 @@ export function useLogin() {
         toast.error(error.message)
         return
       }
+      if (apiErrorCode(error) === 'email_not_verified') {
+        toast.error(t('auth.errors.emailNotVerified'))
+        return
+      }
       // 429: per-IP rate limit or temporary account lockout on the BE.
-      const tooMany =
-        axios.isAxiosError(error) && error.response?.status === 429
       toast.error(
-        t(tooMany ? 'auth.errors.tooManyAttempts' : 'auth.errors.invalidCredentials'),
+        t(
+          apiErrorStatus(error) === 429
+            ? 'auth.errors.tooManyAttempts'
+            : 'auth.errors.invalidCredentials',
+        ),
       )
     },
   })

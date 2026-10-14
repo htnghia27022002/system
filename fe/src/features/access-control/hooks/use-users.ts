@@ -3,13 +3,19 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 
+import { apiErrorStatus } from '@/lib/api-error'
 import { useAuthStore } from '@/store/auth-store'
 
 import {
   accessControlApi,
   MockAccessControlError,
 } from '../services/access-control-api'
-import type { CreateUserInput, ListUsersParams, UpdateUserInput } from '../types'
+import type {
+  CreateUserInput,
+  InviteUserInput,
+  ListUsersParams,
+  UpdateUserInput,
+} from '../types'
 
 const usersKey = ['admin', 'access-control', 'users'] as const
 
@@ -76,5 +82,28 @@ export function useUserMutations() {
     },
   })
 
-  return { createUser, updateUser, deleteUser }
+  const inviteUser = useMutation({
+    mutationFn: (input: InviteUserInput) => accessControlApi.inviteUser(input),
+    onSuccess: (user) => {
+      invalidate()
+      toast.success(`Invitation sent to ${user.email}`)
+    },
+    onError: (error) => {
+      toast.error(
+        error instanceof MockAccessControlError
+          ? error.message
+          : apiErrorStatus(error) === 409
+            ? 'A user with this email already exists'
+            : 'Could not send the invitation',
+      )
+    },
+  })
+
+  const resendInvite = useMutation({
+    mutationFn: (id: string) => accessControlApi.resendInvite(id),
+    onSuccess: () => toast.success('Invitation sent again'),
+    onError: () => toast.error('Could not resend the invitation'),
+  })
+
+  return { createUser, updateUser, deleteUser, inviteUser, resendInvite }
 }

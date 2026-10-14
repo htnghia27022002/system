@@ -10,3 +10,5 @@ export const loadAuthMock = () => import('./auth.mock').then((m) => m.mockAuthAp
 export const loadDashboardMock = () =>
   import('./dashboard.mock').then((m) => m.mockDashboardApi)
 export const loadHealthMock = () => import('./health.mock').then((m) => m.mockHealthApi)
+export const loadAccountMock = () =>
+  import('./account.mock').then((m) => m.mockAccountApi)

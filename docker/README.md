@@ -107,6 +107,8 @@ docker compose --env-file be/.env --profile dev up --build
 # or: make up-d
 ```
 
+**Mail (dev)** — `make up-d PROFILES="dev mail"` adds Mailpit. In `be/.env` set `MAIL_DRIVER=smtp`, `SMTP_HOST=mailpit`, `SMTP_PORT=1025`, `SMTP_TLS=none`, then read reset / verify / invite emails at `http://localhost:8025`. Without it, `MAIL_DRIVER=log` prints each email (and its link) in the `be` logs.
+
 **Prod** — pull Hub image + nginx (no FE, no Go build on server); add `prod-queue` for NATS + worker:
 
 ```bash
@@ -130,7 +132,7 @@ Three files — **no app config in root `.env`**.
 | File | Purpose |
 |------|---------|
 | `.env` | `NGINX_HTTP_PORT`, `GO_APP_IMAGE` (compose auto-loads) |
-| `be/.env` | Full BE + queue: `DB_*`, `AUTO_MIGRATE`, `MODULES`, JWT, OAuth, CORS, `LOG_*`, `TRUSTED_PROXIES`, `AUTH_*` (cookie, rate limit, lockout); optional `REDIS_URL`, `NATS_*` |
+| `be/.env` | Full BE + queue: `DB_*`, `AUTO_MIGRATE`, `MODULES`, JWT, OAuth, CORS, `LOG_*`, `TRUSTED_PROXIES`, `AUTH_*` (cookie, rate limit, lockout, email verification), `APP_URL`, `MAIL_*` / `SMTP_*`; optional `REDIS_URL`, `NATS_*` |
 | `fe/.env` | Full FE: `NEXT_PUBLIC_*` (dev profile) |
 
 Setup: `make env` or copy `.env.example`, `be/.env.example`, `fe/.env.example`.

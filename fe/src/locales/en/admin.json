@@ -105,7 +105,16 @@
       },
       "status": {
         "active": "Active",
-        "inactive": "Inactive"
+        "inactive": "Inactive",
+        "invited": "Invited"
+      },
+      "invite": {
+        "action": "Invite user",
+        "title": "Invite user",
+        "description": "We email a link so they can set their own password.",
+        "submit": "Send invitation",
+        "hint": "You can change the role later.",
+        "resend": "Resend invitation"
       }
     },
     "roles": {
@@ -268,6 +277,14 @@
         "revokeNotFound": "That session is no longer active. The list was refreshed.",
         "revokeOthersFailed": "Could not revoke other sessions"
       }
+    },
+    "verification": {
+      "title": "Verify your email address",
+      "description": "We sent a verification link to {{email}}. Open it to confirm this address.",
+      "resend": "Resend link",
+      "resent": "Link sent",
+      "sent": "Verification link sent to {{email}}",
+      "failed": "Could not send the verification link"
     }
   }
 }
