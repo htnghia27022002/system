@@ -7,11 +7,14 @@ import (
 	"be/pkg/postgres"
 )
 
-// RolePermissionSeeder assigns permissions to roles.
-type RolePermissionSeeder struct{}
+// RolePermissionSeeder grants every catalog permission (core + modules) to the
+// admin role and dashboard:view to the member role.
+type RolePermissionSeeder struct {
+	permissions []PermissionDef
+}
 
-func NewRolePermissionSeeder() *RolePermissionSeeder {
-	return &RolePermissionSeeder{}
+func NewRolePermissionSeeder(extra ...PermissionDef) *RolePermissionSeeder {
+	return &RolePermissionSeeder{permissions: append(DefaultPermissions(), extra...)}
 }
 
 func (s *RolePermissionSeeder) Name() string {
@@ -33,7 +36,7 @@ func (s *RolePermissionSeeder) Run(ctx context.Context, db *postgres.Postgres) e
 		return err
 	}
 
-	for _, item := range DefaultPermissions() {
+	for _, item := range s.permissions {
 		if err := insert(RoleAdminID, item.ID); err != nil {
 			return err
 		}
@@ -41,4 +44,3 @@ func (s *RolePermissionSeeder) Run(ctx context.Context, db *postgres.Postgres) e
 
 	return insert(RoleUserID, PermissionIDByKey(rbac.Key("dashboard", rbac.ActionView)))
 }
-

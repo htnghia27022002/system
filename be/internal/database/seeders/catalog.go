@@ -19,7 +19,9 @@ type PermissionDef struct {
 	Description string
 }
 
-// DefaultPermissions returns the RBAC permission catalog (view/modify model).
+// DefaultPermissions returns the core RBAC permission catalog (view/modify model).
+// Modules contribute their own keys through Contribution.Permissions; their IDs
+// stay in the same 10000001-…-0000000000NN range so existing assignments are stable.
 func DefaultPermissions() []PermissionDef {
 	return []PermissionDef{
 		{
@@ -63,34 +65,6 @@ func DefaultPermissions() []PermissionDef {
 			Name:        "View permissions",
 			Group:       "permissions",
 			Description: "View the permissions catalog",
-		},
-		{
-			ID:          "10000001-0000-4000-8000-000000000017",
-			Key:         rbac.Key("webhooks", rbac.ActionView),
-			Name:        "View webhooks",
-			Group:       "webhooks",
-			Description: "View webhook inbox and captured requests",
-		},
-		{
-			ID:          "10000001-0000-4000-8000-000000000018",
-			Key:         rbac.Key("webhooks", rbac.ActionModify),
-			Name:        "Modify webhooks",
-			Group:       "webhooks",
-			Description: "Regenerate webhook URL and soft-delete captured requests",
-		},
-		{
-			ID:          "10000001-0000-4000-8000-000000000019",
-			Key:         rbac.Key("maps", rbac.ActionView),
-			Name:        "View maps",
-			Group:       "maps",
-			Description: "View the admin street map, Places, Sources, and ingest status",
-		},
-		{
-			ID:          "10000001-0000-4000-8000-000000000020",
-			Key:         rbac.Key("maps", rbac.ActionModify),
-			Name:        "Modify maps",
-			Group:       "maps",
-			Description: "Manage Sources, run Load data, and change Place status",
 		},
 	}
 }

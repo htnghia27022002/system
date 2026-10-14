@@ -1,9 +1,0 @@
-DROP TABLE IF EXISTS data_ingest_run_sources;
-DROP TABLE IF EXISTS data_ingest_runs;
-DROP TABLE IF EXISTS news;
-DROP TABLE IF EXISTS places;
-DROP TABLE IF EXISTS data_sources;
-DROP TABLE IF EXISTS locations;
-DROP TABLE IF EXISTS administrative_divisions;
-DROP TABLE IF EXISTS countries;
-DROP TABLE IF EXISTS categories;

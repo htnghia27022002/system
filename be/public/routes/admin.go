@@ -7,9 +7,11 @@ import (
 	"be/internal/middleware"
 )
 
-func RegisterAdminRoutes(r *gin.RouterGroup, c *app.Container) {
+// RegisterAdminRoutes mounts core admin APIs and returns the authenticated /admin
+// group so modules can mount their own admin routes on it.
+func RegisterAdminRoutes(r *gin.RouterGroup, c *app.Container) *gin.RouterGroup {
 	admin := r.Group("/admin")
-	admin.Use(middleware.Auth(c.JWT, c.RoleRepo, c.UserRepo))
+	admin.Use(c.Kernel.Auth)
 	{
 		permissions := admin.Group("/permissions")
 		permissions.GET("", middleware.RequireView("permissions"), c.PermissionHandler.List)
@@ -30,10 +32,6 @@ func RegisterAdminRoutes(r *gin.RouterGroup, c *app.Container) {
 		users.PATCH("/:id", middleware.RequireModify("users"), c.UserHandler.Update)
 		users.POST("/:id/avatar", middleware.RequireModify("users"), c.UserHandler.UploadAvatar)
 		users.DELETE("/:id", middleware.RequireModify("users"), c.UserHandler.Delete)
-
-		// Results are filtered per entity type by the caller's *:view permissions in the service.
-		admin.GET("/search", c.SearchHandler.Search)
-
-		RegisterMapsRoutes(admin, c)
 	}
+	return admin
 }

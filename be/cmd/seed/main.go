@@ -8,6 +8,8 @@ import (
 
 	"be/internal/config"
 	"be/internal/database"
+	"be/internal/module"
+	"be/internal/modules"
 )
 
 func main() {
@@ -21,7 +23,12 @@ func main() {
 	}
 	defer db.Close()
 
-	if err := database.SeedClass(context.Background(), db, *class); err != nil {
+	mods, err := modules.Build(&module.Kernel{Config: cfg, DB: db})
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	if err := database.SeedClass(context.Background(), db, *class, mods.SeedContributions()...); err != nil {
 		log.Fatal(err)
 	}
 

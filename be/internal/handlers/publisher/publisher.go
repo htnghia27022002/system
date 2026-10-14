@@ -1,3 +1,5 @@
+// Package publisher is the outbound side of the queue: modules publish JSON
+// payloads to their own subjects through it. It is a no-op when NATS is disabled.
 package publisher
 
 import (
@@ -6,10 +8,6 @@ import (
 
 	"be/internal/queue"
 )
-
-type MapsIngestPayload struct {
-	ID string `json:"id"`
-}
 
 type Publisher struct {
 	client *queue.Client
@@ -27,17 +25,18 @@ func (p *Publisher) Enabled() bool {
 	return p != nil && p.client != nil && p.client.Enabled()
 }
 
-func (p *Publisher) PublishMapsIngest(ctx context.Context, runID string) error {
-	if p == nil || p.client == nil || !p.client.Enabled() {
+// PublishJSON marshals payload and publishes it to subject. No-op when disabled.
+func (p *Publisher) PublishJSON(ctx context.Context, subject string, payload any) error {
+	if !p.Enabled() {
 		return nil
 	}
 
-	body, err := json.Marshal(MapsIngestPayload{ID: runID})
+	body, err := json.Marshal(payload)
 	if err != nil {
 		return err
 	}
 
-	return p.client.Publish(ctx, queue.SubjectMapsIngest, body)
+	return p.client.Publish(ctx, subject, body)
 }
 
 func (p *Publisher) Close() {

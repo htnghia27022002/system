@@ -4,7 +4,6 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"be/internal/app"
-	"be/internal/middleware"
 )
 
 func RegisterAuthRoutes(r *gin.RouterGroup, c *app.Container) {
@@ -19,7 +18,7 @@ func RegisterAuthRoutes(r *gin.RouterGroup, c *app.Container) {
 		auth.POST("/oauth/:provider/callback", c.AuthHandler.OAuthCallback)
 
 		protected := auth.Group("")
-		protected.Use(middleware.Auth(c.JWT, c.RoleRepo, c.UserRepo))
+		protected.Use(c.Kernel.Auth)
 		protected.GET("/me", c.AuthHandler.Me)
 		protected.PATCH("/profile", c.AuthHandler.UpdateProfile)
 		protected.POST("/profile/avatar", c.AuthHandler.UploadAvatar)

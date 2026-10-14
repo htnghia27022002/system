@@ -8,9 +8,9 @@ import (
 	"time"
 
 	apperrors "be/common/errors"
-	webhookdto "be/internal/dto/webhook"
-	webhookmodel "be/internal/models/webhook"
-	webhooksvc "be/internal/services/webhook"
+	webhookdto "be/internal/modules/webhooks/dto/webhook"
+	webhookmodel "be/internal/modules/webhooks/models/webhook"
+	webhooksvc "be/internal/modules/webhooks/services/webhook"
 	"be/test/testutil"
 )
 
