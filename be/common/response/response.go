@@ -2,12 +2,13 @@ package response
 
 import (
 	"errors"
-	"log"
+	"log/slog"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 
 	apperrors "be/common/errors"
+	"be/common/reqctx"
 )
 
 func JSON(c *gin.Context, status int, payload any) {
@@ -32,7 +33,12 @@ func HandleError(c *gin.Context, err error) {
 		Error(c, http.StatusBadRequest, err.Error())
 	default:
 		// Never echo unexpected errors (SQL, driver, upstream) to clients.
-		log.Printf("internal error: %s %s: %v", c.Request.Method, c.FullPath(), err)
+		slog.ErrorContext(c.Request.Context(), "internal error",
+			slog.String("request_id", reqctx.RequestID(c)),
+			slog.String("method", c.Request.Method),
+			slog.String("route", c.FullPath()),
+			slog.String("error", err.Error()),
+		)
 		Error(c, http.StatusInternalServerError, "internal server error")
 	}
 }

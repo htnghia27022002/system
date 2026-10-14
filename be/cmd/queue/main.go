@@ -13,6 +13,7 @@ import (
 	"be/internal/app"
 	"be/internal/config"
 	"be/internal/database"
+	"be/internal/logging"
 	"be/internal/module"
 )
 
@@ -20,6 +21,7 @@ const pollInterval = 2 * time.Second
 
 func main() {
 	cfg := config.Load()
+	logging.Setup(cfg.LogFormat, cfg.LogLevel)
 
 	db, err := database.Connect(cfg)
 	if err != nil {
