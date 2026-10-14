@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	apperrors "be/common/errors"
+	"be/internal/audit"
 	roledto "be/internal/dto/role"
 	rolemodel "be/internal/models/role"
 	"be/internal/repository/interfaces"
@@ -13,7 +14,17 @@ import (
 )
 
 type Service struct {
-	repo interfaces.RoleRepository
+	repo    interfaces.RoleRepository
+	auditor audit.Recorder
+}
+
+// SetAuditor records role changes (default: discard).
+func (s *Service) SetAuditor(r audit.Recorder) { s.auditor = r }
+
+func (s *Service) record(ctx context.Context, e audit.Entry) {
+	if s.auditor != nil {
+		s.auditor.Record(ctx, e)
+	}
 }
 
 func NewService(repo interfaces.RoleRepository) *Service {
@@ -39,6 +50,8 @@ func (s *Service) Create(ctx context.Context, req roledto.CreateRoleRequest) (*r
 	if err := s.repo.AssignPermissions(ctx, role.ID, permissionIDs); err != nil {
 		return nil, err
 	}
+	s.record(ctx, audit.Entry{Action: "role.create", ResourceType: "role", ResourceID: role.ID,
+		Metadata: map[string]any{"slug": role.Slug, "permissionKeys": req.PermissionKeys}})
 	return s.toResponse(ctx, role)
 }
 
@@ -127,6 +140,11 @@ func (s *Service) Update(ctx context.Context, id string, req roledto.UpdateRoleR
 		}
 	}
 
+	meta := map[string]any{"slug": role.Slug}
+	if req.PermissionKeys != nil {
+		meta["permissionKeys"] = req.PermissionKeys
+	}
+	s.record(ctx, audit.Entry{Action: "role.update", ResourceType: "role", ResourceID: role.ID, Metadata: meta})
 	return s.toResponse(ctx, role)
 }
 
@@ -141,6 +159,8 @@ func (s *Service) Delete(ctx context.Context, id string) error {
 	if err := s.repo.Delete(ctx, id); err != nil {
 		return err
 	}
+	s.record(ctx, audit.Entry{Action: "role.delete", ResourceType: "role", ResourceID: id,
+		Metadata: map[string]any{"slug": role.Slug}})
 	return nil
 }
 

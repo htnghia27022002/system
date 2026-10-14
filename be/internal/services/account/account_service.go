@@ -14,6 +14,7 @@ import (
 	"time"
 
 	apperrors "be/common/errors"
+	"be/internal/audit"
 	"be/internal/mail"
 	accountmodel "be/internal/models/account"
 	usermodel "be/internal/models/user"
@@ -61,6 +62,16 @@ type Service struct {
 	mailer   mail.Mailer
 	cfg      Config
 	now      func() time.Time
+	auditor  audit.Recorder
+}
+
+// SetAuditor records resets, verifications and invitations (default: discard).
+func (s *Service) SetAuditor(r audit.Recorder) { s.auditor = r }
+
+func (s *Service) record(ctx context.Context, e audit.Entry) {
+	if s.auditor != nil {
+		s.auditor.Record(ctx, e)
+	}
 }
 
 func NewService(
@@ -111,8 +122,12 @@ func (s *Service) ResetPassword(ctx context.Context, rawToken, newPassword strin
 			return err
 		}
 		if s.attempts != nil {
-			return s.attempts.Reset(ctx, user.ID)
+			if err := s.attempts.Reset(ctx, user.ID); err != nil {
+				return err
+			}
 		}
+		s.record(ctx, audit.Entry{Action: "auth.password_reset", ResourceType: "user", ResourceID: user.ID,
+			ActorID: user.ID, ActorEmail: user.Email})
 		return nil
 	})
 }
@@ -140,7 +155,12 @@ func (s *Service) VerifyEmail(ctx context.Context, rawToken string) error {
 			return nil
 		}
 		s.markVerified(user)
-		return s.users.Update(ctx, user)
+		if err := s.users.Update(ctx, user); err != nil {
+			return err
+		}
+		s.record(ctx, audit.Entry{Action: "auth.email_verify", ResourceType: "user", ResourceID: user.ID,
+			ActorID: user.ID, ActorEmail: user.Email})
+		return nil
 	})
 }
 
@@ -181,7 +201,12 @@ func (s *Service) Invite(ctx context.Context, req InviteRequest, invitedBy strin
 		if err := s.users.Create(ctx, user); err != nil {
 			return err
 		}
-		return s.send(ctx, user, accountmodel.PurposeInvite, s.cfg.InviteTTL, "/accept-invite", mail.InviteEmail, invitedBy)
+		if err := s.send(ctx, user, accountmodel.PurposeInvite, s.cfg.InviteTTL, "/accept-invite", mail.InviteEmail, invitedBy); err != nil {
+			return err
+		}
+		s.record(ctx, audit.Entry{Action: "user.invite", ResourceType: "user", ResourceID: user.ID,
+			Metadata: map[string]any{"email": user.Email, "roleId": user.RoleID}})
+		return nil
 	})
 	if err != nil {
 		return nil, err
@@ -202,7 +227,11 @@ func (s *Service) ResendInvite(ctx context.Context, userID, invitedBy string) er
 		return fmt.Errorf("%w: user has already accepted the invitation", apperrors.ErrConflict)
 	}
 	// An explicit admin resend skips the cooldown.
-	return s.send(ctx, user, accountmodel.PurposeInvite, s.cfg.InviteTTL, "/accept-invite", mail.InviteEmail, invitedBy)
+	if err := s.send(ctx, user, accountmodel.PurposeInvite, s.cfg.InviteTTL, "/accept-invite", mail.InviteEmail, invitedBy); err != nil {
+		return err
+	}
+	s.record(ctx, audit.Entry{Action: "user.invite_resend", ResourceType: "user", ResourceID: user.ID})
+	return nil
 }
 
 // Invitation is what the accept page shows before the user sets a password.
@@ -246,7 +275,12 @@ func (s *Service) AcceptInvite(ctx context.Context, rawToken, password, fullName
 			user.FullName = name
 		}
 		s.markVerified(user)
-		return s.users.Update(ctx, user)
+		if err := s.users.Update(ctx, user); err != nil {
+			return err
+		}
+		s.record(ctx, audit.Entry{Action: "user.invite_accept", ResourceType: "user", ResourceID: user.ID,
+			ActorID: user.ID, ActorEmail: user.Email})
+		return nil
 	})
 }
 

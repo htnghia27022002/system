@@ -62,6 +62,7 @@ func Run(cfg config.Config, db *postgres.Postgres, redis *goredis.Client) error 
 	}
 	r.Use(
 		middleware.RequestID(),
+		middleware.AuditContext(),
 		middleware.Recovery(logger),
 		middleware.AccessLog(logger),
 		middleware.SecurityHeaders(),
@@ -91,6 +92,8 @@ func Run(cfg config.Config, db *postgres.Postgres, redis *goredis.Client) error 
 	admin := routes.RegisterAdminRoutes(api, container)
 	routes.RegisterMediaRoutes(api, container)
 	container.Modules.RegisterRoutes(module.Routes{API: api, Admin: admin})
+
+	go container.Janitor.Run(ctx)
 
 	srv := &http.Server{
 		Addr:              ":" + cfg.Port,
@@ -140,6 +143,10 @@ func readinessChecks(c *app.Container, db *postgres.Postgres, redis *goredis.Cli
 				return nil
 			},
 		})
+	}
+	// Remote object stores (S3) expose Ping; the local disk needs no probe.
+	if pinger, ok := c.Storage.(interface{ Ping(context.Context) error }); ok {
+		checks = append(checks, handlers.ReadinessCheck{Name: "storage", Check: pinger.Ping})
 	}
 	return checks
 }

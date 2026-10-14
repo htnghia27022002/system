@@ -8,6 +8,7 @@ import (
 	"golang.org/x/oauth2"
 
 	apperrors "be/common/errors"
+	"be/internal/audit"
 	"be/internal/config"
 	authdto "be/internal/dto/auth"
 	authmodel "be/internal/models/auth"
@@ -118,6 +119,8 @@ func (s *OAuthService) Callback(ctx context.Context, providerID, code, redirectU
 	if user.Status != usermodel.StatusActive {
 		return nil, fmt.Errorf("%w: account is not active", apperrors.ErrForbidden)
 	}
+	s.authSvc.record(ctx, audit.Entry{Action: "auth.login", ResourceType: "user", ResourceID: user.ID,
+		ActorID: user.ID, ActorEmail: user.Email, Metadata: map[string]any{"method": providerID}})
 	return s.authSvc.issueTokenPair(ctx, user, ip, userAgent)
 }
 
@@ -145,6 +148,9 @@ func (s *OAuthService) resolveOAuthUser(ctx context.Context, provider string, pr
 		return nil, err
 	}
 	if user == nil {
+		if !s.authSvc.RegistrationOpen(ctx) {
+			return nil, ErrRegistrationDisabled
+		}
 		defaultRole, err := s.roleRepo.GetBySlug(ctx, "user")
 		if err != nil {
 			return nil, err

@@ -19,6 +19,9 @@ func TestDefaultPermissionsAreCoreViewModifyKeys(t *testing.T) {
 		rbac.Key("roles", rbac.ActionView),
 		rbac.Key("roles", rbac.ActionModify),
 		rbac.Key("permissions", rbac.ActionView),
+		rbac.Key("audit", rbac.ActionView),
+		rbac.Key("settings", rbac.ActionView),
+		rbac.Key("settings", rbac.ActionModify),
 	}
 	if len(perms) != len(want) {
 		t.Fatalf("expected %d core permissions, got %d", len(want), len(perms))

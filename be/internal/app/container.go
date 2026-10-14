@@ -1,23 +1,33 @@
 package app
 
 import (
+	"context"
+	"log/slog"
+
 	jwtmanager "be/common/jwt"
 	"be/internal/app/dependency"
+	"be/internal/audit"
 	"be/internal/config"
 	"be/internal/handlers/publisher"
 	"be/internal/mail"
+	"be/internal/maintenance"
 	"be/internal/middleware"
 	"be/internal/module"
 	"be/internal/modules"
 	"be/internal/queue"
+	"be/internal/repository"
 	"be/internal/repository/interfaces"
 	accountsvc "be/internal/services/account"
+	auditlogsvc "be/internal/services/auditlog"
 	authsvc "be/internal/services/auth"
+	dashboardsvc "be/internal/services/dashboard"
 	"be/internal/services/media"
 	permissionsvc "be/internal/services/permission"
 	rolesvc "be/internal/services/role"
 	usersvc "be/internal/services/user"
+	"be/internal/settings"
 	"be/pkg/postgres"
+	"be/pkg/storage"
 	"be/public/handlers"
 )
 
@@ -37,6 +47,12 @@ type Container struct {
 	PermissionService *permissionsvc.Service
 	AccountService    *accountsvc.Service
 	Mailer            mail.Mailer
+	Storage           storage.Storage
+	Audit             audit.Recorder
+	Settings          *settings.Service
+	SystemHandler     *handlers.SystemHandler
+	// Janitor prunes old audit entries and dead tokens (started by public.Run).
+	Janitor           *maintenance.Janitor
 	RoleRepo          interfaces.RoleRepository
 	UserRepo          interfaces.UserRepository
 	AuthHandler       *handlers.AuthHandler
@@ -80,7 +96,12 @@ func NewContainer(cfg config.Config, db *postgres.Postgres, opts ...Option) (*Co
 			return nil, err
 		}
 	}
-	mediaSvc := dependency.NewMediaService(infra)
+	store, err := dependency.NewStorage(infra)
+	if err != nil {
+		infra.Close()
+		return nil, err
+	}
+	mediaSvc := dependency.NewMediaService(store)
 	userRepo := dependency.NewUserRepository(infra)
 	authServices := dependency.NewAuthServices(infra, mediaSvc)
 	userService := dependency.NewUserService(infra, mediaSvc)
@@ -97,12 +118,20 @@ func NewContainer(cfg config.Config, db *postgres.Postgres, opts ...Option) (*Co
 		accountService,
 	)
 
+	recorder := audit.NewRecorder(repository.NewAuditLogRepository(infra.DB), slog.Default())
+	authServices.Auth.SetAuditor(recorder)
+	userService.SetAuditor(recorder)
+	roleServices.Service.SetAuditor(recorder)
+	accountService.SetAuditor(recorder)
+
 	kernel := &module.Kernel{
 		Config:    infra.Config,
 		DB:        infra.DB,
 		JWT:       infra.JWT,
 		Publisher: infra.Publisher,
 		Mailer:    mailer,
+		Storage:   store,
+		Audit:     recorder,
 		Auth:      middleware.Auth(infra.JWT, roleServices.Repo, userRepo),
 	}
 	mods, err := modules.Build(kernel)
@@ -110,6 +139,25 @@ func NewContainer(cfg config.Config, db *postgres.Postgres, opts ...Option) (*Co
 		infra.Close()
 		return nil, err
 	}
+
+	// Settings are declared by the core and by the enabled modules.
+	settingsSvc, err := settings.NewService(repository.NewSettingRepository(infra.DB), settings.CoreDefinitions(), mods.Settings())
+	if err != nil {
+		mods.Close()
+		infra.Close()
+		return nil, err
+	}
+	settingsSvc.SetAuditor(recorder)
+	kernel.Settings = settingsSvc
+	authServices.Auth.SetRegistrationGate(func(ctx context.Context) bool {
+		return settingsSvc.Bool(ctx, settings.KeyRegistrationEnabled)
+	})
+	auditLogRepo := repository.NewAuditLogRepository(infra.DB)
+	systemHandler := handlers.NewSystemHandler(
+		auditlogsvc.NewService(auditLogRepo),
+		settingsSvc,
+		dashboardsvc.NewService(repository.NewStatsRepository(infra.DB), auditLogRepo),
+	)
 
 	return &Container{
 		Config:            infra.Config,
@@ -126,6 +174,11 @@ func NewContainer(cfg config.Config, db *postgres.Postgres, opts ...Option) (*Co
 		PermissionService: permissionService,
 		AccountService:    accountService,
 		Mailer:            mailer,
+		Storage:           store,
+		Audit:             recorder,
+		Settings:          settingsSvc,
+		SystemHandler:     systemHandler,
+		Janitor:           maintenance.NewJanitor(infra.DB, auditLogRepo, settingsSvc),
 		RoleRepo:          roleServices.Repo,
 		UserRepo:          userRepo,
 		AuthHandler:       httpHandlers.Auth,

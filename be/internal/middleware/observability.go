@@ -12,6 +12,7 @@ import (
 	"github.com/google/uuid"
 
 	"be/common/reqctx"
+	"be/internal/audit"
 )
 
 // RequestIDHeader carries the request ID in and out (echoed on every response).
@@ -97,6 +98,17 @@ func SecurityHeaders() gin.HandlerFunc {
 		if reqctx.IsHTTPS(c) {
 			h.Set("Strict-Transport-Security", "max-age=31536000; includeSubDomains")
 		}
+		c.Next()
+	}
+}
+
+// AuditContext puts the caller's IP, user agent and request ID on the request
+// context so audit entries recorded by services carry them. Install after
+// RequestID.
+func AuditContext() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		ctx := audit.WithRequest(c.Request.Context(), c.ClientIP(), c.Request.UserAgent(), reqctx.RequestID(c))
+		c.Request = c.Request.WithContext(ctx)
 		c.Next()
 	}
 }

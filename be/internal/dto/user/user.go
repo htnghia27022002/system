@@ -59,3 +59,27 @@ type ListUsersQuery struct {
 }
 
 type PaginatedUsersResponse = query.Page[UserResponse]
+
+// ChangedFields lists the JSON names of the fields an update sets (never their
+// values — the audit log must not hold passwords or personal data).
+func ChangedFields(req UpdateUserRequest) []string {
+	fields := []string{}
+	add := func(set bool, name string) {
+		if set {
+			fields = append(fields, name)
+		}
+	}
+	add(req.Email != nil, "email")
+	add(req.Name != nil, "name")
+	add(req.Password != nil && *req.Password != "", "password")
+	add(req.RoleID != nil, "roleId")
+	add(req.Status != nil, "status")
+	add(req.Phone != nil, "phone")
+	add(req.General != nil, "general")
+	add(req.Birthday != nil, "birthday")
+	add(req.Address != nil, "address")
+	add(req.SocialLinks != nil, "socialLinks")
+	add(req.AvatarURL != nil, "avatarUrl")
+	add(req.SuperAdmin != nil, "superAdmin")
+	return fields
+}

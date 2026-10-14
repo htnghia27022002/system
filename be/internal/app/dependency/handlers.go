@@ -40,7 +40,7 @@ func NewHTTPHandlers(
 		User:       handlers.NewUserHandler(user),
 		Role:       handlers.NewRoleHandler(role.Service),
 		Permission: handlers.NewPermissionHandler(permission),
-		Media:      handlers.NewMediaHandler(mediaSvc),
+		Media:      handlers.NewMediaHandler(mediaSvc.Store()),
 		Account:    handlers.NewAccountHandler(account, user),
 	}
 }

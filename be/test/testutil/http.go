@@ -7,7 +7,9 @@ import (
 	"be/internal/app"
 	"be/internal/config"
 	"be/internal/database"
+	"be/internal/middleware"
 	"be/pkg/postgres"
+	"be/public/handlers"
 	"be/public/routes"
 
 	"github.com/gin-gonic/gin"
@@ -40,7 +42,7 @@ func MigrateTestSchema(t *testing.T, _ *postgres.Postgres) {
 func TruncateAuthTables(t *testing.T, db *postgres.Postgres) {
 	t.Helper()
 	_, err := db.Pool.Exec(context.Background(),
-		`TRUNCATE users, roles, role_permissions, permissions, refresh_tokens, oauth_accounts, user_tokens RESTART IDENTITY CASCADE`)
+		`TRUNCATE users, roles, role_permissions, permissions, refresh_tokens, oauth_accounts, user_tokens, audit_logs, app_settings RESTART IDENTITY CASCADE`)
 	if err != nil {
 		t.Fatalf("truncate: %v", err)
 	}
@@ -86,7 +88,9 @@ func NewTestAPIRouter(t *testing.T, container *app.Container) *gin.Engine {
 	t.Helper()
 	gin.SetMode(gin.TestMode)
 	r := gin.New()
+	r.Use(middleware.RequestID(), middleware.AuditContext())
 	api := r.Group("/api")
+	routes.RegisterAppRoutes(api, container, handlers.NewHealthHandler())
 	routes.RegisterAuthRoutes(api, container)
 	routes.RegisterAdminRoutes(api, container)
 	return r

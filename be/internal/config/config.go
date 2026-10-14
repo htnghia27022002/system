@@ -41,6 +41,8 @@ type Config struct {
 	// UploadDir is the local filesystem root for uploaded media (avatars). Owned by be/.env.
 	UploadDir string
 
+	Storage StorageConfig
+
 	// Logging: LOG_FORMAT text|json (default text), LOG_LEVEL debug|info|warn|error.
 	LogFormat string
 	LogLevel  string
@@ -85,6 +87,26 @@ type AuthConfig struct {
 	// RequireEmailVerification blocks password login until the email is verified
 	// (AUTH_REQUIRE_EMAIL_VERIFICATION, default false).
 	RequireEmailVerification bool
+}
+
+// StorageConfig selects where uploads live.
+type StorageConfig struct {
+	// Driver: local (default, under UPLOAD_DIR, served at /api/media) or s3.
+	Driver string
+	// PublicURL prefixes local object URLs (STORAGE_PUBLIC_URL, default
+	// "/api/media"). Set an absolute URL (https://api.example.com/api/media)
+	// when the FE runs on another origin.
+	PublicURL string
+
+	S3Endpoint       string
+	S3Region         string
+	S3Bucket         string
+	S3AccessKeyID    string
+	S3SecretKey      string
+	S3UseSSL         bool
+	S3ForcePathStyle bool
+	// S3PublicURL is the bucket/CDN base objects are fetched from.
+	S3PublicURL string
 }
 
 // MailConfig selects the outgoing mail transport.
@@ -220,6 +242,18 @@ func Load() Config {
 	cfg.AutoMigrate = parseBoolEnv(os.Getenv("AUTO_MIGRATE"), true)
 
 	cfg.UploadDir = firstNonEmpty(os.Getenv("UPLOAD_DIR"), "data/uploads")
+	cfg.Storage = StorageConfig{
+		Driver:           strings.ToLower(firstNonEmpty(os.Getenv("STORAGE_DRIVER"), "local")),
+		PublicURL:        strings.TrimRight(firstNonEmpty(os.Getenv("STORAGE_PUBLIC_URL"), "/api/media"), "/"),
+		S3Endpoint:       strings.TrimSpace(os.Getenv("S3_ENDPOINT")),
+		S3Region:         firstNonEmpty(os.Getenv("S3_REGION"), "us-east-1"),
+		S3Bucket:         strings.TrimSpace(os.Getenv("S3_BUCKET")),
+		S3AccessKeyID:    os.Getenv("S3_ACCESS_KEY_ID"),
+		S3SecretKey:      os.Getenv("S3_SECRET_ACCESS_KEY"),
+		S3UseSSL:         parseBoolEnv(os.Getenv("S3_USE_SSL"), true),
+		S3ForcePathStyle: parseBoolEnv(os.Getenv("S3_FORCE_PATH_STYLE"), false),
+		S3PublicURL:      strings.TrimRight(strings.TrimSpace(os.Getenv("S3_PUBLIC_URL")), "/"),
+	}
 
 	cfg.LogFormat = strings.ToLower(firstNonEmpty(os.Getenv("LOG_FORMAT"), "text"))
 	cfg.LogLevel = strings.ToLower(firstNonEmpty(os.Getenv("LOG_LEVEL"), "info"))

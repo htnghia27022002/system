@@ -25,6 +25,11 @@ func RegisterAdminRoutes(r *gin.RouterGroup, c *app.Container) *gin.RouterGroup 
 		roles.PATCH("/:id", middleware.RequireModify("roles"), c.RoleHandler.Update)
 		roles.DELETE("/:id", middleware.RequireModify("roles"), c.RoleHandler.Delete)
 
+		admin.GET("/dashboard/overview", middleware.RequireView("dashboard"), c.SystemHandler.DashboardOverview)
+		admin.GET("/audit-logs", middleware.RequireView("audit"), c.SystemHandler.ListAuditLogs)
+		admin.GET("/settings", middleware.RequireView("settings"), c.SystemHandler.ListSettings)
+		admin.PATCH("/settings", middleware.RequireModify("settings"), c.SystemHandler.UpdateSettings)
+
 		users := admin.Group("/users")
 		users.GET("", middleware.RequireView("users"), c.UserHandler.List)
 		users.POST("", middleware.RequireModify("users"), c.UserHandler.Create)

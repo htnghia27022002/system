@@ -14,12 +14,15 @@ import (
 	"github.com/gin-gonic/gin"
 
 	jwtmanager "be/common/jwt"
+	"be/internal/audit"
 	"be/internal/config"
 	"be/internal/database/seeders"
 	"be/internal/handlers/publisher"
 	"be/internal/mail"
 	"be/internal/queue"
+	"be/internal/settings"
 	"be/pkg/postgres"
+	"be/pkg/storage"
 )
 
 // Kernel is the shared core infrastructure a module may depend on.
@@ -30,6 +33,14 @@ type Kernel struct {
 	Publisher *publisher.Publisher
 	// Mailer sends transactional email (MAIL_DRIVER); nil only in CLIs.
 	Mailer mail.Mailer
+	// Storage stores public uploads (STORAGE_DRIVER); nil only in CLIs.
+	Storage storage.Storage
+	// Audit records actions to the audit trail; nil only in CLIs.
+	Audit audit.Recorder
+	// Settings reads runtime settings, including the module's own
+	// (SettingsProvider). Set after modules are built: use it at request time,
+	// not in New.
+	Settings *settings.Service
 	// Auth authenticates the request (JWT) and loads the caller's permissions;
 	// use it on routes outside Routes.Admin. Routes.Admin already applies it.
 	Auth gin.HandlerFunc
@@ -90,4 +101,10 @@ type Poller interface {
 // Closer releases module resources on shutdown.
 type Closer interface {
 	Close()
+}
+
+// SettingsProvider declares runtime settings (shown on the admin Settings page,
+// stored in app_settings). Keys must be prefixed with the module name.
+type SettingsProvider interface {
+	Settings() []settings.Definition
 }

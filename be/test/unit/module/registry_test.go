@@ -106,11 +106,11 @@ func TestAppInfoListsEnabledModules(t *testing.T) {
 		set  module.Set
 		want string
 	}{
-		"default":   {build(t, config.Config{}), `{"modules":["webhooks"]}`},
-		"core only": {build(t, config.Config{ModulesSet: true}), `{"modules":[]}`},
+		"default":   {build(t, config.Config{}), `{"modules":["webhooks"],"settings":{}}`},
+		"core only": {build(t, config.Config{ModulesSet: true}), `{"modules":[],"settings":{}}`},
 	} {
 		r := gin.New()
-		r.GET("/api/app/info", handlers.NewAppHandler(tc.set.Names()).Info)
+		r.GET("/api/app/info", handlers.NewAppHandler(tc.set.Names(), nil).Info)
 		w := httptest.NewRecorder()
 		r.ServeHTTP(w, httptest.NewRequest(http.MethodGet, "/api/app/info", nil))
 		if w.Code != http.StatusOK || w.Body.String() != tc.want {

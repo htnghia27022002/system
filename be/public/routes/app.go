@@ -10,7 +10,7 @@ import (
 // RegisterAppRoutes mounts public, unauthenticated endpoints: deployment info and
 // the liveness/readiness probes.
 func RegisterAppRoutes(r *gin.RouterGroup, c *app.Container, health *handlers.HealthHandler) {
-	h := handlers.NewAppHandler(c.Modules.Names())
+	h := handlers.NewAppHandler(c.Modules.Names(), c.Settings)
 	r.GET("/app/info", h.Info)
 	r.GET("/health", health.Health)
 	r.GET("/ready", health.Ready)

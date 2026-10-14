@@ -15,6 +15,7 @@ import (
 	apperrors "be/common/errors"
 	jwtmanager "be/common/jwt"
 	"be/common/utils"
+	"be/internal/audit"
 	authdto "be/internal/dto/auth"
 	userdto "be/internal/dto/user"
 	authmodel "be/internal/models/auth"
@@ -40,7 +41,35 @@ type Service struct {
 	// Optional email verification (account service).
 	verifier      EmailVerifier
 	requireVerify bool
+
+	auditor audit.Recorder
+	// registrationOpen reports whether self sign-up is allowed (settings).
+	registrationOpen func(ctx context.Context) bool
 }
+
+// SetAuditor records sign-ins, sign-ups and credential changes (default: discard).
+func (s *Service) SetAuditor(r audit.Recorder) { s.auditor = r }
+
+// SetRegistrationGate makes Register (and OAuth account creation) ask open()
+// first; nil means always open.
+func (s *Service) SetRegistrationGate(open func(ctx context.Context) bool) { s.registrationOpen = open }
+
+// RegistrationOpen reports whether self sign-up is currently allowed.
+func (s *Service) RegistrationOpen(ctx context.Context) bool {
+	return s.registrationOpen == nil || s.registrationOpen(ctx)
+}
+
+func (s *Service) record(ctx context.Context, e audit.Entry) {
+	if s.auditor != nil {
+		s.auditor.Record(ctx, e)
+	}
+}
+
+// ErrRegistrationDisabled is returned when self sign-up is turned off (HTTP 403).
+var ErrRegistrationDisabled = apperrors.WithCode(
+	fmt.Errorf("%w: sign-up is disabled; ask an administrator for an invitation", apperrors.ErrForbidden),
+	"registration_disabled",
+)
 
 // EmailVerifier sends a verification link (implemented by services/account).
 type EmailVerifier interface {
@@ -209,6 +238,8 @@ func (s *Service) Login(ctx context.Context, email, password, ip, userAgent stri
 		}
 	}
 	if err := hash.ComparePassword(user.PasswordHash, password); err != nil {
+		s.record(ctx, audit.Entry{Action: "auth.login_failed", ResourceType: "user", ResourceID: user.ID,
+			ActorID: user.ID, ActorEmail: user.Email})
 		if s.lockoutEnabled() {
 			if _, recErr := s.loginAttempts.RecordFailure(ctx, user.ID, s.maxFailedLogins, s.lockoutDuration); recErr != nil {
 				return nil, recErr
@@ -227,10 +258,15 @@ func (s *Service) Login(ctx context.Context, email, password, ip, userAgent stri
 			return nil, err
 		}
 	}
+	s.record(ctx, audit.Entry{Action: "auth.login", ResourceType: "user", ResourceID: user.ID,
+		ActorID: user.ID, ActorEmail: user.Email, Metadata: map[string]any{"method": "password"}})
 	return s.issueTokenPair(ctx, user, ip, userAgent)
 }
 
 func (s *Service) Register(ctx context.Context, name, email, password, ip, userAgent string) (*authdto.AuthResponse, error) {
+	if !s.RegistrationOpen(ctx) {
+		return nil, ErrRegistrationDisabled
+	}
 	existing, err := s.userRepo.GetByEmail(ctx, email)
 	if err != nil {
 		return nil, err
@@ -262,6 +298,8 @@ func (s *Service) Register(ctx context.Context, name, email, password, ip, userA
 	if err := s.userRepo.Create(ctx, user); err != nil {
 		return nil, err
 	}
+	s.record(ctx, audit.Entry{Action: "auth.register", ResourceType: "user", ResourceID: user.ID,
+		ActorID: user.ID, ActorEmail: user.Email})
 	if s.verifier != nil {
 		// A mail problem must not fail sign-up; the user can resend from the profile.
 		if err := s.verifier.SendVerification(ctx, user.ID); err != nil {
@@ -384,6 +422,7 @@ func (s *Service) RevokeSession(ctx context.Context, userID, targetID, currentSe
 	if n == 0 {
 		return fmt.Errorf("%w: session not found", apperrors.ErrNotFound)
 	}
+	s.record(ctx, audit.Entry{Action: "auth.session_revoke", ResourceType: "session", ResourceID: targetID})
 	return nil
 }
 
@@ -407,9 +446,12 @@ func (s *Service) RevokeOtherSessions(ctx context.Context, userID, sessionID str
 	if !owned {
 		return nil, fmt.Errorf("%w: session is not an active session of this user", apperrors.ErrBadRequest)
 	}
-	if _, err := s.authRepo.RevokeAllExcept(ctx, userID, sessionID); err != nil {
+	revoked, err := s.authRepo.RevokeAllExcept(ctx, userID, sessionID)
+	if err != nil {
 		return nil, err
 	}
+	s.record(ctx, audit.Entry{Action: "auth.sessions_revoke_others", ResourceType: "user", ResourceID: userID,
+		Metadata: map[string]any{"revoked": revoked}})
 	return s.ListSessions(ctx, userID, sessionID)
 }
 
@@ -515,7 +557,11 @@ func (s *Service) ChangePassword(ctx context.Context, userID, currentPassword, n
 		return err
 	}
 	user.PasswordHash = hashed
-	return s.userRepo.Update(ctx, user)
+	if err := s.userRepo.Update(ctx, user); err != nil {
+		return err
+	}
+	s.record(ctx, audit.Entry{Action: "auth.password_change", ResourceType: "user", ResourceID: user.ID})
+	return nil
 }
 
 func (s *Service) UploadAvatar(ctx context.Context, userID string, file multipart.File, header *multipart.FileHeader) (*authdto.AuthUserResponse, error) {

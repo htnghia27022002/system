@@ -9,6 +9,7 @@ import (
 
 	apperrors "be/common/errors"
 	"be/common/utils"
+	"be/internal/audit"
 	userdto "be/internal/dto/user"
 	usermodel "be/internal/models/user"
 	"be/internal/repository/interfaces"
@@ -24,9 +25,19 @@ type Actor struct {
 }
 
 type Service struct {
-	repo  interfaces.UserRepository
-	auth  interfaces.AuthRepository
-	media media.AvatarStorage
+	repo    interfaces.UserRepository
+	auth    interfaces.AuthRepository
+	media   media.AvatarStorage
+	auditor audit.Recorder
+}
+
+// SetAuditor records admin user changes (default: discard).
+func (s *Service) SetAuditor(r audit.Recorder) { s.auditor = r }
+
+func (s *Service) record(ctx context.Context, e audit.Entry) {
+	if s.auditor != nil {
+		s.auditor.Record(ctx, e)
+	}
 }
 
 func NewService(
@@ -85,6 +96,8 @@ func (s *Service) Create(ctx context.Context, req userdto.CreateUserRequest, act
 	if err := s.repo.Create(ctx, user); err != nil {
 		return nil, err
 	}
+	s.record(ctx, audit.Entry{Action: "user.create", ResourceType: "user", ResourceID: user.ID,
+		Metadata: map[string]any{"email": user.Email, "roleId": user.RoleID}})
 	return user, nil
 }
 
@@ -182,6 +195,8 @@ func (s *Service) Update(ctx context.Context, id string, req userdto.UpdateUserR
 	if err := s.repo.Update(ctx, user); err != nil {
 		return nil, err
 	}
+	s.record(ctx, audit.Entry{Action: "user.update", ResourceType: "user", ResourceID: user.ID,
+		Metadata: map[string]any{"fields": userdto.ChangedFields(req)}})
 	return user, nil
 }
 
@@ -234,6 +249,8 @@ func (s *Service) Delete(ctx context.Context, id string, actor Actor) error {
 	if err := s.repo.Delete(ctx, id); err != nil {
 		return err
 	}
+	s.record(ctx, audit.Entry{Action: "user.delete", ResourceType: "user", ResourceID: id,
+		Metadata: map[string]any{"email": user.Email}})
 	return nil
 }
 
