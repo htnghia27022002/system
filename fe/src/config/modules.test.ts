@@ -22,10 +22,13 @@ import {
 
 describe('module registry', () => {
   it('registers the tools module and collects its contributions', () => {
-    expect(appModules.map((m) => m.id)).toEqual(['tools'])
-    expect(modulePermissions.map((p) => p.key)).toEqual(['webhooks:view', 'webhooks:modify'])
+    // Projects append their own modules; the reference module must stay wired.
+    expect(appModules.map((m) => m.id)).toContain('tools')
+    expect(modulePermissions.map((p) => p.key)).toEqual(
+      expect.arrayContaining(['webhooks:view', 'webhooks:modify']),
+    )
     expect(moduleBreadcrumbs.map((b) => b.path)).toContain('/admin/tools/webhooks')
-    expect(moduleSitemapPaths).toEqual(['/tools'])
+    expect(moduleSitemapPaths).toContain('/tools')
   })
 
   it('groups module nav entries and hides them without permission', () => {

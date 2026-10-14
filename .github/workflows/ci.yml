@@ -94,6 +94,41 @@ jobs:
         env:
           NEXT_PUBLIC_API_BASE_URL: http://localhost:8080/api
 
+  scaffold:
+    name: Module generator
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: be/go.mod
+          cache-dependency-path: be/go.sum
+      - uses: pnpm/action-setup@v4
+        with:
+          package_json_file: fe/package.json
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: fe/pnpm-lock.yaml
+      # Generate a throwaway module and prove both apps still compile and test.
+      - run: node scripts/new-module.mjs ciprobes --label "CI probes"
+      - name: Backend builds with the generated module
+        working-directory: be
+        run: |
+          test -z "$(gofmt -l internal/modules/ciprobes)"
+          go vet ./... && go vet -tags integration ./test/integration/
+          go run ./cmd/openapi -o api/openapi.json
+          go test ./test/unit/...
+      - name: Frontend builds with the generated module
+        working-directory: fe
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm gen:api
+          pnpm exec tsc --noEmit
+          pnpm lint
+          pnpm test:run
+
   docker:
     name: Docker images
     runs-on: ubuntu-latest

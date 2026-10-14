@@ -52,7 +52,7 @@ This project is indexed by GitNexus as **system** (8193 symbols, 21844 relations
 
 Read [`README.md`](README.md) for quick start and doc index.
 
-This repo is a **core base**: no business logic in the core. Optional features are **modules** — BE `be/internal/modules/<name>/` + `registry.go`, FE `fe/src/features/<name>/module.ts` + `src/config/modules.ts`. Read [`docs/modules.md`](docs/modules.md) before adding a feature; a business feature is always a module.
+This repo is a **core base**: no business logic in the core. Optional features are **modules** — BE `be/internal/modules/<name>/` + `registry.go`, FE `fe/src/features/<name>/module.ts` + `src/config/modules.ts`. Read [`docs/modules.md`](docs/modules.md) before adding a feature; a business feature is always a module — scaffold it with `make module name=<plural>`. Every new BE route needs an `apidoc.Op` (`make openapi` after DTO changes). New project from this base: [`docs/new-project.md`](docs/new-project.md).
 
 ## Workspace boundaries
 

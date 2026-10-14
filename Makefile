@@ -1,4 +1,4 @@
-.PHONY: openapi up up-d down logs build prod psql redis env test test-be test-fe lint
+.PHONY: bootstrap module openapi up up-d down logs build prod psql redis env test test-be test-fe lint
 
 # be/.env for DB_* substitution (postgres) + be/queue containers.
 # Profiles: dev = postgres + be + fe + nginx; prod = nginx + go-app (pulls GO_APP_IMAGE).
@@ -66,6 +66,17 @@ test-fe:
 
 lint:
 	pnpm -C fe lint
+
+# New project from this base (run once after cloning):
+#   make bootstrap name="Acme Portal" slug=acme domain=acme.local [image=acme/acme-api]
+bootstrap:
+	@test -n "$(name)" -a -n "$(slug)" || { echo 'usage: make bootstrap name="Acme Portal" slug=acme [domain=acme.local] [image=org/api]'; exit 1; }
+	node scripts/bootstrap.mjs --name "$(name)" --slug "$(slug)" $(if $(domain),--domain "$(domain)") $(if $(image),--image "$(image)")
+
+# Scaffold a CRUD module on both sides: make module name=invoices [label="Invoices"] [singular=invoice]
+module:
+	@test -n "$(name)" || { echo 'usage: make module name=invoices [label="Invoices"] [singular=invoice]'; exit 1; }
+	node scripts/new-module.mjs "$(name)" $(if $(label),--label "$(label)") $(if $(singular),--singular "$(singular)")
 
 # API contract: BE route docs -> be/api/openapi.json -> fe/src/types/api.gen.ts
 # (BE step runs in the be container; use `cd be && make openapi` with Go on the host).

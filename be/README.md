@@ -110,6 +110,11 @@ Seeded on first startup via `internal/database/seeders/` (Laravel-style) after [
 | Account lockout | DB-backed (`login_attempts`): N wrong passwords lock password login for a duration → 429 | `AUTH_MAX_FAILED_LOGINS` (0 = off), `AUTH_LOCKOUT_DURATION` |
 | Refresh token | httpOnly cookie `refresh_token`, path `/api/auth`; not in JSON. Cookie-backed `/refresh` and `/logout` require `X-Requested-With` (CSRF guard). Body tokens still work for non-browser clients; the new token returns on the same channel | `AUTH_REFRESH_COOKIE`, `AUTH_COOKIE_SAMESITE` (`none` when FE is on another site; forces Secure), `AUTH_COOKIE_SECURE`, `AUTH_COOKIE_DOMAIN` |
 
+### API contract & errors
+
+- Every route is described by an `apidoc.Op` next to where it is mounted (`public/routes/apidoc.go`, a module's `APIDoc()`); schemas come from the DTO structs by reflection. `make openapi` writes `api/openapi.json` (also served at `GET /api/openapi.json`). Unit tests fail when a mounted route is undocumented, a documented route is gone, or the committed file is stale.
+- Error bodies are always `{"error": "...", "code": "..."}`. Codes: status defaults (`bad_request`, `unauthorized`, `forbidden`, `not_found`, `conflict`, `payload_too_large`, `too_many_requests`, `internal`), binding failures (`validation_failed` + `fields: {jsonField: rule}`, `invalid_json`) and specific ones via `apperrors.WithCode` (`email_not_verified`, `account_locked`, `registration_disabled`). Clients branch on `code`, never on the message.
+
 ### Audit, settings, storage
 
 - **Audit trail** (`internal/audit`, table `audit_logs`): services call `Recorder.Record(ctx, audit.Entry{Action: "user.update", ...})`; actor, IP, user agent and request ID come from the request context (`middleware.AuditContext` + `middleware.Auth`). Never put secrets in `Metadata`. Retention: setting `audit.retentionDays` (janitor runs every 6 h, also prunes dead tokens).
@@ -131,6 +136,7 @@ make test-integration # integration tests (needs Postgres)
 make test-e2e         # HTTP e2e tests (needs Postgres)
 make test-all         # all test tiers
 make lint             # golangci-lint
+make openapi          # regenerate api/openapi.json from the route docs
 make migrate-up       # apply SQL migrations (golang-migrate)
 make migrate-down     # roll back one core migration (module=<name> for a module set)
 make migrate-version  # print the version of core and every enabled module
