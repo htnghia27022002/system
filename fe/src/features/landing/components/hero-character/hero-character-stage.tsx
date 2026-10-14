@@ -3,9 +3,8 @@
 import dynamic from 'next/dynamic'
 import { useEffect, useState } from 'react'
 
+import { useReducedMotion } from '@/hooks/use-reduced-motion'
 import { cn } from '@/lib/utils'
-
-import { useReducedMotion } from '../../hooks/use-reduced-motion'
 
 function HeroCharacterPlaceholder({ className }: { className?: string }) {
   return <div className={cn('h-full w-full bg-transparent', className)} aria-hidden />

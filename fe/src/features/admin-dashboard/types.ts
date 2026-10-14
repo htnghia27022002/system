@@ -11,7 +11,8 @@ export type DashboardKpi = {
 }
 
 export type DashboardChartPoint = {
-  label: string
+  /** Calendar day, ISO `YYYY-MM-DD`. The UI formats it in the active locale. */
+  date: string
   value: number
 }
 
