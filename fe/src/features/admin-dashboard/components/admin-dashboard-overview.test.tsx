@@ -77,7 +77,7 @@ describe('AdminDashboardOverview', () => {
   it('exposes the weekly chart as an accessible table, one row per day', async () => {
     render(<AdminDashboardOverview />)
 
-    const table = await screen.findByRole('table', { name: 'Weekly activity' })
+    const table = await screen.findByRole('table', { name: 'Weekly sign-ins' })
     const rows = within(table).getAllByRole('row')
     // header row + 7 days
     expect(rows).toHaveLength(8)

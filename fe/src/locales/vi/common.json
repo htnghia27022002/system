@@ -65,7 +65,8 @@
       "title": "Tạo tài khoản",
       "description": "Điền thông tin để đăng ký tài khoản mới.",
       "hasAccount": "Đã có tài khoản?",
-      "checkEmail": "Đã tạo tài khoản. Hãy kiểm tra email để xác minh rồi đăng nhập."
+      "checkEmail": "Đã tạo tài khoản. Hãy kiểm tra email để xác minh rồi đăng nhập.",
+      "closed": "Hiện không mở đăng ký. Hãy liên hệ quản trị viên để được mời."
     },
     "oauth": {
       "divider": "Hoặc tiếp tục với",

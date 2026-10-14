@@ -65,7 +65,8 @@
       "title": "Create account",
       "description": "A few details to get you started.",
       "hasAccount": "Already have an account?",
-      "checkEmail": "Account created. Check your email to verify it, then sign in."
+      "checkEmail": "Account created. Check your email to verify it, then sign in.",
+      "closed": "Sign-up is closed. Ask an administrator for an invitation."
     },
     "oauth": {
       "divider": "Or continue with",

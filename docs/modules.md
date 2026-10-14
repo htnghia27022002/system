@@ -40,14 +40,17 @@ capability it needs:
 | `StreamProvider` | JetStream streams/consumers consumed by `cmd/queue` |
 | `Poller` | Fallback work loop for `cmd/queue` when NATS is disabled |
 | `Closer` | Cleanup on shutdown |
+| `SettingsProvider` | Runtime settings (`<module>.<name>`, typed, with default) shown on the admin Settings page; `Public: true` exposes one on `/api/app/info` |
 
-The `Kernel` gives a module `Config`, `DB`, `JWT`, `Publisher` and the `Auth`
-middleware. `Routes.Admin` is `/api/admin` with auth already applied. A module's
+The `Kernel` gives a module `Config`, `DB`, `JWT`, `Publisher`, `Mailer`
+(transactional email), `Storage` (uploads: local or S3), `Audit` (record
+`<resource>.<verb>` entries to the audit trail), `Settings` (read at request
+time, not in `New`) and the `Auth` middleware. `Routes.Admin` is `/api/admin` with auth already applied. A module's
 `New` must only wire objects (no I/O) — CLIs build modules from a Config-only kernel.
 
 `MODULES` in `be/.env` picks the set: unset = registry defaults, a comma list = exactly
 those, empty = core only, an unknown name = startup error. `GET /api/app/info` returns
-the enabled list (public).
+the enabled list and the public settings.
 
 ### Frontend (`fe/`)
 

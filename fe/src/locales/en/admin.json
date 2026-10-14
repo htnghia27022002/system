@@ -26,7 +26,10 @@
     "roles": "Roles",
     "permissions": "Permissions",
     "tools": "Tools",
-    "webhooks": "Webhooks"
+    "webhooks": "Webhooks",
+    "system": "System",
+    "auditLog": "Audit log",
+    "settings": "Settings"
   },
   "access": {
     "insufficientPermissions": "Insufficient permissions",
@@ -164,11 +167,11 @@
     "refreshing": "Refreshing",
     "refresh": "Refresh",
     "chart": {
-      "title": "Weekly activity",
-      "description": "Daily activity over the last 7 days.",
-      "series": "Activity",
+      "title": "Weekly sign-ins",
+      "description": "Successful sign-ins per day over the last 7 days.",
+      "series": "Sign-ins",
       "day": "Day",
-      "empty": "No activity in the last 7 days."
+      "empty": "No sign-ins in the last 7 days."
     },
     "kpis": {
       "totalUsers": "Total users",
@@ -285,6 +288,59 @@
       "resent": "Link sent",
       "sent": "Verification link sent to {{email}}",
       "failed": "Could not send the verification link"
+    }
+  },
+  "system": {
+    "audit": {
+      "title": "Audit log",
+      "description": "Who did what and when: sign-ins, account changes and admin actions.",
+      "error": "Could not load the audit log.",
+      "emptyTitle": "No entries",
+      "emptyDescription": "Nothing matches these filters.",
+      "searchPlaceholder": "Search action, email or ID…",
+      "allResources": "All resources",
+      "system": "System",
+      "fields": {
+        "time": "Time",
+        "actor": "Actor",
+        "action": "Action",
+        "resource": "Resource",
+        "details": "Details",
+        "ip": "IP"
+      },
+      "resources": {
+        "user": "Users",
+        "role": "Roles",
+        "session": "Sessions",
+        "settings": "Settings"
+      }
+    },
+    "settings": {
+      "title": "Settings",
+      "description": "Runtime settings for this deployment. Changes apply within 30 seconds.",
+      "error": "Could not load settings.",
+      "empty": "No settings are declared.",
+      "saved": "Settings saved",
+      "saveFailed": "Could not save settings",
+      "groups": {
+        "app": "Application",
+        "auth": "Sign-in & sign-up",
+        "audit": "Audit log"
+      },
+      "items": {
+        "auth.registrationEnabled": {
+          "label": "Allow self sign-up",
+          "description": "When off, only invited users can join (password and OAuth sign-up are refused)."
+        },
+        "app.supportEmail": {
+          "label": "Support email",
+          "description": "Shown to users who need help. Leave empty to hide."
+        },
+        "audit.retentionDays": {
+          "label": "Audit log retention (days)",
+          "description": "Entries older than this are deleted by the daily cleanup."
+        }
+      }
     }
   }
 }

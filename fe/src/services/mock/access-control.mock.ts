@@ -60,6 +60,24 @@ const SEED_PERMISSIONS: Permission[] = [
     group: 'permissions',
     description: 'View the permissions catalog',
   },
+  {
+    key: 'audit:view',
+    name: 'View audit log',
+    group: 'audit',
+    description: 'Read the audit trail of sign-ins and admin changes',
+  },
+  {
+    key: 'settings:view',
+    name: 'View settings',
+    group: 'settings',
+    description: 'View application settings',
+  },
+  {
+    key: 'settings:modify',
+    name: 'Modify settings',
+    group: 'settings',
+    description: 'Change application settings',
+  },
   // Module permissions (src/config/modules.ts), mirroring each BE module's Permissions().
   ...modulePermissions,
 ]

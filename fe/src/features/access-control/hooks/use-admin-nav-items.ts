@@ -1,6 +1,12 @@
 'use client'
 
-import { LayoutGridIcon, ShieldCheckIcon, UsersIcon } from 'lucide-react'
+import {
+  HistoryIcon,
+  LayoutGridIcon,
+  Settings2Icon,
+  ShieldCheckIcon,
+  UsersIcon,
+} from 'lucide-react'
 import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 
@@ -13,7 +19,7 @@ export const ADMIN_HOME_HREF = '/admin'
 
 /**
  * Permission-filtered admin nav tree: Dashboard, then module entries (grouped by
- * `group.key`), then Access control. Module entries come from the caller
+ * `group.key`), then Access control, then System. Module entries come from the caller
  * (`src/config/modules.ts`) so this core feature never imports a module.
  */
 export function useAdminNavItems(moduleItems: readonly ModuleNavItem[] = []): NavItem[] {
@@ -81,6 +87,30 @@ export function useAdminNavItems(moduleItems: readonly ModuleNavItem[] = []): Na
         href: accessControlItems[0].href,
         icon: ShieldCheckIcon,
         items: accessControlItems,
+      })
+    }
+
+    const systemItems: NavItem[] = [
+      {
+        title: t('nav.auditLog'),
+        href: '/admin/audit-log',
+        icon: HistoryIcon,
+        permission: PermissionKeys.audit.view,
+      },
+      {
+        title: t('nav.settings'),
+        href: '/admin/settings',
+        icon: Settings2Icon,
+        permission: PermissionKeys.settings.view,
+      },
+    ].filter(allowed)
+
+    if (systemItems.length > 0) {
+      items.push({
+        title: t('nav.system'),
+        href: systemItems[0].href,
+        icon: Settings2Icon,
+        items: systemItems,
       })
     }
 

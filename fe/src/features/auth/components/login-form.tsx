@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Spinner } from '@/components/ui/spinner'
+import { useRegistrationEnabled } from '@/hooks/use-app-info'
 
 import { useLogin } from '../hooks/use-login'
 import { loginSchema, type LoginFormValues } from '../schemas/auth-schemas'
@@ -18,6 +19,7 @@ import { AuthSocialLogin } from './auth-social-login'
 export function LoginForm() {
   const { t } = useTranslation('common')
   const loginMutation = useLogin()
+  const registrationEnabled = useRegistrationEnabled()
 
   const {
     register,
@@ -85,10 +87,12 @@ export function LoginForm() {
         <AuthSocialLogin />
       </div>
 
-      <div className="text-center text-sm text-muted-foreground">
-        {t('auth.login.noAccount')}{' '}
-        <TextLink href="/register">{t('auth.actions.register')}</TextLink>
-      </div>
+      {registrationEnabled ? (
+        <div className="text-center text-sm text-muted-foreground">
+          {t('auth.login.noAccount')}{' '}
+          <TextLink href="/register">{t('auth.actions.register')}</TextLink>
+        </div>
+      ) : null}
     </form>
   )
 }

@@ -28,6 +28,10 @@ export function useRegister() {
     },
     onError: (error) => {
       // AUTH_REQUIRE_EMAIL_VERIFICATION: the account exists, sign-in waits for the link.
+      if (apiErrorCode(error) === 'registration_disabled') {
+        toast.error(t('auth.register.closed'))
+        return
+      }
       if (apiErrorCode(error) === 'email_not_verified') {
         toast.success(t('auth.register.checkEmail'))
         router.replace('/login')

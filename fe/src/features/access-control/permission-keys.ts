@@ -6,7 +6,13 @@ export const PermissionAction = {
 } as const
 
 /** Core resources. Modules define their own keys with `definePermissions` (`@/lib/permissions`). */
-export type CorePermissionResource = 'dashboard' | 'users' | 'roles' | 'permissions'
+export type CorePermissionResource =
+  | 'dashboard'
+  | 'users'
+  | 'roles'
+  | 'permissions'
+  | 'audit'
+  | 'settings'
 
 /** Any RBAC resource — core or contributed by a module. */
 export type PermissionResource = CorePermissionResource | (string & {})
@@ -20,6 +26,10 @@ export const PermissionKeys = {
   permissions: {
     view: definePermissions('permissions').view,
   },
+  audit: {
+    view: definePermissions('audit').view,
+  },
+  settings: definePermissions('settings'),
 } as const
 
 const LEGACY_VIEW: Record<string, string[]> = {

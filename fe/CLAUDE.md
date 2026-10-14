@@ -47,6 +47,7 @@ src/
     access-control/
     admin-dashboard/
     user-profile/
+    system/       ← audit log + runtime settings (core admin)
     tools/        ← optional module (module.ts descriptor; Webhooks tool)
   hooks/          ← shared custom hooks ('use client')
   layouts/        ← AdminLayout (admin chrome only)
@@ -89,6 +90,8 @@ src/app/
     users/page.tsx          ← imports UsersTable + PermissionGuard
     roles/page.tsx          ← imports RolesTable + PermissionGuard
     profile/page.tsx        ← ProfilePage
+    audit-log/page.tsx      ← AuditLogTable (features/system) + PermissionGuard(audit:view)
+    settings/page.tsx       ← SettingsPage (features/system) + PermissionGuard(settings:view)
     tools/webhooks/page.tsx ← module route (tools)
 ```
 

@@ -12,6 +12,18 @@ type RetryConfig = InternalAxiosRequestConfig & {
 
 let refreshPromise: Promise<string | null> | null = null
 
+/**
+ * Public auth endpoints answer 401 for bad credentials or links, not for an
+ * expired access token, so a 401 from them must never trigger a refresh.
+ */
+const NO_REFRESH_PATH =
+  /^\/?auth\/(login|register|refresh|logout|oauth\/|password\/|email\/verify$|invite\/)/
+
+export function shouldRefreshOn401(url: string | undefined): boolean {
+  const path = (url ?? '').replace(/^https?:\/\/[^/]+/, '').replace(/^\/api(?=\/)/, '')
+  return !NO_REFRESH_PATH.test(path)
+}
+
 // The BE keeps the refresh token in an httpOnly cookie by default
 // (AUTH_REFRESH_COOKIE). X-Requested-With is its CSRF guard for cookie-backed
 // refresh/logout; withCredentials lets the cookie travel to a cross-origin API.
@@ -70,7 +82,8 @@ apiClient.interceptors.response.use(
     if (
       error.response?.status !== 401 ||
       !originalRequest ||
-      originalRequest._retry
+      originalRequest._retry ||
+      !shouldRefreshOn401(originalRequest.url)
     ) {
       return Promise.reject(error)
     }
