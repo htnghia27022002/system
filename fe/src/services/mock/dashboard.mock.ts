@@ -24,8 +24,8 @@ export const mockDashboardApi = {
       kpis: [
         { key: 'totalUsers', value: 1284, changePercent: 8.2 },
         { key: 'activeSessions', value: 342, changePercent: -3.1 },
-        { key: 'revenue', value: 48250, changePercent: 12.4 },
-        { key: 'ordersToday', value: 96, changePercent: 5.6 },
+        { key: 'newUsers', value: 57, changePercent: 12.4 },
+        { key: 'roles', value: 6, changePercent: 0 },
       ],
       weeklyActivity: lastSevenDays().map((date, index) => ({
         date,

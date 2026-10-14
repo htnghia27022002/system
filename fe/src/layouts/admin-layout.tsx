@@ -9,6 +9,7 @@ import { AppSidebar } from '@/components/common/app-sidebar'
 import { Breadcrumbs } from '@/components/common/breadcrumbs'
 import { NavLoadingBar } from '@/components/common/nav-loading-bar'
 import { Separator } from '@/components/ui/separator'
+import { moduleBreadcrumbs } from '@/config/modules'
 import {
   SidebarInset,
   SidebarProvider,
@@ -21,7 +22,6 @@ const BREADCRUMB_MAP: Record<
   { label: string; parent?: { label: string; href?: string } }
 > = {
   '/admin': { label: 'nav.dashboard' },
-  '/admin/search': { label: 'nav.search' },
   '/admin/users': {
     label: 'nav.users',
     parent: { label: 'nav.accessControl', href: '/admin/users' },
@@ -30,11 +30,16 @@ const BREADCRUMB_MAP: Record<
     label: 'nav.roles',
     parent: { label: 'nav.accessControl', href: '/admin/users' },
   },
-  '/admin/tools/webhooks': {
-    label: 'nav.webhooks',
-    parent: { label: 'nav.tools' },
-  },
-  '/admin/maps': { label: 'nav.maps' },
+  // Module routes (src/config/modules.ts)
+  ...Object.fromEntries(
+    moduleBreadcrumbs.map((b) => [
+      b.path,
+      {
+        label: b.labelKey,
+        parent: b.parent ? { label: b.parent.labelKey, href: b.parent.href } : undefined,
+      },
+    ]),
+  ),
 }
 
 type AdminLayoutProps = {

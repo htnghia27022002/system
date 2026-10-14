@@ -36,8 +36,8 @@ const overview: DashboardOverview = {
   kpis: [
     { key: 'totalUsers', value: 1284, changePercent: 8.2 },
     { key: 'activeSessions', value: 342, changePercent: -3.1 },
-    { key: 'revenue', value: 48250, changePercent: 12.4 },
-    { key: 'ordersToday', value: 96, changePercent: 5.6 },
+    { key: 'newUsers', value: 57, changePercent: 12.4 },
+    { key: 'roles', value: 6, changePercent: 0 },
   ],
   weeklyActivity: [
     { date: '2026-10-08', value: 42 },
@@ -67,9 +67,11 @@ describe('AdminDashboardOverview', () => {
       screen.getByRole('heading', { level: 1, name: 'Dashboard overview' }),
     ).toBeInTheDocument()
     expect(screen.getByText('1,284')).toBeInTheDocument()
-    expect(screen.getByText('$48,250')).toBeInTheDocument()
+    expect(screen.getByText('57')).toBeInTheDocument()
     expect(screen.getByText('+8.2%')).toBeInTheDocument()
     expect(screen.getByText('-3.1%')).toBeInTheDocument()
+    // No change is neutral, not a green "up" trend.
+    expect(screen.getByText('0.0%')).not.toHaveClass('text-success')
   })
 
   it('exposes the weekly chart as an accessible table, one row per day', async () => {

@@ -7,6 +7,7 @@ import { usePathname } from 'next/navigation'
 import { AdminAppLogo } from '@/components/common/admin-app-logo'
 import { NavMain } from '@/components/common/nav-main'
 import { NavUser } from '@/components/common/nav-user'
+import { moduleNavItems } from '@/config/modules'
 import { useAdminNavItems } from '@/features/access-control'
 import {
   Sidebar,
@@ -23,7 +24,7 @@ import {
 export function AppSidebar() {
   const pathname = usePathname()
   const { setOpenMobile } = useSidebar()
-  const mainNavItems = useAdminNavItems()
+  const mainNavItems = useAdminNavItems(moduleNavItems)
 
   useEffect(() => {
     setOpenMobile(false)

@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 
-import { PermissionGuard, PermissionKeys } from '@/features/access-control'
-import { WebhooksToolPage } from '@/features/tools'
+import { PermissionGuard } from '@/features/access-control'
+import { WebhooksPermissions, WebhooksToolPage } from '@/features/tools'
 
 export const metadata: Metadata = {
   title: 'Webhooks',
@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 
 export default function Page() {
   return (
-    <PermissionGuard permission={PermissionKeys.webhooks.view}>
+    <PermissionGuard permission={WebhooksPermissions.view}>
       <WebhooksToolPage />
     </PermissionGuard>
   )

@@ -30,7 +30,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip'
-import { PermissionGate, PermissionKeys } from '@/features/access-control'
+import { PermissionGate } from '@/features/access-control'
 import { useDebouncedValue } from '@/hooks/use-debounced-value'
 import { copyToClipboard } from '@/utils/copy-to-clipboard'
 
@@ -40,6 +40,7 @@ import {
   useWebhookRequestDetail,
   useWebhookRequests,
 } from '../hooks/use-webhooks-inbox'
+import { WebhooksPermissions } from '../permissions'
 import type {
   WebhookMethodFilter,
   WebhookReadFilter,
@@ -222,7 +223,7 @@ export function WebhooksInbox() {
                   {t('tools.webhooks.actions.refresh')}
                 </TooltipContent>
               </Tooltip>
-              <PermissionGate permission={PermissionKeys.webhooks.modify}>
+              <PermissionGate permission={WebhooksPermissions.modify}>
                 <AlertDialog>
                   <Tooltip>
                     <TooltipTrigger asChild>

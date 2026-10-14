@@ -1,5 +1,7 @@
 import type { MetadataRoute } from 'next'
 
+import { moduleSitemapPaths } from '@/config/modules'
+
 export default function sitemap(): MetadataRoute.Sitemap {
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000'
 
@@ -10,11 +12,11 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: 'weekly',
       priority: 1,
     },
-    {
-      url: `${baseUrl}/tools`,
+    ...moduleSitemapPaths.map((path) => ({
+      url: `${baseUrl}${path}`,
       lastModified: new Date(),
-      changeFrequency: 'weekly',
+      changeFrequency: 'weekly' as const,
       priority: 0.8,
-    },
+    })),
   ]
 }
