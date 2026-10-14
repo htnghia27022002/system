@@ -5,11 +5,14 @@ import (
 
 	"be/internal/config"
 	"be/internal/database"
+	"be/internal/logging"
 	"be/public"
 )
 
 func main() {
 	cfg := config.Load()
+	logging.Setup(cfg.LogFormat, cfg.LogLevel)
+
 	db, err := database.Connect(cfg)
 	if err != nil {
 		log.Fatal(err)

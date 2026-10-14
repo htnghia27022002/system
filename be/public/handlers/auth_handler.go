@@ -14,12 +14,27 @@ import (
 )
 
 type AuthHandler struct {
-	auth  *authsvc.Service
-	oauth *authsvc.OAuthService
+	auth   *authsvc.Service
+	oauth  *authsvc.OAuthService
+	cookie RefreshCookieConfig
 }
 
-func NewAuthHandler(auth *authsvc.Service, oauth *authsvc.OAuthService) *AuthHandler {
-	return &AuthHandler{auth: auth, oauth: oauth}
+func NewAuthHandler(auth *authsvc.Service, oauth *authsvc.OAuthService, cookie RefreshCookieConfig) *AuthHandler {
+	return &AuthHandler{auth: auth, oauth: oauth, cookie: cookie}
+}
+
+// issue writes a successful sign-in: in cookie mode the refresh token moves from
+// the JSON body into the httpOnly cookie.
+func (h *AuthHandler) issue(c *gin.Context, status int, result *authdto.AuthResponse, err error) {
+	if err == nil && result != nil && h.cookie.Enabled {
+		h.cookie.set(c, result.RefreshToken)
+		result.RefreshToken = ""
+	}
+	if status == http.StatusCreated {
+		httpx.Created(c, result, err)
+		return
+	}
+	httpx.OK(c, result, err)
 }
 
 func requestClientMeta(c *gin.Context) (ip, userAgent string) {
@@ -37,7 +52,7 @@ func (h *AuthHandler) Login(c *gin.Context) {
 	}
 	ip, ua := requestClientMeta(c)
 	result, err := h.auth.Login(c.Request.Context(), req.Email, req.Password, ip, ua)
-	httpx.OK(c, result, err)
+	h.issue(c, http.StatusOK, result, err)
 }
 
 func (h *AuthHandler) Register(c *gin.Context) {
@@ -47,25 +62,59 @@ func (h *AuthHandler) Register(c *gin.Context) {
 	}
 	ip, ua := requestClientMeta(c)
 	result, err := h.auth.Register(c.Request.Context(), req.Name, req.Email, req.Password, ip, ua)
-	httpx.Created(c, result, err)
+	h.issue(c, http.StatusCreated, result, err)
 }
 
-func (h *AuthHandler) Refresh(c *gin.Context) {
+// refreshTokenFrom returns the refresh token from the cookie (browsers) or the JSON
+// body (other clients), and whether it came from the cookie.
+func (h *AuthHandler) refreshTokenFrom(c *gin.Context) (string, bool) {
+	if token := h.cookie.read(c); token != "" {
+		return token, true
+	}
 	var req authdto.RefreshRequest
-	if !httpx.BindJSON(c, &req) {
+	_ = c.ShouldBindJSON(&req)
+	return strings.TrimSpace(req.RefreshToken), false
+}
+
+// Refresh rotates the token pair. The new refresh token goes back through the
+// channel the old one came in on: cookie → cookie, JSON body → JSON body.
+func (h *AuthHandler) Refresh(c *gin.Context) {
+	token, fromCookie := h.refreshTokenFrom(c)
+	if token == "" {
+		response.Error(c, http.StatusUnauthorized, "refresh token is required")
 		return
 	}
+	if fromCookie && c.GetHeader(CSRFHeader) == "" {
+		response.Error(c, http.StatusForbidden, CSRFHeader+" header is required")
+		return
+	}
+
 	ip, ua := requestClientMeta(c)
-	result, err := h.auth.Refresh(c.Request.Context(), req.RefreshToken, ip, ua)
+	result, err := h.auth.Refresh(c.Request.Context(), token, ip, ua)
+	if fromCookie {
+		if err != nil {
+			h.cookie.clear(c)
+		} else {
+			h.cookie.set(c, result.RefreshToken)
+			result.RefreshToken = ""
+		}
+	}
 	httpx.OK(c, result, err)
 }
 
+// Logout revokes the refresh token (cookie or body) and always clears the cookie.
 func (h *AuthHandler) Logout(c *gin.Context) {
-	var req authdto.LogoutRequest
-	_ = c.ShouldBindJSON(&req)
+	token, fromCookie := h.refreshTokenFrom(c)
+	if fromCookie && c.GetHeader(CSRFHeader) == "" {
+		response.Error(c, http.StatusForbidden, CSRFHeader+" header is required")
+		return
+	}
+	if h.cookie.Enabled {
+		h.cookie.clear(c)
+	}
 
-	if req.RefreshToken != "" {
-		if err := h.auth.Logout(c.Request.Context(), req.RefreshToken); err != nil {
+	if token != "" {
+		if err := h.auth.Logout(c.Request.Context(), token); err != nil {
 			response.HandleError(c, err)
 			return
 		}
@@ -160,7 +209,7 @@ func (h *AuthHandler) OAuthCallback(c *gin.Context) {
 	}
 	ip, ua := requestClientMeta(c)
 	result, err := h.oauth.Callback(c.Request.Context(), provider, req.Code, req.RedirectURI, ip, ua)
-	httpx.OK(c, result, err)
+	h.issue(c, http.StatusOK, result, err)
 }
 
 func (h *AuthHandler) ListSessions(c *gin.Context) {

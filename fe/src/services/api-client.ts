@@ -12,18 +12,23 @@ type RetryConfig = InternalAxiosRequestConfig & {
 
 let refreshPromise: Promise<string | null> | null = null
 
+// The BE keeps the refresh token in an httpOnly cookie by default
+// (AUTH_REFRESH_COOKIE). X-Requested-With is its CSRF guard for cookie-backed
+// refresh/logout; withCredentials lets the cookie travel to a cross-origin API.
+const CSRF_HEADERS = { 'X-Requested-With': 'XMLHttpRequest' } as const
+
 async function refreshAccessToken(): Promise<string | null> {
+  // Only set when the BE runs with the cookie disabled and returned it in JSON.
   const refreshToken = authTokenService.getRefreshToken()
-  if (!refreshToken) {
-    authTokenService.clearTokens()
-    return null
-  }
 
   try {
     const response = await axios.post<AuthTokens>(
       `${env.API_BASE_URL}/auth/refresh`,
-      { refreshToken },
-      { headers: { 'Content-Type': 'application/json' } },
+      refreshToken ? { refreshToken } : {},
+      {
+        headers: { 'Content-Type': 'application/json', ...CSRF_HEADERS },
+        withCredentials: true,
+      },
     )
 
     authTokenService.setTokens({
@@ -40,8 +45,10 @@ async function refreshAccessToken(): Promise<string | null> {
 
 export const apiClient = axios.create({
   baseURL: env.API_BASE_URL,
+  withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
+    ...CSRF_HEADERS,
   },
 })
 

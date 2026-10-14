@@ -2,7 +2,6 @@ package httpx
 
 import (
 	"mime/multipart"
-	"net"
 	"net/http"
 	"net/url"
 	"strings"
@@ -109,23 +108,9 @@ func QueryMap(v url.Values) map[string]any {
 	return ValuesMap(v)
 }
 
-// ClientIP returns a best-effort client address behind reverse proxies.
+// ClientIP returns the client address. X-Forwarded-For / X-Real-IP are honored only
+// when the direct peer is a trusted proxy (engine.SetTrustedProxies, TRUSTED_PROXIES);
+// otherwise the socket address is used, so clients cannot spoof their IP.
 func ClientIP(c *gin.Context) string {
-	if xff := c.GetHeader("X-Forwarded-For"); xff != "" {
-		parts := strings.Split(xff, ",")
-		for _, part := range parts {
-			ip := strings.TrimSpace(part)
-			if ip != "" {
-				return ip
-			}
-		}
-	}
-	if xri := strings.TrimSpace(c.GetHeader("X-Real-IP")); xri != "" {
-		return xri
-	}
-	host, _, err := net.SplitHostPort(c.Request.RemoteAddr)
-	if err == nil && host != "" {
-		return host
-	}
-	return c.Request.RemoteAddr
+	return c.ClientIP()
 }

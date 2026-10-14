@@ -41,10 +41,39 @@ type Config struct {
 	// UploadDir is the local filesystem root for uploaded media (avatars). Owned by be/.env.
 	UploadDir string
 
+	// Logging: LOG_FORMAT text|json (default text), LOG_LEVEL debug|info|warn|error.
+	LogFormat string
+	LogLevel  string
+
+	// TrustedProxies are the proxy IPs/CIDRs whose X-Forwarded-For is believed
+	// (TRUSTED_PROXIES, comma-separated). Default: loopback + private networks.
+	TrustedProxies []string
+
+	Auth AuthConfig
+
 	// Modules lists the enabled optional modules (MODULES env, comma-separated).
 	// ModulesSet is false when MODULES is unset, meaning "use registry defaults".
 	Modules    []string
 	ModulesSet bool
+}
+
+// AuthConfig hardens the browser auth flow.
+type AuthConfig struct {
+	// RefreshCookie sends the refresh token as an httpOnly cookie (path /api/auth)
+	// instead of the JSON body (AUTH_REFRESH_COOKIE, default true).
+	RefreshCookie bool
+	// CookieDomain is optional (AUTH_COOKIE_DOMAIN); empty = host-only cookie.
+	CookieDomain string
+	// CookieSameSite: lax (default), strict, or none (cross-site FE; needs HTTPS).
+	CookieSameSite string
+	// CookieSecure: auto (default — Secure when the request is HTTPS), true, false.
+	CookieSecure string
+	// RateLimitPerMinute caps auth requests per client IP and route (0 disables).
+	RateLimitPerMinute int
+	// MaxFailedLogins locks an account after this many consecutive failures (0 disables).
+	MaxFailedLogins int
+	// LockoutDuration is how long a locked account stays locked.
+	LockoutDuration time.Duration
 }
 
 type CacheConfig struct {
@@ -167,6 +196,22 @@ func Load() Config {
 
 	cfg.UploadDir = firstNonEmpty(os.Getenv("UPLOAD_DIR"), "data/uploads")
 
+	cfg.LogFormat = strings.ToLower(firstNonEmpty(os.Getenv("LOG_FORMAT"), "text"))
+	cfg.LogLevel = strings.ToLower(firstNonEmpty(os.Getenv("LOG_LEVEL"), "info"))
+	cfg.TrustedProxies = firstNonEmptySlice(splitEnv("TRUSTED_PROXIES", ""), nil, []string{
+		"127.0.0.1", "::1", "10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16",
+	})
+
+	cfg.Auth = AuthConfig{
+		RefreshCookie:      parseBoolEnv(os.Getenv("AUTH_REFRESH_COOKIE"), true),
+		CookieDomain:       strings.TrimSpace(os.Getenv("AUTH_COOKIE_DOMAIN")),
+		CookieSameSite:     strings.ToLower(firstNonEmpty(os.Getenv("AUTH_COOKIE_SAMESITE"), "lax")),
+		CookieSecure:       strings.ToLower(firstNonEmpty(os.Getenv("AUTH_COOKIE_SECURE"), "auto")),
+		RateLimitPerMinute: parseNonNegativeIntEnv(os.Getenv("AUTH_RATE_LIMIT_PER_MINUTE"), 20),
+		MaxFailedLogins:    parseNonNegativeIntEnv(os.Getenv("AUTH_MAX_FAILED_LOGINS"), 5),
+		LockoutDuration:    parseDuration(os.Getenv("AUTH_LOCKOUT_DURATION"), 15*time.Minute),
+	}
+
 	if _, ok := os.LookupEnv("MODULES"); ok {
 		cfg.ModulesSet = true
 		cfg.Modules = splitEnv("MODULES", "")
@@ -274,6 +319,15 @@ func parseIntEnv(raw string, yamlDefault int, fallback int) int {
 	}
 	if yamlDefault > 0 {
 		return yamlDefault
+	}
+	return fallback
+}
+
+// parseNonNegativeIntEnv returns raw as an int >= 0, or fallback when unset/invalid.
+// Unlike parseIntEnv, an explicit 0 is kept (it disables the feature).
+func parseNonNegativeIntEnv(raw string, fallback int) int {
+	if n, err := strconv.Atoi(strings.TrimSpace(raw)); err == nil && n >= 0 {
+		return n
 	}
 	return fallback
 }

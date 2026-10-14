@@ -58,6 +58,7 @@ func NewContainer(cfg config.Config, db *postgres.Postgres) (*Container, error) 
 	roleServices := dependency.NewRoleServices(infra)
 	permissionService := dependency.NewPermissionService(infra)
 	httpHandlers := dependency.NewHTTPHandlers(
+		infra.Config,
 		authServices,
 		userService,
 		roleServices,

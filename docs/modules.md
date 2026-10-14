@@ -117,3 +117,10 @@ With nothing declared, `cmd/queue` starts and idles.
 
 Migrations and seeders run on BE start (`AUTO_MIGRATE=true`) or as a release step
 (`go run ./cmd/migrate up` + `go run ./cmd/seed`).
+
+When FE and BE run on **different sites** (e.g. `app.example.com` and `api.other.com`),
+the refresh-token cookie must be cross-site: set `AUTH_COOKIE_SAMESITE=none` (forces
+`Secure`, so HTTPS is required) and list the FE origin in `CORS_ORIGINS`. On the same
+site (`app.example.com` + `api.example.com`, or one host behind nginx) the default
+`lax` works. Put a reverse proxy's address in `TRUSTED_PROXIES` so client IPs and
+HTTPS detection are correct.

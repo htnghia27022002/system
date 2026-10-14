@@ -28,7 +28,12 @@ export const authTokenService = {
     const storage = safeLocalStorage()
     if (!storage) return
     storage.setItem(ACCESS_TOKEN_KEY, tokens.accessToken)
-    storage.setItem(REFRESH_TOKEN_KEY, tokens.refreshToken)
+    // Absent when the BE keeps it in an httpOnly cookie (the default).
+    if (tokens.refreshToken) {
+      storage.setItem(REFRESH_TOKEN_KEY, tokens.refreshToken)
+    } else {
+      storage.removeItem(REFRESH_TOKEN_KEY)
+    }
     if (tokens.sessionId) {
       storage.setItem(SESSION_ID_KEY, tokens.sessionId)
     } else {

@@ -48,12 +48,9 @@ export const authApi = {
       return
     }
 
+    // The cookie (if any) is sent automatically; a JSON-mode token goes in the body.
     const refreshToken = authTokenService.getRefreshToken()
-    if (!refreshToken) {
-      return
-    }
-
-    await apiClient.post<void>('/auth/logout', { refreshToken })
+    await apiClient.post<void>('/auth/logout', refreshToken ? { refreshToken } : {})
   },
 
   async getOAuthProviders(): Promise<string[]> {

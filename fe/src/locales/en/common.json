@@ -75,6 +75,10 @@
       "missingCode": "Missing authorization code. Please start sign-in again.",
       "failed": "Sign-in failed. Try email and password or try Google again.",
       "success": "Signed in successfully"
+    },
+    "errors": {
+      "invalidCredentials": "Invalid email or password",
+      "tooManyAttempts": "Too many sign-in attempts. Please wait a few minutes and try again."
     }
   },
   "tools": {
@@ -166,5 +170,12 @@
         "inboxLoad": "Could not load your webhook inbox. Sign in again or try later."
       }
     }
+  },
+  "errorBoundary": {
+    "title": "Something went wrong",
+    "description": "An unexpected error occurred while loading this page. Please try again.",
+    "reference": "Reference: {{digest}}",
+    "retry": "Try again",
+    "home": "Go back"
   }
 }

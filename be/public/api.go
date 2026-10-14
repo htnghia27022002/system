@@ -3,7 +3,9 @@ package public
 import (
 	"context"
 	"errors"
+	"fmt"
 	"log"
+	"log/slog"
 	"net/http"
 	"os/signal"
 	"syscall"
@@ -17,8 +19,10 @@ import (
 	"be/internal/app"
 	"be/internal/config"
 	"be/internal/database"
+	"be/internal/middleware"
 	"be/internal/module"
 	"be/pkg/postgres"
+	"be/public/handlers"
 	"be/public/routes"
 )
 
@@ -49,23 +53,40 @@ func Run(cfg config.Config, db *postgres.Postgres, redis *goredis.Client) error 
 	}
 	defer func() { _ = cache.Close() }()
 
-	r := gin.Default()
+	logger := slog.Default()
+	r := gin.New()
+	// Only these peers may set X-Forwarded-For / X-Real-IP; everyone else is
+	// identified by the socket address (rate limits and session IPs rely on it).
+	if err := r.SetTrustedProxies(cfg.TrustedProxies); err != nil {
+		return fmt.Errorf("TRUSTED_PROXIES: %w", err)
+	}
+	r.Use(
+		middleware.RequestID(),
+		middleware.Recovery(logger),
+		middleware.AccessLog(logger),
+		middleware.SecurityHeaders(),
+	)
 	// Module middleware (e.g. permissive CORS for public webhook capture) runs before
 	// the credentialed core CORS so its browser preflight succeeds.
 	for _, mw := range container.Modules.GlobalMiddleware() {
 		r.Use(mw)
 	}
 	r.Use(cors.New(cors.Config{
-		AllowOrigins:     cfg.CORSOrigins,
-		AllowMethods:     []string{"GET", "POST", "PATCH", "PUT", "DELETE", "OPTIONS", "HEAD"},
-		AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization"},
-		ExposeHeaders:    []string{"Content-Length"},
+		AllowOrigins: cfg.CORSOrigins,
+		AllowMethods: []string{"GET", "POST", "PATCH", "PUT", "DELETE", "OPTIONS", "HEAD"},
+		AllowHeaders: []string{
+			"Origin", "Content-Type", "Accept", "Authorization",
+			"X-Requested-With", "X-Session-Id", middleware.RequestIDHeader,
+		},
+		ExposeHeaders:    []string{"Content-Length", middleware.RequestIDHeader},
 		AllowCredentials: true,
 		MaxAge:           12 * time.Hour,
 	}))
 
+	health := handlers.NewHealthHandler(readinessChecks(container, db, redis)...)
+
 	api := r.Group("/api")
-	routes.RegisterAppRoutes(api, container)
+	routes.RegisterAppRoutes(api, container, health)
 	routes.RegisterAuthRoutes(api, container)
 	admin := routes.RegisterAdminRoutes(api, container)
 	routes.RegisterMediaRoutes(api, container)
@@ -95,4 +116,30 @@ func Run(cfg config.Config, db *postgres.Postgres, redis *goredis.Client) error 
 	shutdownCtx, cancel := context.WithTimeout(context.Background(), shutdownTimeout)
 	defer cancel()
 	return srv.Shutdown(shutdownCtx)
+}
+
+// readinessChecks lists the dependencies /api/ready verifies: Postgres always,
+// Redis and NATS only when configured.
+func readinessChecks(c *app.Container, db *postgres.Postgres, redis *goredis.Client) []handlers.ReadinessCheck {
+	checks := []handlers.ReadinessCheck{
+		{Name: "database", Check: func(ctx context.Context) error { return db.Pool.Ping(ctx) }},
+	}
+	if redis != nil {
+		checks = append(checks, handlers.ReadinessCheck{
+			Name:  "redis",
+			Check: func(ctx context.Context) error { return redis.Ping(ctx).Err() },
+		})
+	}
+	if c.Queue.Connection.Enabled {
+		checks = append(checks, handlers.ReadinessCheck{
+			Name: "queue",
+			Check: func(context.Context) error {
+				if c.QueueClient == nil || !c.QueueClient.Enabled() {
+					return errors.New("nats not connected")
+				}
+				return nil
+			},
+		})
+	}
+	return checks
 }

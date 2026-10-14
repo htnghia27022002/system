@@ -179,6 +179,10 @@ Do not ship admin routes without catalog entries. See `.claude/rules/feature-per
 
 Integration with the frontend is **HTTP only**. Do not import FE code or share types across repos.
 
+### 7.2) Security middleware (core)
+
+`public/api.go` installs, in order: `RequestID` → `Recovery` → `AccessLog` → `SecurityHeaders` → module middleware → CORS. Log with `slog` (never `fmt`/`log`), never log tokens or query strings. Get the caller IP with `httpx.ClientIP` (trusted-proxy aware) — never parse `X-Forwarded-For` yourself. Public endpoints that check a secret or create accounts take `middleware.NewRateLimiter(...).Middleware()`. Refresh tokens leave the BE only through `AuthHandler.issue` / the cookie helpers in `public/handlers/auth_cookie.go`. Details: README "Security & operations".
+
 ## 8) Configuration (hybrid)
 
 | Layer | Source | Contents |

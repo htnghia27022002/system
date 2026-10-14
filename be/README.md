@@ -66,7 +66,7 @@ Base URL: `/api` (via nginx `http://localhost:8080/api` in Docker, or `http://lo
 |-------|-------|
 | Auth | `POST /auth/login`, `/register`, `/refresh`, `/logout`; `GET /auth/me`; OAuth under `/auth/oauth/:provider/*` |
 | Admin | CRUD `/admin/users`, `/admin/roles`; `GET /admin/permissions` |
-| App | `GET /app/info` → `{"modules": [...]}` (public) |
+| App | `GET /app/info` → `{"modules": [...]}` (public); `GET /health` (liveness), `GET /ready` (DB + enabled Redis/NATS, 503 when down) |
 | Module: webhooks | `ANY /webhooks/capture/:uuid` (public); owner inbox under `/webhooks/inbox*` (`webhooks:view` / `webhooks:modify`) |
 
 JSON responses use **camelCase**. Admin routes require Bearer JWT + permissions.
@@ -94,6 +94,20 @@ Seeded on first startup via `internal/database/seeders/` (Laravel-style) after [
 | **Local host** | same `be/.env` — set `DB_HOST=localhost`, local service URLs |
 
 **Public config:** [`config.yaml`](config.yaml). **Everything else:** `be/.env`.
+
+## Security & operations
+
+| Concern | Behavior | Env |
+|---------|----------|-----|
+| Logging | `log/slog`, one structured access line per request (no query string), panics logged and answered with a generic 500 | `LOG_FORMAT=text\|json`, `LOG_LEVEL` |
+| Request ID | `X-Request-ID` reused when well-formed, else generated; echoed on the response and attached to error logs | — |
+| Security headers | `nosniff`, `X-Frame-Options: DENY`, `Referrer-Policy: no-referrer`, COOP; HSTS only over HTTPS | — |
+| Client IP | `X-Forwarded-For` / `X-Forwarded-Proto` are honored only from trusted proxies (used for rate limits, sessions, HTTPS detection) | `TRUSTED_PROXIES` (default loopback + private ranges) |
+| Rate limit | Per IP + route, fixed window, in-memory (per instance) on login, register, OAuth callback, change-password → 429 + `Retry-After` | `AUTH_RATE_LIMIT_PER_MINUTE` (0 = off) |
+| Account lockout | DB-backed (`login_attempts`): N wrong passwords lock password login for a duration → 429 | `AUTH_MAX_FAILED_LOGINS` (0 = off), `AUTH_LOCKOUT_DURATION` |
+| Refresh token | httpOnly cookie `refresh_token`, path `/api/auth`; not in JSON. Cookie-backed `/refresh` and `/logout` require `X-Requested-With` (CSRF guard). Body tokens still work for non-browser clients; the new token returns on the same channel | `AUTH_REFRESH_COOKIE`, `AUTH_COOKIE_SAMESITE` (`none` when FE is on another site; forces Secure), `AUTH_COOKIE_SECURE`, `AUTH_COOKIE_DOMAIN` |
+
+Probe `/api/ready` from orchestrators (compose healthchecks already do); `/api/health` only says the process is up.
 
 ## Commands
 

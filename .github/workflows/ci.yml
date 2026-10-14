@@ -1,0 +1,113 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  be:
+    name: Backend (Go)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: be
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: myapp_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      DB_HOST: localhost
+      DB_PORT: "5432"
+      DB_NAME: myapp_test
+      DB_USER: postgres
+      DB_PASSWORD: postgres
+      DB_SSLMODE: disable
+      REDIS_URL: ""
+      NATS_ENABLED: "false"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: be/go.mod
+          cache-dependency-path: be/go.sum
+      - name: gofmt (changed files only)
+        if: github.event_name == 'pull_request'
+        run: |
+          git fetch --no-tags --depth=1 origin "${{ github.base_ref }}"
+          files=$(git diff --name-only --diff-filter=AM FETCH_HEAD -- '*.go' | sed 's#^be/##')
+          [ -z "$files" ] && exit 0
+          unformatted=$(gofmt -l $files)
+          if [ -n "$unformatted" ]; then echo "gofmt needed:"; echo "$unformatted"; exit 1; fi
+      - run: go vet ./...
+      - run: go build ./...
+      - name: Unit tests
+        run: go test -race ./test/unit/...
+      # Integration and e2e share one database, so run packages serially.
+      - name: Integration tests
+        run: go test -p 1 -tags=integration ./test/integration/...
+      - name: E2E tests
+        run: go test -p 1 -tags=e2e ./test/e2e/...
+
+  fe:
+    name: Frontend (Next.js)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: fe
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          package_json_file: fe/package.json
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: fe/pnpm-lock.yaml
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm lint
+      - run: pnpm exec tsc --noEmit
+      - run: pnpm test:run
+      - run: pnpm build
+        env:
+          NEXT_PUBLIC_API_BASE_URL: http://localhost:8080/api
+
+  docker:
+    name: Docker images
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      # Each app builds from its own folder, proving be/ and fe/ stay standalone.
+      - name: Build be image
+        uses: docker/build-push-action@v6
+        with:
+          context: be
+          push: false
+          cache-from: type=gha,scope=be
+          cache-to: type=gha,mode=max,scope=be
+      - name: Build fe image
+        uses: docker/build-push-action@v6
+        with:
+          context: fe
+          push: false
+          cache-from: type=gha,scope=fe
+          cache-to: type=gha,mode=max,scope=fe

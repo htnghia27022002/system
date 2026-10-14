@@ -17,8 +17,10 @@ type RegisterRequest struct {
 	Password string `json:"password" binding:"required,min=8"`
 }
 
+// RefreshRequest carries the refresh token for non-browser clients; browsers send
+// it in the httpOnly refresh_token cookie instead.
 type RefreshRequest struct {
-	RefreshToken string `json:"refreshToken" binding:"required"`
+	RefreshToken string `json:"refreshToken"`
 }
 
 type LogoutRequest struct {
@@ -58,14 +60,14 @@ type AuthUserResponse struct {
 
 type AuthResponse struct {
 	AccessToken  string           `json:"accessToken"`
-	RefreshToken string           `json:"refreshToken"`
+	RefreshToken string           `json:"refreshToken,omitempty"` // empty in cookie mode
 	SessionID    string           `json:"sessionId"`
 	User         AuthUserResponse `json:"user"`
 }
 
 type TokenPairResponse struct {
 	AccessToken  string `json:"accessToken"`
-	RefreshToken string `json:"refreshToken"`
+	RefreshToken string `json:"refreshToken,omitempty"` // empty when sent as a cookie
 	SessionID    string `json:"sessionId"`
 }
 

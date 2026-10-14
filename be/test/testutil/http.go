@@ -46,11 +46,15 @@ func TruncateAuthTables(t *testing.T, db *postgres.Postgres) {
 	}
 }
 
-// NewTestContainer wires the DI container against a test database.
-func NewTestContainer(t *testing.T, db *postgres.Postgres) *app.Container {
+// NewTestContainer wires the DI container against a test database. Options adjust
+// the loaded config (e.g. turn the refresh-token cookie off).
+func NewTestContainer(t *testing.T, db *postgres.Postgres, opts ...func(*config.Config)) *app.Container {
 	t.Helper()
 	cfg := config.Load()
 	cfg.JWTSecret = "integration-test-secret"
+	for _, opt := range opts {
+		opt(&cfg)
+	}
 	container, err := app.NewContainer(cfg, db)
 	if err != nil {
 		t.Fatalf("new container: %v", err)
@@ -58,6 +62,9 @@ func NewTestContainer(t *testing.T, db *postgres.Postgres) *app.Container {
 	t.Cleanup(func() { container.Close() })
 	return container
 }
+
+// WithRefreshInBody returns the refresh token in JSON instead of an httpOnly cookie.
+func WithRefreshInBody(cfg *config.Config) { cfg.Auth.RefreshCookie = false }
 
 // NewTestRouter returns a Gin engine with /api auth routes for HTTP-level tests.
 func NewTestRouter(t *testing.T, container *app.Container) *gin.Engine {

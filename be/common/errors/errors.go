@@ -8,6 +8,8 @@ var (
 	ErrForbidden    = errors.New("forbidden")
 	ErrConflict     = errors.New("conflict")
 	ErrBadRequest   = errors.New("bad request")
+	// ErrTooManyRequests maps to 429 (rate limit, temporary account lockout).
+	ErrTooManyRequests = errors.New("too many requests")
 )
 
 func IsNotFound(err error) bool {

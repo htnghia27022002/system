@@ -2,7 +2,8 @@ export type UserRole = 'admin' | 'user'
 
 export type AuthTokens = {
   accessToken: string
-  refreshToken: string
+  /** Only present when the BE returns it in JSON (AUTH_REFRESH_COOKIE=false). */
+  refreshToken?: string
   /** Refresh-token row id (UUID). Never put this in URLs or query strings. */
   sessionId?: string | null
 }

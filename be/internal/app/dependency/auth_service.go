@@ -1,6 +1,7 @@
 package dependency
 
 import (
+	"be/internal/repository"
 	authsvc "be/internal/services/auth"
 	"be/internal/services/media"
 )
@@ -23,6 +24,12 @@ func NewAuthServices(infra *Infra, mediaSvc *media.Service) *AuthServices {
 		infra.JWT,
 		infra.Config.JWTRefreshTTL,
 		mediaSvc,
+	)
+
+	authService.SetLoginLockout(
+		repository.NewLoginAttemptRepository(infra.DB),
+		infra.Config.Auth.MaxFailedLogins,
+		infra.Config.Auth.LockoutDuration,
 	)
 
 	return &AuthServices{
