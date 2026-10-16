@@ -15,7 +15,8 @@
     "themeSystem": "System",
     "language": "Language",
     "localeEn": "English",
-    "localeVi": "Vietnamese"
+    "localeVi": "Vietnamese",
+    "theme": "Theme"
   },
   "nav": {
     "platform": "Platform",
@@ -44,7 +45,7 @@
     },
     "users": {
       "title": "Users",
-      "description": "Manage user accounts, roles, status, and Super admin.",
+      "description": "Manage accounts, roles, and access across your workspace.",
       "createTitle": "Create user",
       "editTitle": "Edit user",
       "createDescription": "Add an account and assign a role.",
@@ -61,7 +62,8 @@
         "role": "Role",
         "status": "Status",
         "allRoles": "All roles",
-        "allStatuses": "All statuses"
+        "allStatuses": "All statuses",
+        "clear": "Clear filters"
       },
       "tabs": {
         "profile": "Profile",
@@ -72,39 +74,26 @@
         "superAdmin": "Super admin"
       },
       "sections": {
-        "account": "Account details",
         "personal": "Personal information",
-        "access": "Access"
+        "access": "Access",
+        "accessDescription": "What this user can see and do."
       },
       "fields": {
         "name": "Name",
         "email": "Email",
-        "oauth": "OAuth",
-        "index": "#",
-        "createdAt": "Created at",
+        "createdAt": "Created",
         "password": "Password",
-        "passwordOptional": "leave blank to keep current",
         "passwordOptionalHint": "Leave blank to keep the current password.",
         "role": "Role",
         "superAdmin": "Super admin",
         "superAdminHint": "Skip role and permission checks. Only a Super admin can change this flag.",
         "status": "Status",
         "phone": "Phone",
-        "general": "General",
+        "general": "About",
         "birthday": "Birthday",
         "address": "Address",
-        "avatarHint": "Optional. JPEG, PNG, or WebP up to 2 MB."
-      },
-      "actions": {
-        "changeAvatar": "Change avatar",
-        "showPassword": "Show password",
-        "hidePassword": "Hide password"
-      },
-      "toasts": {
-        "avatarUpdated": "Avatar updated"
-      },
-      "errors": {
-        "avatarUpload": "Could not upload avatar"
+        "user": "User",
+        "actions": "Actions"
       },
       "status": {
         "active": "Active",
@@ -118,6 +107,12 @@
         "submit": "Send invitation",
         "hint": "You can change the role later.",
         "resend": "Resend invitation"
+      },
+      "you": "You",
+      "unverified": "Email not verified",
+      "password": {
+        "setTitle": "Sign-in password",
+        "resetTitle": "Reset password"
       }
     },
     "roles": {
@@ -186,10 +181,11 @@
     "sections": {
       "avatar": "Avatar",
       "personalInfo": "Personal information",
-      "identity": "Identity",
-      "personal": "Details",
       "password": "Change password",
-      "sessions": "Sessions"
+      "sessions": "Sessions",
+      "avatarDescription": "Shown in the sidebar and anywhere your account appears.",
+      "personalInfoDescription": "Your name and contact details. Your email is managed by an administrator.",
+      "passwordDescription": "Use at least 8 characters. Longer passwords that mix letters, numbers, and symbols are harder to guess."
     },
     "tabs": {
       "profile": "Profile",
@@ -201,7 +197,7 @@
       "email": "Email",
       "emailHint": "Email cannot be changed here.",
       "phone": "Phone",
-      "general": "General",
+      "general": "About",
       "birthday": "Birthday",
       "address": "Address",
       "socialLinks": "Social links",
@@ -211,53 +207,72 @@
       "socialUrl": "URL",
       "currentPassword": "Current password",
       "newPassword": "New password",
-      "confirmPassword": "Confirm new password"
+      "confirmPassword": "Confirm new password",
+      "generalPlaceholder": "A short introduction about yourself",
+      "emailVerified": "Verified",
+      "emailUnverified": "Not verified",
+      "socialLinksCount": "{{count}} of {{max}} links"
     },
     "avatar": {
       "hint": "JPEG, PNG, or WebP. Maximum 2 MB."
     },
     "actions": {
       "saveProfile": "Save profile",
-      "changeAvatar": "Change avatar",
+      "changeAvatar": "Upload photo",
       "changePassword": "Update password",
       "addLink": "Add link",
       "removeLink": "Remove link",
       "generatePassword": "Generate password",
       "collapseSection": "Collapse {{section}}",
-      "expandSection": "Expand {{section}}"
+      "expandSection": "Expand {{section}}",
+      "discard": "Discard",
+      "showPassword": "Show password",
+      "hidePassword": "Hide password",
+      "copyPassword": "Copy password"
     },
     "empty": {
       "socialLinks": "No social links yet."
     },
     "password": {
       "unavailable": "Password change is unavailable for this account because it has no password credential (for example, sign-in with a provider only).",
-      "generateHint": "Creates a random 16-character password with letters, numbers, and symbols. Copy it before you leave this page."
+      "generateHint": "Creates a random 16-character password with letters, numbers, and symbols. Copy it before you leave this page.",
+      "unavailableTitle": "No password set",
+      "footerHint": "Other devices stay signed in. Revoke them from the Sessions tab if needed.",
+      "match": "Passwords match",
+      "mismatch": "Passwords do not match yet",
+      "requirementMet": "(met)",
+      "requirementUnmet": "(not met)",
+      "strength": {
+        "label": "Strength",
+        "weak": "Weak",
+        "fair": "Fair",
+        "good": "Good",
+        "strong": "Strong"
+      },
+      "requirements": {
+        "length": "At least 8 characters",
+        "mixedCase": "Upper- and lowercase letters",
+        "number": "At least one number",
+        "symbol": "At least one symbol"
+      }
     },
     "toasts": {
       "profileSaved": "Profile saved",
       "avatarUpdated": "Avatar updated",
       "passwordChanged": "Password updated",
-      "passwordGenerated": "New password generated — copy it now"
+      "passwordGenerated": "New password generated — copy it now",
+      "passwordCopied": "Password copied to clipboard"
     },
     "errors": {
       "loadFailed": "Could not load your profile.",
       "saveFailed": "Could not save profile",
       "avatarUpload": "Could not upload avatar",
-      "passwordFailed": "Could not change password"
+      "passwordFailed": "Could not change password",
+      "copyFailed": "Could not copy to clipboard"
     },
     "sessions": {
-      "description": "Active sign-ins for this account. Revoke other devices here; sign out of this device from the user menu.",
-      "count": "{{count}} active",
+      "description": "Devices currently signed in to your account. Revoke any you do not recognize; sign out of this device from the user menu.",
       "current": "This device",
-      "otherDevice": "Other device",
-      "device": "Device",
-      "actions": "Actions",
-      "searchPlaceholder": "Filter by browser or device…",
-      "started": "Started",
-      "expires": "Expires",
-      "lastActivity": "Last activity",
-      "networkAddress": "Network address",
-      "userAgent": "Browser / device",
       "unknown": "Unknown",
       "empty": "No active sessions.",
       "loadFailed": "Could not load sessions.",
@@ -279,7 +294,16 @@
         "revokeFailed": "Could not revoke session",
         "revokeNotFound": "That session is no longer active. The list was refreshed.",
         "revokeOthersFailed": "Could not revoke other sessions"
-      }
+      },
+      "activeCount_one": "{{count}} active session",
+      "activeCount_other": "{{count}} active sessions",
+      "listHint": "Most recent activity first.",
+      "deviceOn": "{{browser}} on {{os}}",
+      "unknownDevice": "Unknown device",
+      "activeNow": "Active now",
+      "lastActive": "Active {{time}}",
+      "signedIn": "Signed in {{date}}",
+      "expiresOn": "Expires {{date}}"
     },
     "verification": {
       "title": "Verify your email address",
@@ -288,7 +312,8 @@
       "resent": "Link sent",
       "sent": "Verification link sent to {{email}}",
       "failed": "Could not send the verification link"
-    }
+    },
+    "unsavedChanges": "You have unsaved changes"
   },
   "system": {
     "audit": {

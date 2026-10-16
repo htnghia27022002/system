@@ -31,6 +31,8 @@ type SocialLinksEditorProps = {
   append: (value: { label?: string; url: string }) => void
   remove: UseFieldArrayRemove
   max?: number
+  /** Hide the label/hint row when a surrounding section already titles it; the add button moves below the list. */
+  hideHeader?: boolean
 }
 
 export function SocialLinksEditor({
@@ -40,35 +42,46 @@ export function SocialLinksEditor({
   append,
   remove,
   max = 5,
+  hideHeader = false,
 }: SocialLinksEditorProps) {
   const { t } = useTranslation('admin')
   const linkErrors = errors.socialLinks
+  const canAdd = fields.length < max
+  const addButton = (
+    <Button
+      type="button"
+      variant="outline"
+      size="sm"
+      disabled={!canAdd}
+      onClick={() => append({ label: '', url: '' })}
+    >
+      <PlusIcon className="size-4" />
+      {t('profile.actions.addLink')}
+    </Button>
+  )
 
   return (
     <FieldGroup>
-      <Field>
-        <div className="flex items-start justify-between gap-2">
-          <div className="min-w-0">
-            <FieldLabel>{t('profile.fields.socialLinks')}</FieldLabel>
-            <FieldDescription>
-              {t('profile.fields.socialLinksHint')}
-            </FieldDescription>
-          </div>
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            disabled={fields.length >= max}
-            onClick={() => append({ label: '', url: '' })}
-          >
-            <PlusIcon className="size-4" />
-            {t('profile.actions.addLink')}
-          </Button>
-        </div>
-        {typeof linkErrors?.message === 'string' ? (
+      {hideHeader ? (
+        typeof linkErrors?.message === 'string' ? (
           <FieldError>{linkErrors.message}</FieldError>
-        ) : null}
-      </Field>
+        ) : null
+      ) : (
+        <Field>
+          <div className="flex items-start justify-between gap-2">
+            <div className="min-w-0">
+              <FieldLabel>{t('profile.fields.socialLinks')}</FieldLabel>
+              <FieldDescription>
+                {t('profile.fields.socialLinksHint')}
+              </FieldDescription>
+            </div>
+            {addButton}
+          </div>
+          {typeof linkErrors?.message === 'string' ? (
+            <FieldError>{linkErrors.message}</FieldError>
+          ) : null}
+        </Field>
+      )}
 
       {fields.length === 0 ? (
         <FieldDescription>{t('profile.empty.socialLinks')}</FieldDescription>
@@ -125,6 +138,15 @@ export function SocialLinksEditor({
           })}
         </ul>
       )}
+
+      {hideHeader ? (
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          {addButton}
+          <span className="text-xs text-muted-foreground">
+            {t('profile.fields.socialLinksCount', { count: fields.length, max })}
+          </span>
+        </div>
+      ) : null}
     </FieldGroup>
   )
 }

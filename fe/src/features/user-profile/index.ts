@@ -7,6 +7,10 @@ export {
 } from './hooks/use-account-sessions'
 export { SocialLinksEditor } from './components/social-links-editor'
 export { AvatarUpload } from './components/avatar-upload'
+export { PasswordInput } from './components/password-input'
+export { PasswordStrengthMeter } from './components/password-strength-meter'
+export { SettingsSection } from './components/settings-section'
+export { evaluatePassword } from './utils/password-strength'
 export {
   personalFieldsSchema,
   emptyPersonalFields,

@@ -83,6 +83,8 @@ export function UserFormDialog({
   const status = useWatch({ control, name: 'status' })
   const name = useWatch({ control, name: 'name' })
   const superAdmin = Boolean(useWatch({ control, name: 'superAdmin' }))
+  const password = useWatch({ control, name: 'password' }) ?? ''
+  const generalLength = useWatch({ control, name: 'general' })?.length ?? 0
   const title = isEdit
     ? t('access.users.editTitle')
     : t('access.users.createTitle')
@@ -130,6 +132,7 @@ export function UserFormDialog({
       onOpenChange={onOpenChange}
       title={title}
       description={description}
+      className="sm:h-[min(46rem,calc(100dvh-2rem))]"
       onSubmit={handleSubmit((values) => {
         const normalized = {
           ...values,
@@ -160,12 +163,15 @@ export function UserFormDialog({
         isEdit={isEdit}
         userId={user?.id}
         userName={name || user?.name || user?.email || ''}
+        userEmail={user?.email}
         avatarUrl={avatarUrl}
         roles={roles}
         roleId={roleId}
         status={status}
         superAdmin={superAdmin}
         canGrantSuperAdmin={isSuperAdmin}
+        password={password}
+        generalLength={generalLength}
         errors={errors}
         register={register}
         setValue={setValue}

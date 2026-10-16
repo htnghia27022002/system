@@ -15,7 +15,8 @@
     "themeSystem": "Hệ thống",
     "language": "Ngôn ngữ",
     "localeEn": "Tiếng Anh",
-    "localeVi": "Tiếng Việt"
+    "localeVi": "Tiếng Việt",
+    "theme": "Giao diện"
   },
   "nav": {
     "platform": "Nền tảng",
@@ -44,7 +45,7 @@
     },
     "users": {
       "title": "Người dùng",
-      "description": "Quản lý tài khoản, vai trò, trạng thái và Super admin.",
+      "description": "Quản lý tài khoản, vai trò và quyền truy cập trong hệ thống.",
       "createTitle": "Tạo người dùng",
       "editTitle": "Sửa người dùng",
       "createDescription": "Thêm tài khoản và gán vai trò.",
@@ -58,7 +59,8 @@
         "role": "Vai trò",
         "status": "Trạng thái",
         "allRoles": "Tất cả vai trò",
-        "allStatuses": "Tất cả trạng thái"
+        "allStatuses": "Tất cả trạng thái",
+        "clear": "Xóa bộ lọc"
       },
       "tabs": {
         "profile": "Hồ sơ",
@@ -69,18 +71,15 @@
         "superAdmin": "Super admin"
       },
       "sections": {
-        "account": "Thông tin tài khoản",
         "personal": "Thông tin cá nhân",
-        "access": "Quyền truy cập"
+        "access": "Quyền truy cập",
+        "accessDescription": "Những gì người dùng này được xem và thao tác."
       },
       "fields": {
         "name": "Tên",
         "email": "Email",
-        "oauth": "OAuth",
-        "index": "#",
         "createdAt": "Ngày tạo",
         "password": "Mật khẩu",
-        "passwordOptional": "để trống nếu giữ mật khẩu cũ",
         "passwordOptionalHint": "Để trống nếu muốn giữ mật khẩu hiện tại.",
         "role": "Vai trò",
         "superAdmin": "Super admin",
@@ -90,18 +89,8 @@
         "general": "Giới thiệu",
         "birthday": "Ngày sinh",
         "address": "Địa chỉ",
-        "avatarHint": "Tùy chọn. JPEG, PNG hoặc WebP tối đa 2 MB."
-      },
-      "actions": {
-        "changeAvatar": "Đổi ảnh đại diện",
-        "showPassword": "Hiện mật khẩu",
-        "hidePassword": "Ẩn mật khẩu"
-      },
-      "toasts": {
-        "avatarUpdated": "Đã cập nhật ảnh đại diện"
-      },
-      "errors": {
-        "avatarUpload": "Không thể tải ảnh đại diện"
+        "user": "Người dùng",
+        "actions": "Thao tác"
       },
       "status": {
         "active": "Hoạt động",
@@ -115,6 +104,12 @@
         "submit": "Gửi lời mời",
         "hint": "Bạn có thể đổi vai trò sau.",
         "resend": "Gửi lại lời mời"
+      },
+      "you": "Bạn",
+      "unverified": "Email chưa xác minh",
+      "password": {
+        "setTitle": "Mật khẩu đăng nhập",
+        "resetTitle": "Đặt lại mật khẩu"
       }
     },
     "roles": {
@@ -178,10 +173,11 @@
     "sections": {
       "avatar": "Ảnh đại diện",
       "personalInfo": "Thông tin cá nhân",
-      "identity": "Định danh",
-      "personal": "Chi tiết",
       "password": "Đổi mật khẩu",
-      "sessions": "Phiên đăng nhập"
+      "sessions": "Phiên đăng nhập",
+      "avatarDescription": "Hiển thị ở thanh bên và mọi nơi tài khoản của bạn xuất hiện.",
+      "personalInfoDescription": "Họ tên và thông tin liên hệ. Email do quản trị viên quản lý.",
+      "passwordDescription": "Dùng ít nhất 8 ký tự. Mật khẩu dài, kết hợp chữ, số và ký hiệu sẽ khó đoán hơn."
     },
     "tabs": {
       "profile": "Hồ sơ",
@@ -203,53 +199,72 @@
       "socialUrl": "URL",
       "currentPassword": "Mật khẩu hiện tại",
       "newPassword": "Mật khẩu mới",
-      "confirmPassword": "Xác nhận mật khẩu mới"
+      "confirmPassword": "Xác nhận mật khẩu mới",
+      "generalPlaceholder": "Vài dòng giới thiệu về bản thân",
+      "emailVerified": "Đã xác minh",
+      "emailUnverified": "Chưa xác minh",
+      "socialLinksCount": "{{count}}/{{max}} liên kết"
     },
     "avatar": {
       "hint": "JPEG, PNG hoặc WebP. Tối đa 2 MB."
     },
     "actions": {
       "saveProfile": "Lưu hồ sơ",
-      "changeAvatar": "Đổi ảnh đại diện",
+      "changeAvatar": "Tải ảnh lên",
       "changePassword": "Cập nhật mật khẩu",
       "addLink": "Thêm liên kết",
       "removeLink": "Xóa liên kết",
       "generatePassword": "Tạo mật khẩu ngẫu nhiên",
       "collapseSection": "Thu gọn {{section}}",
-      "expandSection": "Mở {{section}}"
+      "expandSection": "Mở {{section}}",
+      "discard": "Hủy thay đổi",
+      "showPassword": "Hiện mật khẩu",
+      "hidePassword": "Ẩn mật khẩu",
+      "copyPassword": "Sao chép mật khẩu"
     },
     "empty": {
       "socialLinks": "Chưa có liên kết mạng xã hội."
     },
     "password": {
       "unavailable": "Không thể đổi mật khẩu vì tài khoản này không có mật khẩu (ví dụ đăng nhập bằng nhà cung cấp).",
-      "generateHint": "Tạo mật khẩu ngẫu nhiên 16 ký tự gồm chữ, số và ký hiệu. Hãy sao chép trước khi rời trang này."
+      "generateHint": "Tạo mật khẩu ngẫu nhiên 16 ký tự gồm chữ, số và ký hiệu. Hãy sao chép trước khi rời trang này.",
+      "unavailableTitle": "Chưa đặt mật khẩu",
+      "footerHint": "Các thiết bị khác vẫn đăng nhập. Thu hồi chúng ở tab Phiên đăng nhập nếu cần.",
+      "match": "Mật khẩu khớp",
+      "mismatch": "Mật khẩu chưa khớp",
+      "requirementMet": "(đạt)",
+      "requirementUnmet": "(chưa đạt)",
+      "strength": {
+        "label": "Độ mạnh",
+        "weak": "Yếu",
+        "fair": "Trung bình",
+        "good": "Khá",
+        "strong": "Mạnh"
+      },
+      "requirements": {
+        "length": "Ít nhất 8 ký tự",
+        "mixedCase": "Có chữ hoa và chữ thường",
+        "number": "Có ít nhất một chữ số",
+        "symbol": "Có ít nhất một ký hiệu"
+      }
     },
     "toasts": {
       "profileSaved": "Đã lưu hồ sơ",
       "avatarUpdated": "Đã cập nhật ảnh đại diện",
       "passwordChanged": "Đã cập nhật mật khẩu",
-      "passwordGenerated": "Đã tạo mật khẩu mới — hãy sao chép ngay"
+      "passwordGenerated": "Đã tạo mật khẩu mới — hãy sao chép ngay",
+      "passwordCopied": "Đã sao chép mật khẩu"
     },
     "errors": {
       "loadFailed": "Không tải được hồ sơ.",
       "saveFailed": "Không thể lưu hồ sơ",
       "avatarUpload": "Không thể tải ảnh đại diện",
-      "passwordFailed": "Không thể đổi mật khẩu"
+      "passwordFailed": "Không thể đổi mật khẩu",
+      "copyFailed": "Không thể sao chép"
     },
     "sessions": {
-      "description": "Các phiên đăng nhập đang hoạt động của tài khoản này. Thu hồi thiết bị khác tại đây; đăng xuất thiết bị này từ menu người dùng.",
-      "count": "{{count}} phiên đang hoạt động",
+      "description": "Các thiết bị đang đăng nhập vào tài khoản của bạn. Thu hồi thiết bị bạn không nhận ra; đăng xuất thiết bị này từ menu người dùng.",
       "current": "Thiết bị này",
-      "otherDevice": "Thiết bị khác",
-      "device": "Thiết bị",
-      "actions": "Thao tác",
-      "searchPlaceholder": "Lọc theo trình duyệt hoặc thiết bị…",
-      "started": "Bắt đầu",
-      "expires": "Hết hạn",
-      "lastActivity": "Hoạt động gần nhất",
-      "networkAddress": "Địa chỉ mạng",
-      "userAgent": "Trình duyệt / thiết bị",
       "unknown": "Không rõ",
       "empty": "Không có phiên đăng nhập đang hoạt động.",
       "loadFailed": "Không tải được danh sách phiên.",
@@ -271,7 +286,15 @@
         "revokeFailed": "Không thể thu hồi phiên",
         "revokeNotFound": "Phiên đó không còn hoạt động. Danh sách đã được làm mới.",
         "revokeOthersFailed": "Không thể thu hồi các phiên khác"
-      }
+      },
+      "activeCount_other": "{{count}} phiên đang hoạt động",
+      "listHint": "Hoạt động gần nhất ở trên cùng.",
+      "deviceOn": "{{browser}} trên {{os}}",
+      "unknownDevice": "Thiết bị không xác định",
+      "activeNow": "Đang hoạt động",
+      "lastActive": "Hoạt động {{time}}",
+      "signedIn": "Đăng nhập {{date}}",
+      "expiresOn": "Hết hạn {{date}}"
     },
     "verification": {
       "title": "Xác minh địa chỉ email",
@@ -280,7 +303,8 @@
       "resent": "Đã gửi liên kết",
       "sent": "Đã gửi liên kết xác minh tới {{email}}",
       "failed": "Không gửi được liên kết xác minh"
-    }
+    },
+    "unsavedChanges": "Bạn có thay đổi chưa lưu"
   },
   "system": {
     "audit": {

@@ -38,6 +38,7 @@ const BREADCRUMB_MAP: Record<
     label: 'nav.settings',
     parent: { label: 'nav.system' },
   },
+  '/admin/profile': { label: 'profile.title' },
   // Module routes (src/config/modules.ts)
   ...Object.fromEntries(
     moduleBreadcrumbs.map((b) => [

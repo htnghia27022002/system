@@ -73,15 +73,27 @@ export function FormOverlay({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className={cn('sm:max-w-xl', className)}>
+      <DialogContent
+        className={cn(
+          'max-h-[calc(100dvh-2rem)] grid-rows-[auto_minmax(0,1fr)] sm:max-w-xl',
+          className,
+        )}
+      >
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
           {description ? (
             <DialogDescription>{description}</DialogDescription>
           ) : null}
         </DialogHeader>
-        <form className="grid gap-6" onSubmit={onSubmit} noValidate>
-          {children}
+        <form
+          className="grid min-h-0 grid-rows-[minmax(0,1fr)_auto] gap-6"
+          onSubmit={onSubmit}
+          noValidate
+        >
+          {/* Body scrolls when taller than the viewport; header and footer stay put. */}
+          <div className="-mx-4 grid min-h-0 content-start gap-6 overflow-y-auto px-4">
+            {children}
+          </div>
           <DialogFooter>{footer}</DialogFooter>
         </form>
       </DialogContent>

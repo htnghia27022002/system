@@ -2,12 +2,9 @@
 
 import { Suspense, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import type { ColumnDef } from '@tanstack/react-table'
-
-import { PencilIcon } from 'lucide-react'
+import { XIcon } from 'lucide-react'
 
 import { PageContainer, PageHeader } from '@/components/common/page-layout'
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { DropdownMenuItem } from '@/components/ui/dropdown-menu'
 import {
@@ -17,9 +14,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { StatusBadge } from '@/components/ui/status-badge'
-import { DataTable, DataTableColumnHeader, DataTableSkeleton } from '@/components/common/data-table'
-import { USER_STATUS_MAP } from '../enum-maps'
+import { DataTable, DataTableSkeleton } from '@/components/common/data-table'
+import { useAuthStore } from '@/store/auth-store'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -38,7 +34,13 @@ import { PermissionGate } from './permission-gate'
 import { ServerListSearch } from '@/components/common/server-list-search'
 import { UserFormDialog } from './user-form-dialog'
 import { UserInviteDialog } from './user-invite-dialog'
-import { UserOAuthProviders } from './user-oauth-providers'
+import { UserIdentity } from './user-identity'
+import {
+  buildUserColumns,
+  formatUserDate,
+  UserRoleBadges,
+  UserStatusBadge,
+} from './users-table-columns'
 import { PermissionKeys } from '../permission-keys'
 import { useListQueryParams } from '@/hooks/use-list-query-params'
 import { usePermissions } from '../hooks/use-permissions'
@@ -56,7 +58,7 @@ export function UsersTable() {
     <Suspense
       fallback={
         <PageContainer>
-          <DataTableSkeleton columns={8} />
+          <DataTableSkeleton columns={5} />
         </PageContainer>
       }
     >
@@ -84,6 +86,7 @@ function UsersTableContent() {
     status: (values.status as ManagedUser['status']) || undefined,
     id: values.id || undefined,
   })
+  const currentUserId = useAuthStore((s) => s.user?.id)
   const rolesQuery = useAllRolesList()
   const { canModify, isSuperAdmin } = usePermissions()
   const { createUser, updateUser, deleteUser, inviteUser, resendInvite } =
@@ -101,19 +104,6 @@ function UsersTableContent() {
     () => new Map(roles.map((r) => [r.id, r])),
     [roles],
   )
-
-  const formatCreatedAt = (iso?: string) => {
-    if (!iso) return '—'
-    const d = new Date(iso)
-    if (Number.isNaN(d.getTime())) return iso
-    return d.toLocaleString(i18n.language, {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    })
-  }
 
   const openCreate = () => {
     setDialogMode('create')
@@ -203,137 +193,21 @@ function UsersTableContent() {
       </ListRowActionsMenu>
     ) : null
 
-  const columns = useMemo<ColumnDef<ManagedUser>[]>(
-    () => [
-      {
-        id: 'index',
-        size: 56,
-        enableSorting: false,
-        header: () => (
-          <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-            {t('access.users.fields.index')}
-          </span>
-        ),
-        cell: ({ row }) => (
-          <span className="tabular-nums text-muted-foreground">
-            {(page - 1) * pageSize + row.index + 1}
-          </span>
-        ),
-      },
-      {
-        accessorKey: 'name',
-        header: ({ column }) => (
-          <DataTableColumnHeader
-            column={column}
-            title={t('access.users.fields.name')}
-          />
-        ),
-        cell: ({ row }) => (
-          <button
-            type="button"
-            className="group flex items-center gap-1.5 text-left font-medium hover:text-primary focus-visible:outline-none focus-visible:underline"
-            onClick={() => openEdit(row.original)}
-          >
-            <span className="hover:underline">{row.original.name}</span>
-            <PencilIcon
-              className="size-3 shrink-0 text-muted-foreground/0 transition-colors group-hover:text-muted-foreground"
-              aria-hidden
-            />
-          </button>
-        ),
-      },
-      {
-        accessorKey: 'email',
-        header: ({ column }) => (
-          <DataTableColumnHeader
-            column={column}
-            title={t('access.users.fields.email')}
-          />
-        ),
-      },
-      {
-        id: 'oauth',
-        accessorFn: (row) => (row.oauthProviders ?? []).join(','),
-        enableSorting: false,
-        header: ({ column }) => (
-          <DataTableColumnHeader
-            column={column}
-            title={t('access.users.fields.oauth')}
-          />
-        ),
-        cell: ({ row }) => (
-          <UserOAuthProviders providers={row.original.oauthProviders} />
-        ),
-      },
-      {
-        id: 'role',
-        accessorFn: (row) => roleById.get(row.roleId)?.name ?? '',
-        header: ({ column }) => (
-          <DataTableColumnHeader
-            column={column}
-            title={t('access.users.fields.role')}
-          />
-        ),
-        cell: ({ row, getValue }) => {
-          const name = getValue<string>()
-          return (
-            <span className="inline-flex flex-wrap items-center gap-1">
-              {name ? (
-                <Badge variant="secondary">{name}</Badge>
-              ) : (
-                <span className="text-muted-foreground">—</span>
-              )}
-              {row.original.superAdmin ? (
-                <Badge>{t('access.users.badge.superAdmin')}</Badge>
-              ) : null}
-            </span>
-          )
-        },
-      },
-      {
-        accessorKey: 'status',
-        header: ({ column }) => (
-          <DataTableColumnHeader
-            column={column}
-            title={t('access.users.fields.status')}
-          />
-        ),
-        cell: ({ row }) => {
-          const status = row.original.status
-          const cfg = USER_STATUS_MAP[status]
-          return (
-            <StatusBadge
-              variant={cfg.variant}
-              pulse={cfg.pulse}
-              label={t(`access.users.status.${status}`)}
-            />
-          )
-        },
-      },
-      {
-        accessorKey: 'createdAt',
-        header: ({ column }) => (
-          <DataTableColumnHeader
-            column={column}
-            title={t('access.users.fields.createdAt')}
-          />
-        ),
-        cell: ({ row }) => (
-          <span className="text-muted-foreground tabular-nums">
-            {formatCreatedAt(row.original.createdAt)}
-          </span>
-        ),
-      },
-      {
-        id: 'actions',
-        size: 48,
-        enableSorting: false,
-        cell: ({ row }) => renderActions(row.original),
-      },
-    ],
+  const columns = useMemo(
+    () =>
+      buildUserColumns({
+        t,
+        locale: i18n.language,
+        roleById,
+        currentUserId,
+        onOpen: canManageUsers ? openEdit : undefined,
+        renderActions,
+      }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [t, i18n.language, roleById, canManageUsers, page, pageSize],
+    [t, i18n.language, roleById, canManageUsers, currentUserId],
   )
+
+  const hasFilters = Boolean(values.search || values.roleId || values.status)
 
   if (usersQuery.isLoading || rolesQuery.isLoading) {
     return (
@@ -342,7 +216,7 @@ function UsersTableContent() {
           title={t('access.users.title')}
           description={t('access.users.description')}
         />
-          <DataTableSkeleton columns={8} />
+        <DataTableSkeleton columns={5} />
       </PageContainer>
     )
   }
@@ -472,61 +346,49 @@ function UsersTableContent() {
                 </SelectItem>
               </SelectContent>
             </Select>
+            {hasFilters ? (
+              <Button
+                type="button"
+                variant="ghost"
+                className="w-full sm:w-auto"
+                onClick={() =>
+                  setParams({ search: undefined, roleId: undefined, status: undefined })
+                }
+              >
+                <XIcon />
+                {t('access.users.filters.clear')}
+              </Button>
+            ) : null}
           </div>
         }
-        renderMobileCard={(user) => {
-          const role = roleById.get(user.roleId)
-          return (
-            <MobileRecordCard
-              title={user.name}
-              actions={renderActions(user)}
-              fields={[
-                {
-                  label: t('access.users.fields.email'),
-                  value: (
-                    <span className="break-all text-right">{user.email}</span>
-                  ),
-                },
-                {
-                  label: t('access.users.fields.oauth'),
-                  value: <UserOAuthProviders providers={user.oauthProviders} />,
-                },
-                {
-                  label: t('access.users.fields.role'),
-                  value: (
-                    <span className="inline-flex flex-wrap items-center justify-end gap-1">
-                      {role ? (
-                        <Badge variant="secondary">{role.name}</Badge>
-                      ) : (
-                        '—'
-                      )}
-                      {user.superAdmin ? (
-                        <Badge>{t('access.users.badge.superAdmin')}</Badge>
-                      ) : null}
-                    </span>
-                  ),
-                },
-                {
-                  label: t('access.users.fields.status'),
-                  value: (() => {
-                    const cfg = USER_STATUS_MAP[user.status]
-                    return (
-                      <StatusBadge
-                        variant={cfg.variant}
-                        pulse={cfg.pulse}
-                        label={t(`access.users.status.${user.status}`)}
-                      />
-                    )
-                  })(),
-                },
-                {
-                  label: t('access.users.fields.createdAt'),
-                  value: formatCreatedAt(user.createdAt),
-                },
-              ]}
-            />
-          )
-        }}
+        renderMobileCard={(user) => (
+          <MobileRecordCard
+            title={
+              <UserIdentity
+                user={user}
+                isCurrentUser={user.id === currentUserId}
+                onOpen={canManageUsers ? () => openEdit(user) : undefined}
+              />
+            }
+            actions={renderActions(user)}
+            fields={[
+              {
+                label: t('access.users.fields.role'),
+                value: (
+                  <UserRoleBadges user={user} role={roleById.get(user.roleId)} t={t} />
+                ),
+              },
+              {
+                label: t('access.users.fields.status'),
+                value: <UserStatusBadge user={user} t={t} />,
+              },
+              {
+                label: t('access.users.fields.createdAt'),
+                value: formatUserDate(user.createdAt, i18n.language),
+              },
+            ]}
+          />
+        )}
       />
 
       <UserInviteDialog

@@ -64,6 +64,7 @@ describe('AccountSessionsCard', () => {
     for (const currentRow of currentRows) {
       expect(currentRow).toHaveAttribute('data-current', 'true')
       expect(within(currentRow).getByText('This device')).toBeInTheDocument()
+      expect(within(currentRow).getByText('Chrome on Linux')).toBeInTheDocument()
       expect(
         within(currentRow).queryByRole('button', { name: 'Revoke' }),
       ).not.toBeInTheDocument()

@@ -1,6 +1,6 @@
 'use client'
 
-import { useRef, useState } from 'react'
+import { useState } from 'react'
 import type {
   FieldErrors,
   UseFieldArrayAppend,
@@ -11,10 +11,14 @@ import type {
 } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
-import axios from 'axios'
-import { EyeIcon, EyeOffIcon, WandSparklesIcon } from 'lucide-react'
+import {
+  CopyIcon,
+  KeyRoundIcon,
+  ShieldCheckIcon,
+  SparklesIcon,
+  UserRoundIcon,
+} from 'lucide-react'
 
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import {
@@ -26,17 +30,7 @@ import {
   FieldLabel,
 } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
-import {
-  InputGroup,
-  InputGroupAddon,
-  InputGroupButton,
-  InputGroupInput,
-} from '@/components/ui/input-group'
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from '@/components/ui/tooltip'
+import { InputGroupButton } from '@/components/ui/input-group'
 import {
   Select,
   SelectContent,
@@ -44,16 +38,19 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { Separator } from '@/components/ui/separator'
 import { Spinner } from '@/components/ui/spinner'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Textarea } from '@/components/ui/textarea'
 import {
+  AvatarUpload,
+  PasswordInput,
+  PasswordStrengthMeter,
   SocialLinksEditor,
+  evaluatePassword,
   generateSecurePassword,
-  validateAvatarFile,
 } from '@/features/user-profile'
-import { useInitials } from '@/hooks/use-initials'
-import { resolveMediaUrl } from '@/utils/resolve-media-url'
+import { cn } from '@/lib/utils'
 
 import type {
   CreateUserFormValues,
@@ -64,16 +61,27 @@ import type { Role } from '../types'
 
 type UserFormValues = CreateUserFormValues | UpdateUserFormValues
 
+const GENERAL_MAX = 1000
+
+const TAB_ICONS = {
+  profile: UserRoundIcon,
+  password: KeyRoundIcon,
+  account: ShieldCheckIcon,
+} as const
+
 type UserFormFieldsProps = {
   isEdit: boolean
   userId?: string
   userName: string
+  userEmail?: string
   avatarUrl?: string | null
   roles: Role[]
   roleId: string
   status: string
   superAdmin: boolean
   canGrantSuperAdmin: boolean
+  password: string
+  generalLength: number
   errors: FieldErrors<UserFormValues>
   register: UseFormRegister<UserFormValues>
   setValue: UseFormSetValue<UserFormValues>
@@ -83,16 +91,28 @@ type UserFormFieldsProps = {
   onAvatarUpdated?: (avatarUrl: string) => void
 }
 
+function SectionHeading({ title, description }: { title: string; description?: string }) {
+  return (
+    <div className="space-y-0.5">
+      <h3 className="text-sm font-semibold">{title}</h3>
+      {description ? <p className="text-xs text-muted-foreground">{description}</p> : null}
+    </div>
+  )
+}
+
 export function UserFormFields({
   isEdit,
   userId,
   userName,
+  userEmail,
   avatarUrl,
   roles,
   roleId,
   status,
   superAdmin,
   canGrantSuperAdmin,
+  password,
+  generalLength,
   errors,
   register,
   setValue,
@@ -102,142 +122,91 @@ export function UserFormFields({
   onAvatarUpdated,
 }: UserFormFieldsProps) {
   const { t } = useTranslation('admin')
-  const getInitials = useInitials()
-  const inputRef = useRef<HTMLInputElement>(null)
-  const [avatarPending, setAvatarPending] = useState(false)
-  const [avatarError, setAvatarError] = useState<string | null>(null)
   const [revealPassword, setRevealPassword] = useState(false)
-  const avatarSrc = resolveMediaUrl(avatarUrl ?? undefined)
-
-  const onAvatarPick = async (file: File | undefined) => {
-    if (!file || !userId || !isEdit) return
-    const clientError = validateAvatarFile(file)
-    if (clientError) {
-      setAvatarError(clientError)
-      return
-    }
-    setAvatarError(null)
-    setAvatarPending(true)
-    try {
-      const updated = await accessControlApi.uploadUserAvatar(userId, file)
-      onAvatarUpdated?.(updated.avatarUrl ?? '')
-      toast.success(t('access.users.toasts.avatarUpdated'))
-    } catch (error) {
-      const message = axios.isAxiosError(error)
-        ? (error.response?.data as { message?: string } | undefined)?.message ||
-          t('access.users.errors.avatarUpload')
-        : t('access.users.errors.avatarUpload')
-      setAvatarError(message)
-      toast.error(message)
-    } finally {
-      setAvatarPending(false)
-      if (inputRef.current) inputRef.current.value = ''
-    }
-  }
 
   const fillGeneratedPassword = () => {
-    const password = generateSecurePassword()
-    setValue('password', password, { shouldDirty: true, shouldValidate: true })
+    setValue('password', generateSecurePassword(), { shouldDirty: true, shouldValidate: true })
+    setRevealPassword(true)
     toast.success(t('profile.toasts.passwordGenerated'))
   }
 
+  const copyPassword = async () => {
+    if (!password) return
+    try {
+      await navigator.clipboard.writeText(password)
+      toast.success(t('profile.toasts.passwordCopied'))
+    } catch {
+      toast.error(t('profile.errors.copyFailed'))
+    }
+  }
+
   return (
-    <Tabs defaultValue="profile" className="w-full min-w-0 gap-6">
-      <TabsList variant="line" className="h-auto w-fit justify-start pb-1">
-        <TabsTrigger value="profile" className="flex-none px-3">
-          {t('access.users.tabs.profile')}
-        </TabsTrigger>
-        <TabsTrigger value="password" className="flex-none px-3">
-          {t('access.users.tabs.password')}
-        </TabsTrigger>
-        <TabsTrigger value="account" className="flex-none px-3">
-          {t('access.users.tabs.account')}
-        </TabsTrigger>
-      </TabsList>
+    <Tabs defaultValue="profile" className="w-full min-w-0 gap-5">
+      <div className="-mx-4 overflow-x-auto border-b border-border px-4">
+        <TabsList variant="line" className="h-10 w-max justify-start gap-4 p-0">
+          {(['profile', 'password', 'account'] as const).map((value) => {
+            const Icon = TAB_ICONS[value]
+            return (
+              <TabsTrigger key={value} value={value} className="flex-none px-1 pb-2">
+                <Icon aria-hidden />
+                {t(`access.users.tabs.${value}`)}
+              </TabsTrigger>
+            )
+          })}
+        </TabsList>
+      </div>
 
       <TabsContent value="profile" className="min-w-0">
-        <FieldGroup>
-          {isEdit ? (
-            <Field>
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-                <Avatar className="h-16 w-16 overflow-hidden rounded-full">
-                  <AvatarImage src={avatarSrc} alt={userName} />
-                  <AvatarFallback>{getInitials(userName)}</AvatarFallback>
-                </Avatar>
-                <FieldContent>
-                  <FieldDescription>
-                    {t('access.users.fields.avatarHint')}
-                  </FieldDescription>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    disabled={avatarPending || !userId}
-                    onClick={() => inputRef.current?.click()}
-                  >
-                    {avatarPending ? <Spinner className="size-4" /> : null}
-                    {t('access.users.actions.changeAvatar')}
-                  </Button>
-                  <input
-                    ref={inputRef}
-                    type="file"
-                    accept="image/jpeg,image/png,image/webp"
-                    className="sr-only"
-                    aria-label={t('access.users.actions.changeAvatar')}
-                    onChange={(event) =>
-                      void onAvatarPick(event.target.files?.[0])
-                    }
-                  />
-                  <FieldError>{avatarError}</FieldError>
-                </FieldContent>
-              </div>
-            </Field>
+        <FieldGroup className="gap-5">
+          {isEdit && userId ? (
+            <>
+              <AvatarUpload
+                name={userName}
+                subtitle={userEmail}
+                avatarUrl={avatarUrl}
+                upload={(file) => accessControlApi.uploadUserAvatar(userId, file)}
+                onUploaded={(url) => onAvatarUpdated?.(url)}
+              />
+              <Separator />
+            </>
           ) : null}
+
+          <SectionHeading title={t('access.users.sections.personal')} />
 
           <div className="grid min-w-0 gap-4 sm:grid-cols-2">
             <Field data-invalid={Boolean(errors.name)}>
-              <FieldLabel htmlFor="user-name">
-                {t('access.users.fields.name')}
-              </FieldLabel>
+              <FieldLabel htmlFor="user-name">{t('access.users.fields.name')}</FieldLabel>
               <Input
                 id="user-name"
+                autoComplete="off"
                 aria-invalid={Boolean(errors.name)}
                 {...register('name')}
               />
               <FieldError errors={[errors.name]} />
             </Field>
-
             <Field data-invalid={Boolean(errors.email)}>
-              <FieldLabel htmlFor="user-email">
-                {t('access.users.fields.email')}
-              </FieldLabel>
+              <FieldLabel htmlFor="user-email">{t('access.users.fields.email')}</FieldLabel>
               <Input
                 id="user-email"
                 type="email"
-                autoComplete="email"
+                autoComplete="off"
                 aria-invalid={Boolean(errors.email)}
                 {...register('email')}
               />
               <FieldError errors={[errors.email]} />
             </Field>
-          </div>
-
-          <div className="grid min-w-0 gap-4 sm:grid-cols-2">
             <Field data-invalid={Boolean(errors.phone)}>
-              <FieldLabel htmlFor="user-phone">
-                {t('access.users.fields.phone')}
-              </FieldLabel>
+              <FieldLabel htmlFor="user-phone">{t('access.users.fields.phone')}</FieldLabel>
               <Input
                 id="user-phone"
+                type="tel"
                 aria-invalid={Boolean(errors.phone)}
                 {...register('phone')}
               />
               <FieldError errors={[errors.phone]} />
             </Field>
             <Field data-invalid={Boolean(errors.birthday)}>
-              <FieldLabel htmlFor="user-birthday">
-                {t('access.users.fields.birthday')}
-              </FieldLabel>
+              <FieldLabel htmlFor="user-birthday">{t('access.users.fields.birthday')}</FieldLabel>
               <Input
                 id="user-birthday"
                 type="date"
@@ -249,9 +218,17 @@ export function UserFormFields({
           </div>
 
           <Field data-invalid={Boolean(errors.general)}>
-            <FieldLabel htmlFor="user-general">
-              {t('access.users.fields.general')}
-            </FieldLabel>
+            <div className="flex items-baseline justify-between gap-2">
+              <FieldLabel htmlFor="user-general">{t('access.users.fields.general')}</FieldLabel>
+              <span
+                className={cn(
+                  'text-xs tabular-nums',
+                  generalLength > GENERAL_MAX ? 'text-destructive' : 'text-muted-foreground',
+                )}
+              >
+                {generalLength} / {GENERAL_MAX}
+              </span>
+            </div>
             <Textarea
               id="user-general"
               rows={3}
@@ -262,9 +239,7 @@ export function UserFormFields({
           </Field>
 
           <Field data-invalid={Boolean(errors.address)}>
-            <FieldLabel htmlFor="user-address">
-              {t('access.users.fields.address')}
-            </FieldLabel>
+            <FieldLabel htmlFor="user-address">{t('access.users.fields.address')}</FieldLabel>
             <Textarea
               id="user-address"
               rows={2}
@@ -274,91 +249,88 @@ export function UserFormFields({
             <FieldError errors={[errors.address]} />
           </Field>
 
+          <Separator />
+
+          <SectionHeading
+            title={t('profile.fields.socialLinks')}
+            description={t('profile.fields.socialLinksHint')}
+          />
           <SocialLinksEditor
             fields={socialFields}
             register={register}
             errors={errors}
             append={appendSocial}
             remove={removeSocial}
+            hideHeader
           />
         </FieldGroup>
       </TabsContent>
 
       <TabsContent value="password" className="min-w-0">
-        <FieldGroup>
-          <Field data-invalid={Boolean(errors.password)}>
-            <FieldLabel htmlFor="user-password">
-              {t('access.users.fields.password')}
-            </FieldLabel>
-            <FieldDescription>
-              {isEdit
+        <FieldGroup className="gap-5">
+          <SectionHeading
+            title={isEdit ? t('access.users.password.resetTitle') : t('access.users.password.setTitle')}
+            description={
+              isEdit
                 ? t('access.users.fields.passwordOptionalHint')
-                : t('profile.password.generateHint')}
-            </FieldDescription>
-            <InputGroup>
-              <InputGroupInput
-                id="user-password"
-                type={revealPassword ? 'text' : 'password'}
-                autoComplete="new-password"
-                spellCheck={false}
-                aria-invalid={Boolean(errors.password)}
-                {...register('password')}
-              />
-              <InputGroupAddon align="inline-end">
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <InputGroupButton
-                      size="icon-xs"
-                      aria-label={
-                        revealPassword
-                          ? t('access.users.actions.hidePassword')
-                          : t('access.users.actions.showPassword')
-                      }
-                      onClick={() => setRevealPassword((open) => !open)}
-                    >
-                      {revealPassword ? (
-                        <EyeOffIcon className="size-3.5" />
-                      ) : (
-                        <EyeIcon className="size-3.5" />
-                      )}
-                    </InputGroupButton>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    {revealPassword
-                      ? t('access.users.actions.hidePassword')
-                      : t('access.users.actions.showPassword')}
-                  </TooltipContent>
-                </Tooltip>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <InputGroupButton
-                      size="icon-xs"
-                      aria-label={t('profile.actions.generatePassword')}
-                      onClick={fillGeneratedPassword}
-                    >
-                      <WandSparklesIcon className="size-3.5" />
-                    </InputGroupButton>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    {t('profile.actions.generatePassword')}
-                  </TooltipContent>
-                </Tooltip>
-              </InputGroupAddon>
-            </InputGroup>
+                : t('profile.sections.passwordDescription')
+            }
+          />
+          <Field data-invalid={Boolean(errors.password)}>
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <FieldLabel htmlFor="user-password">{t('access.users.fields.password')}</FieldLabel>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="text-primary hover:text-primary"
+                onClick={fillGeneratedPassword}
+              >
+                <SparklesIcon />
+                {t('profile.actions.generatePassword')}
+              </Button>
+            </div>
+            <PasswordInput
+              id="user-password"
+              autoComplete="new-password"
+              aria-invalid={Boolean(errors.password)}
+              aria-describedby="user-password-strength"
+              revealed={revealPassword}
+              onToggleReveal={() => setRevealPassword((open) => !open)}
+              extraActions={
+                password ? (
+                  <InputGroupButton
+                    size="icon-xs"
+                    aria-label={t('profile.actions.copyPassword')}
+                    onClick={() => void copyPassword()}
+                  >
+                    <CopyIcon />
+                  </InputGroupButton>
+                ) : null
+              }
+              {...register('password')}
+            />
             <FieldError errors={[errors.password]} />
+            {!isEdit || password ? (
+              <PasswordStrengthMeter
+                id="user-password-strength"
+                strength={evaluatePassword(password)}
+              />
+            ) : null}
           </Field>
         </FieldGroup>
       </TabsContent>
 
       <TabsContent value="account" className="min-w-0">
-        <FieldGroup>
+        <FieldGroup className="gap-5">
+          <SectionHeading
+            title={t('access.users.sections.access')}
+            description={t('access.users.sections.accessDescription')}
+          />
           <div className="grid min-w-0 gap-4 sm:grid-cols-2">
             <Field data-invalid={Boolean(errors.roleId)}>
               <FieldLabel>{t('access.users.fields.role')}</FieldLabel>
-              <Select
-                value={roleId}
-                onValueChange={(value) => setValue('roleId', value)}
-              >
+              <Select value={roleId} onValueChange={(value) => setValue('roleId', value)}>
                 <SelectTrigger className="w-full min-w-0">
                   <SelectValue placeholder={t('access.users.fields.role')} />
                 </SelectTrigger>
@@ -377,9 +349,7 @@ export function UserFormFields({
               <FieldLabel>{t('access.users.fields.status')}</FieldLabel>
               <Select
                 value={status}
-                onValueChange={(value) =>
-                  setValue('status', value as 'active' | 'inactive')
-                }
+                onValueChange={(value) => setValue('status', value as 'active' | 'inactive')}
                 disabled={status === 'invited'}
               >
                 <SelectTrigger className="w-full min-w-0">
@@ -391,37 +361,37 @@ export function UserFormFields({
                       {t('access.users.status.invited')}
                     </SelectItem>
                   ) : null}
-                  <SelectItem value="active">
-                    {t('access.users.status.active')}
-                  </SelectItem>
-                  <SelectItem value="inactive">
-                    {t('access.users.status.inactive')}
-                  </SelectItem>
+                  <SelectItem value="active">{t('access.users.status.active')}</SelectItem>
+                  <SelectItem value="inactive">{t('access.users.status.inactive')}</SelectItem>
                 </SelectContent>
               </Select>
             </Field>
           </div>
 
           {canGrantSuperAdmin ? (
-            <Field orientation="horizontal">
+            <label
+              htmlFor="user-super-admin"
+              className={cn(
+                'flex cursor-pointer items-start gap-3 rounded-lg border p-3 transition-colors hover:bg-muted/50 motion-reduce:transition-none',
+                superAdmin ? 'border-primary bg-primary/5 hover:bg-primary/5' : 'border-border',
+              )}
+            >
               <Checkbox
                 id="user-super-admin"
+                className="mt-0.5"
                 checked={superAdmin}
                 onCheckedChange={(checked) =>
-                  setValue('superAdmin', checked === true, {
-                    shouldDirty: true,
-                  })
+                  setValue('superAdmin', checked === true, { shouldDirty: true })
                 }
               />
               <FieldContent>
-                <FieldLabel htmlFor="user-super-admin">
+                <span className="flex items-center gap-1.5 text-sm font-medium">
+                  <ShieldCheckIcon className="size-4 text-primary" aria-hidden />
                   {t('access.users.fields.superAdmin')}
-                </FieldLabel>
-                <FieldDescription>
-                  {t('access.users.fields.superAdminHint')}
-                </FieldDescription>
+                </span>
+                <FieldDescription>{t('access.users.fields.superAdminHint')}</FieldDescription>
               </FieldContent>
-            </Field>
+            </label>
           ) : null}
         </FieldGroup>
       </TabsContent>

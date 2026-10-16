@@ -3,6 +3,7 @@
 import { useTranslation } from 'react-i18next'
 
 import { GoogleIcon } from '@/components/icons/google-icon'
+import { cn } from '@/lib/utils'
 import {
   Tooltip,
   TooltipContent,
@@ -11,6 +12,8 @@ import {
 
 type UserOAuthProvidersProps = {
   providers?: string[] | null
+  /** Smaller, borderless marks for inline use next to text. */
+  compact?: boolean
 }
 
 function providerLabel(provider: string): string {
@@ -22,7 +25,7 @@ function providerLabel(provider: string): string {
   }
 }
 
-export function UserOAuthProviders({ providers }: UserOAuthProvidersProps) {
+export function UserOAuthProviders({ providers, compact = false }: UserOAuthProvidersProps) {
   const { t } = useTranslation('admin')
   const list = (providers ?? []).filter(Boolean)
 
@@ -31,7 +34,7 @@ export function UserOAuthProviders({ providers }: UserOAuthProvidersProps) {
   }
 
   return (
-    <div className="flex items-center gap-1.5">
+    <div className={cn('flex items-center', compact ? 'gap-1' : 'gap-1.5')}>
       {list.map((provider) => {
         const key = provider.toLowerCase()
         const label = providerLabel(provider)
@@ -40,12 +43,15 @@ export function UserOAuthProviders({ providers }: UserOAuthProvidersProps) {
             <Tooltip key={provider}>
               <TooltipTrigger asChild>
                 <span
-                  className="inline-flex size-6 items-center justify-center rounded-md border border-border bg-background"
+                  className={cn(
+                    'inline-flex items-center justify-center',
+                    compact ? 'size-4' : 'size-6 rounded-md border border-border bg-background',
+                  )}
                   aria-label={t('access.users.oauth.google', {
                     defaultValue: 'Google',
                   })}
                 >
-                  <GoogleIcon className="size-3.5" />
+                  <GoogleIcon className={compact ? 'size-3' : 'size-3.5'} />
                 </span>
               </TooltipTrigger>
               <TooltipContent side="top">{label}</TooltipContent>

@@ -2,12 +2,12 @@
 
 import Link from 'next/link'
 import {
-  CheckIcon,
+  LanguagesIcon,
   LogOutIcon,
   MonitorIcon,
   MoonIcon,
-  SettingsIcon,
   SunIcon,
+  UserRoundCogIcon,
 } from 'lucide-react'
 import { useTheme } from 'next-themes'
 import { useTranslation } from 'react-i18next'
@@ -16,7 +16,13 @@ import {
   DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
+  DropdownMenuPortal,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
   DropdownMenuSeparator,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
 } from '@/components/ui/dropdown-menu'
 import {
   LOCALE_OPTIONS,
@@ -25,7 +31,6 @@ import {
 } from '@/components/common/locale-flags'
 import { UserInfo } from '@/components/common/user-info'
 import { useSignOut } from '@/features/auth'
-import { cn } from '@/lib/utils'
 import type { AuthUser } from '@/types/auth'
 
 type UserMenuContentProps = {
@@ -36,7 +41,7 @@ type UserMenuContentProps = {
 export function UserMenuContent({ user, onNavigate }: UserMenuContentProps) {
   const { t, i18n } = useTranslation('admin')
   const signOut = useSignOut()
-  const { theme, setTheme } = useTheme()
+  const { theme = 'system', setTheme } = useTheme()
   const activeLocale = normalizeLocale(i18n.language)
 
   const themes = [
@@ -44,80 +49,87 @@ export function UserMenuContent({ user, onNavigate }: UserMenuContentProps) {
     { value: 'dark', icon: MoonIcon, label: t('userMenu.themeDark') },
     { value: 'system', icon: MonitorIcon, label: t('userMenu.themeSystem') },
   ] as const
-
-  const selectLocale = (code: LocaleCode) => {
-    if (code !== activeLocale) {
-      void i18n.changeLanguage(code)
-    }
-  }
+  const activeTheme = themes.find((item) => item.value === theme) ?? themes[2]
+  const ThemeIcon = activeTheme.icon
+  const activeLocaleOption =
+    LOCALE_OPTIONS.find((option) => option.code === activeLocale) ?? LOCALE_OPTIONS[0]
 
   return (
     <>
       <DropdownMenuLabel className="p-0 font-normal">
-        <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
+        <div className="flex items-center gap-2 px-1.5 py-1.5 text-left text-sm">
           <UserInfo user={user} showEmail />
         </div>
       </DropdownMenuLabel>
       <DropdownMenuSeparator />
 
       <DropdownMenuGroup>
-        {themes.map(({ value, icon: Icon, label }) => (
-          <DropdownMenuItem key={value} onClick={() => setTheme(value)}>
-            <Icon className="size-4" />
-            {label}
-            {theme === value ? <CheckIcon className="ml-auto size-3.5" /> : null}
-          </DropdownMenuItem>
-        ))}
+        <DropdownMenuItem asChild>
+          <Link href="/admin/profile" onClick={() => onNavigate?.()}>
+            <UserRoundCogIcon />
+            {t('userMenu.settings')}
+          </Link>
+        </DropdownMenuItem>
+
+        <DropdownMenuSub>
+          <DropdownMenuSubTrigger>
+            <ThemeIcon />
+            {t('userMenu.theme')}
+            <span className="ml-auto text-xs text-muted-foreground">{activeTheme.label}</span>
+          </DropdownMenuSubTrigger>
+          <DropdownMenuPortal>
+            <DropdownMenuSubContent className="min-w-36">
+              <DropdownMenuRadioGroup value={theme} onValueChange={setTheme}>
+                {themes.map(({ value, icon: Icon, label }) => (
+                  <DropdownMenuRadioItem key={value} value={value}>
+                    <Icon />
+                    {label}
+                  </DropdownMenuRadioItem>
+                ))}
+              </DropdownMenuRadioGroup>
+            </DropdownMenuSubContent>
+          </DropdownMenuPortal>
+        </DropdownMenuSub>
+
+        <DropdownMenuSub>
+          <DropdownMenuSubTrigger>
+            <LanguagesIcon />
+            {t('userMenu.language')}
+            <span className="ml-auto flex items-center gap-1.5 text-xs text-muted-foreground">
+              <activeLocaleOption.Flag className="h-3 w-4" />
+              {activeLocaleOption.code.toUpperCase()}
+            </span>
+          </DropdownMenuSubTrigger>
+          <DropdownMenuPortal>
+            <DropdownMenuSubContent className="min-w-40">
+              <DropdownMenuRadioGroup
+                value={activeLocale}
+                onValueChange={(code) => {
+                  if (code !== activeLocale) void i18n.changeLanguage(code as LocaleCode)
+                }}
+              >
+                {LOCALE_OPTIONS.map(({ code, label, Flag }) => (
+                  <DropdownMenuRadioItem key={code} value={code}>
+                    <Flag />
+                    {label}
+                  </DropdownMenuRadioItem>
+                ))}
+              </DropdownMenuRadioGroup>
+            </DropdownMenuSubContent>
+          </DropdownMenuPortal>
+        </DropdownMenuSub>
       </DropdownMenuGroup>
-
-      <DropdownMenuSeparator />
-
-      <DropdownMenuLabel className="px-2 py-1.5 text-xs font-normal text-muted-foreground">
-        {t('userMenu.language')}
-      </DropdownMenuLabel>
-      <DropdownMenuGroup>
-        {LOCALE_OPTIONS.map(({ code, label, Flag }) => {
-          const isActive = activeLocale === code
-          return (
-            <DropdownMenuItem
-              key={code}
-              onSelect={(event) => {
-                event.preventDefault()
-                selectLocale(code)
-              }}
-              aria-current={isActive ? 'true' : undefined}
-              className={cn(isActive && 'bg-accent')}
-            >
-              <Flag />
-              <span>{label}</span>
-              {isActive ? <CheckIcon className="ml-auto size-3.5" /> : null}
-            </DropdownMenuItem>
-          )
-        })}
-      </DropdownMenuGroup>
-
-      <DropdownMenuSeparator />
-
-      <DropdownMenuItem asChild>
-        <Link
-          href="/admin/profile"
-          onClick={() => onNavigate?.()}
-        >
-          <SettingsIcon className="size-4" />
-          {t('userMenu.settings')}
-        </Link>
-      </DropdownMenuItem>
 
       <DropdownMenuSeparator />
 
       <DropdownMenuItem
-        className="text-destructive focus:text-destructive"
+        variant="destructive"
         onClick={() => {
           onNavigate?.()
           signOut.mutate()
         }}
       >
-        <LogOutIcon className="size-4" />
+        <LogOutIcon />
         {t('userMenu.signOut')}
       </DropdownMenuItem>
     </>
